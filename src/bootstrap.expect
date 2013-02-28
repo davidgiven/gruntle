@@ -1,0 +1,47 @@
+spawn moo -e db/Stunt.db db/minimal.db
+expect "MOO (#5): "
+foreach arg $::argv {
+	set f [open $arg]
+	set data [read $f]
+	close $f
+	set lines [split $data \n]
+	while {[llength $lines] > 0} {
+		set line [lindex $lines 0]
+		set lines [lreplace $lines 0 0]
+		
+		if [string match "" $line] {
+			continue
+		} elseif [string match "#*" $line] {
+			continue
+		} elseif [string match ";*" $line] {
+			send $line
+			send "\r"
+		} elseif [string match "program *" $line] {
+			set plines $line
+			append plines "\r"
+			while {! [string match "." $line]} {
+				set line [lindex $lines 0]
+				set lines [lreplace $lines 0 0]
+				append plines $line "\r" 
+			}
+			send $plines
+		} else {
+			puts "***** Unrecognised line: $line"
+			exit 1
+		}
+		
+		expect {
+			"MOO (#5):" {}
+			"\*Aborted\*" {
+				puts "***** MOO compilation error"
+				exit 1
+			}
+		}
+	}
+}
+
+send "quit\r"
+expect "DUMPING on * finished"
+wait
+
+
