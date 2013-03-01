@@ -6,34 +6,87 @@
 
 ;add_property($jsonserver, "connection", $nothing, {$god, ""})
 
-;add_verb($jsonserver, {$god, "rxd", "do_login_command"}, {"this", "none", "this"})
+;$verb($jsonserver, "do_login_command", $god)
 program $jsonserver:do_login_command
 	$restrict_to_server();
-	subject = $nothing;
-	if (!args)
-		return;
-	endif
-	if (args[1] == "connect")
-		try
-			subject = $authenticate(@args[2..$]);
-		except e (ANY)
-			this:_log_error(e);
-		endtry
-	elseif (args[1] == "create")
-		try
-			subject = $createplayer(@args[2..$]);
-		except e (ANY)
-			this:_log_error(e);
-		endtry
+	set_connection_option(player, "disable-oob", 1);
+	set_connection_option(player, "intrinsic-commands", 0);
+	set_connection_option(player, "hold-input", 1);
+	
+	while (1)
+		s = read(player);
+		s = `parse_json(s) ! ANY => $nothing';
+		id = `s["id"] ! ANY => 0';
+		result = ["result" -> "malformed"];
+		if (typeof(s) == MAP)
+			command = `s["command"] ! ANY => 0';
+			if (typeof(command) == STR)
+				command = tostr("logincmd_", command);
+				if (respond_to(this, command))
+					result = this:(command)(s);
+					if ((typeof(result) == OBJ) && (result != $nothing))
+						server_log(tostr("player ", result.name, " logged in"));
+						notify(player, generate_json(
+							["id" -> id, "result" -> "loggedin"]));
+						return result;
+					elseif (typeof(result) == MAP)
+						break;
+					else
+						continue;
+					endif
+				endif
+			endif
+		endif
+		result["id"] = id;
+		notify(player, generate_json(result));
+	endwhile
+.
+
+;$verb($jsonserver, "logincmd_connect", $god)
+program $jsonserver:logincmd_connect
+	$private();
+	{message} = args;
+	username = `message["username"] ! E_RANGE => 0';
+	password = `message["password"] ! E_RANGE => 0';
+	server_log(tostr("login attempt by ", username)); 
+	if ((typeof(username) != STR) || (typeof(password) != STR))
+		return $nothing;
 	endif
 	
-	if (!valid(subject) || !is_player(subject))
-		suspend(2);
-		notify(player, "{'authfailed'}");
-		subject = $nothing;
-	endif
+	try
+		r = $authenticate(username, password);
+		if (r == $nothing)
+			return "authfailed";
+		endif
+		return r;
+	except e (ANY)
+		this:_log_error(e);
+		return ["result" -> "authfailed"];
+	endtry
+.
 
-	return subject;
+;$verb($jsonserver, "logincmd_createplayer", $god)
+program $jsonserver:logincmd_createplayer
+	$private();
+	{message} = args;
+	
+	username = `message["username"] ! E_RANGE => 0';
+	password = `message["password"] ! E_RANGE => 0';
+	server_log(tostr("login attempt by ", username)); 
+	if ((typeof(username) != STR) || (typeof(password) != STR))
+		return $nothing;
+	endif
+	
+	try
+		r = $createplayer(username, password);
+		if (r == $nothing)
+			return "creationfailed";
+		endif
+		return r;
+	except e (ANY)
+		this:_log_error(e);
+		return ["result" -> "creationfailed"];
+	endtry
 .
 
 # Start server on system start.

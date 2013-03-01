@@ -36,7 +36,6 @@ program #0:do_login_command
 
 program $kernel:authenticate
 	$restrict_to_caller($system, "authenticate");
-	server_log("auth");
 	{playername, password} = args;
 	cpass = crypt(password, $player.salt);
 	for p in (players())

@@ -2,6 +2,7 @@ all: db/minimal.db
 
 MOOFILES = \
 	src/_init.moo \
+	src/core.moo \
 	src/player.moo \
 	src/login.moo \
 	src/server.moo
