@@ -1,7 +1,9 @@
 all: db/minimal.db
 
 MOOFILES = \
-	src/_init.moo
+	src/_init.moo \
+	src/player.moo \
+	src/login.moo
 	
 db/minimal.db: db/Stunt.db src/bootstrap.expect $(MOOFILES) \
 		files/primitive-0.0.4.json

@@ -1,4 +1,5 @@
-# Import the primitive Stunt package.
+# Import the primitive Stunt package. (Actually gets deferred until the first
+# time the DB is actually used.)
 
 program $composed:import_package_from_file
   {filename} = args;
@@ -18,3 +19,7 @@ program $composed:import_package_from_file
 .
 
 ;$composed:import_package_from_file("primitive-0.0.4.json")
+
+# Set up some system variables.
+
+;add_property(#0, "god", #5, {#5, "r"})
