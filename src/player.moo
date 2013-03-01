@@ -8,7 +8,7 @@
 # Create some useful attributes.
 
 ;add_property($player, "password", "", {$god, ""})
-;add_property($player, "salt", tostr(random()), {$god, ""})
+;add_property($player, "salt", tostr("$1$", random()), {$god, ""})
 
 # Add some verbs for creating players.
 
