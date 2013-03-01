@@ -1,32 +1,32 @@
 # Create the user object, and change god to be a subclass of it.
 
-;add_property(#0, "user", #-1, {$god, "r"})
-;$user = create(#-1, $god)
-;$user.name = "User"
-;chparent($god, $user)
+;add_property(#0, "player", #-1, {$god, "r"})
+;$player = create(#-1, $god)
+;$player.name = "Generic Player"
+;chparent($god, $player)
 
 # Create some useful attributes.
 
-;add_property($user, "password", "", {$god, ""})
-;add_property($user, "salt", tostr("$1$", random()), {$god, ""})
+;add_property($player, "password", "", {$god, ""})
+;add_property($player, "salt", tostr("$1$", random()), {$god, ""})
 
 # Add some verbs for creating players.
 
-;$verb($user, "create_player", $god)
-program $user:create_player
+;$verb($player, "create_player", $god)
+program $player:create_player
 	$permit("wizard");
 
 	{name, password} = args;
-	newplayer = create($user, #5);
+	newplayer = create($player, #5);
 	set_player_flag(newplayer, 1);
 	newplayer.owner = newplayer;
 	newplayer.name = name;
-	newplayer.password = crypt(password, $user.salt);
+	newplayer.password = crypt(password, $player.salt);
 	return newplayer;
 .
 
-;$verb($user, "change_password", $god)
-program $user:change_password
+;$verb($player, "change_password", $god)
+program $player:change_password
 	$permit("owner");
 	
 	{password} = args;
@@ -36,4 +36,4 @@ program $user:change_password
 # ...set up god.
 
 ;$god.name = "God"
-;$god.password = crypt("testpassword", $user.salt)
+;$god.password = crypt("testpassword", $player.salt)

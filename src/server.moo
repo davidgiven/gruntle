@@ -133,8 +133,7 @@ program $jsonserver:logincmd_createplayer
 		return $nothing;
 	endif
 	
-	server_log(generate_json(verbs($user)));
-	r = $user:("create_player")(username, password);
+	r = $player:create_player(username, password);
 	if (r == $nothing)
 		return "creationfailed";
 	endif
