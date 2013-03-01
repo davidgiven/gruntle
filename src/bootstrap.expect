@@ -31,6 +31,10 @@ foreach arg $::argv {
 		}
 		
 		expect {
+			"Unknown or malformed command." {
+				puts "***** MOO compilation error"
+				exit 1
+			}
 			"Verb not programmed." {
 				puts "***** MOO compilation error"
 				exit 1
