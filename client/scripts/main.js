@@ -20,11 +20,6 @@
     	document.write("error!<br/>");
     };
     
-    W.OnMessageReceived = function(s)
-    {
-    	document.write(s+"<br/>");
-    };
-
     /* Main entry point. */
     
     W.Main = function()
