@@ -31,11 +31,11 @@ foreach arg $::argv {
 		}
 		
 		expect {
-			"MOO (#5):" {}
-			"\*Aborted\*" {
+			"Verb not programmed." {
 				puts "***** MOO compilation error"
 				exit 1
 			}
+			"MOO (#5):"
 		}
 	}
 }
