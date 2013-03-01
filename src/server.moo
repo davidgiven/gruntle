@@ -111,9 +111,10 @@ program $jsonserver:logincmd_connect
 	
 	try
 		r = $authenticate(username, password);
-		if (r == $nothing)
+		if (r == $failed_match)
 			return "authfailed";
 		endif
+		server_log(generate_json(r));
 		return r;
 	except e (ANY)
 		this:_log_error(e);
@@ -141,6 +142,16 @@ program $jsonserver:logincmd_createplayer
 .
 
 # Player server commands.
+
+;$verb($player, "cmd_eval", $god)
+program $player:cmd_eval
+	set_task_perms(this);
+	{message} = args;
+	
+	expr = `message["code"] ! E_RANGE => "0"';
+	result = eval(expr);
+	return ["result"->"eval", "value"->result];
+.
 
 # Start server on system start.
 

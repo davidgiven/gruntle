@@ -17,7 +17,7 @@ program #0:do_login_command
 		endtry
 	elseif (args[1] == "create")
 		try
-			subject = $user:create_player(@args[2..$]);
+			subject = $player:create_player(@args[2..$]);
 		except e (ANY)
 			this:_log_error(e);
 		endtry
@@ -37,7 +37,7 @@ program #0:do_login_command
 program $kernel:authenticate
 	$restrict_to_caller($system, "authenticate");
 	{playername, password} = args;
-	cpass = crypt(password, $user.salt);
+	cpass = crypt(password, $player.salt);
 	for p in (players())
 		if (p.name == playername)
 			if (strcmp(p.password, cpass) == 0)

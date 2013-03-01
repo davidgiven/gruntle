@@ -17,10 +17,11 @@ program $player:create_player
 	$permit("wizard");
 
 	{name, password} = args;
-	newplayer = create($player, #5);
+	newplayer = create($player, $god);
 	set_player_flag(newplayer, 1);
 	newplayer.owner = newplayer;
 	newplayer.name = name;
+	newplayer.programmer = 1;
 	newplayer.password = crypt(password, $player.salt);
 	return newplayer;
 .
