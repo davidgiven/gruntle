@@ -28,12 +28,12 @@ program $jsonserver:do_login_command
 			command = tostr("logincmd_", command);
 			if (respond_to(this, command))
 				try
-					result = this:(command)(s);
-					if ((typeof(result) == OBJ) && (result != $nothing))
-						server_log(tostr("player ", result.name, " logged in"));
+					r = this:(command)(s);
+					if ((typeof(r) == OBJ) && (r != $nothing))
+						server_log(tostr("player ", r.name, " logged in"));
 						notify(player, generate_json(
 							["id" -> id, "result" -> "loggedin"]));
-						return result;
+						return r;
 					endif
 				except e (ANY)
 					result["result"] = "internalerror";
