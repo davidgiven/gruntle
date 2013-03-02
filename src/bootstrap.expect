@@ -35,6 +35,10 @@ foreach arg $::argv {
 				puts "***** MOO compilation error"
 				exit 1
 			}
+			"\*Aborted\*" {
+				puts "***** MOO compilation error"
+				exit 1
+			}
 			"Verb not programmed." {
 				puts "***** MOO compilation error"
 				exit 1
