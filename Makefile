@@ -6,7 +6,9 @@ MOOFILES = \
 	src/player.moo \
 	src/login.moo \
 	src/server.moo \
-	src/realm.moo
+	src/textvr.moo \
+	src/realm.moo \
+	src/hub.moo
 	
 db/minimal.db: db/Stunt.db src/bootstrap.expect $(MOOFILES) \
 		files/primitive-0.0.4.json

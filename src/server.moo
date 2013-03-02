@@ -87,6 +87,7 @@ program $jsonserver:do_command
 
 ;$verb($jsonserver, "user_connected", $god)
 program $jsonserver:user_connected
+	player.connectionmode = "json";
 	player:cmd_look();
 	player:cmd_actions();
 .
@@ -152,7 +153,9 @@ program $player:tell
 	set_task_perms(this);
 	{message} = args;
 
-	notify(player, generate_json(message));
+	if (player.connectionmode == "json")
+		notify(player, generate_json(message));
+	endif
 .
 
 # Evaluate arbitrary MOO code (mostly a debugging tool).

@@ -5,7 +5,7 @@
 
 ;$class("realm", "Generic Realm", $nothing);
 ;$realm.f = 1
-;$property($realm, "instantiated_rooms", $god, "rc")
+;$property($realm, "instantiated_rooms", $god, "r")
 
 ;$class("room", "Generic Room", #7);
 ;$room.f = 1
@@ -155,6 +155,24 @@ program $realm:destroy_instance
 	recycle(instance);
 .
 
+# To be called on realm.
+;$verb($realm, "find_room_template", $god)
+program $realm:find_room_template
+	{roomname} = args;
+	realm = this;
+	
+	if (this:isinstance())
+		realm = parent(this);
+	endif
+	
+	for room in (realm:rooms())
+		if (room.name == roomname)
+			return room;
+		endif
+	endfor
+	raise(E_RANGE, "realm does not contain room with that name");
+.
+
 # To be called on instance.
 ;$verb($realm, "find_room", $god)
 program $realm:find_room
@@ -163,20 +181,22 @@ program $realm:find_room
 	realm = parent(this);
 
 	try
-		return this.instantiated_rooms[roomname];
+		room = this.instantiated_rooms[roomname];
 	except e (ANY)
-		for room in (realm:rooms())
-			if (room.name == roomname)
-				iroom = create(room, this.owner);
-				this.instantiated_rooms[roomname] = iroom;
-				return iroom;
-			endif
-		endfor
-		raise(E_RANGE, "realm does not contain room with that name");
+		template = realm:find_room_template(roomname);
+		room = create(template, this.owner);
+		this.instantiated_rooms[roomname] = room;
 	endtry
+	return room;
 .
 
-# Room descriptions.
+# Rooms.
+
+;$verb($room, "accept", $god)
+program $room:accept
+	{o} = args;
+	return is_player(o);
+.
 
 ;$property($room, "title", $god, "rc")
 ;$verb($room, "title", $god)

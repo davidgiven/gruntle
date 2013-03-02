@@ -9,6 +9,7 @@
 ;$player.password = ""
 ;$property($player, "salt", $god, "")
 ;$player.salt = tostr("$1$", random())
+;$property($player, "connectionmode", $god, "r")
 
 # Add some verbs for creating players.
 
@@ -23,7 +24,10 @@ program $player:create_player
 	newplayer.name = name;
 	newplayer.programmer = 1;
 	newplayer.password = crypt(password, $player.salt);
-	move(newplayer, $defaultroom);
+	
+	defaultroom = $defaultinstance:find_room("entrypoint");
+	move(newplayer, defaultroom);
+	
 	return newplayer;
 .
 
