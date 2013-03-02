@@ -22,7 +22,6 @@ program $jsonserver:do_login_command
 				try
 					r = this:(command)(s);
 					if ((typeof(r) == OBJ) && (r != $nothing))
-						server_log(tostr("player ", r.name, " logged in"));
 						notify(player, generate_json(
 							["id" -> id, "event" -> "loggedin"]));
 						return r;

@@ -8,6 +8,7 @@
 	var current_text_div = null;
 	var current_actions_div = null;
 	var current_status_div = null;
+	var shown_user_list = false;
 	
 	var update_game_page = function()
 	{
@@ -56,6 +57,21 @@
         	
         	current_text_div.empty();
         	current_text_div.append(header, body);
+        	
+        	if (!shown_user_list)
+        	{
+        		$.each(message.contents,
+        			function(name, uid)
+        			{
+        				var m = $("<p/>");
+        				m.text(name+" is here.");
+        				
+        				current_status_div.append(m);
+        			}
+        		);
+        		
+        		shown_user_list = true;
+        	}
         },
         
         ActionsEvent: function(message)
@@ -95,6 +111,28 @@
             	current_actions_div.append("<p>Would you like to:</p>");
             	current_actions_div.append(list);
         	}
+        },
+        
+        ArrivedEvent: function(message)
+        {
+        	if (!current_status_div)
+        		return;
+        	
+			var m = $("<p/>");
+			m.text(message.user+" has arrived.");
+			
+			current_status_div.append(m);
+        },
+        
+        DepartedEvent: function(message)
+        {
+        	if (!current_status_div)
+        		return;
+        	
+			var m = $("<p/>");
+			m.text(message.user+" has left.");
+			
+			current_status_div.append(m);
         }
     };
 }

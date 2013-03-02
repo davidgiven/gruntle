@@ -18,6 +18,16 @@
     	{
     		W.GamePage.ActionsEvent(message);
     	},
+    	
+    	"arrived": function(message)
+    	{
+    		W.GamePage.ArrivedEvent(message);
+    	},
+    	
+    	"departed": function(message)
+    	{
+    		W.GamePage.DepartedEvent(message);
+    	}
     };
     
     W.OnMessageReceived = function(s)

@@ -13,7 +13,6 @@ program $jsonserver:logincmd_connect
 		if (r == $failed_match)
 			return "authfailed";
 		endif
-		server_log(generate_json(r));
 		return r;
 	except e (ANY)
 		this:_log_error(e);
