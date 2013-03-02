@@ -17,4 +17,10 @@ program $player:cmd_look
 			"contents" -> contents
 		]
 	);
+	player:tell(
+		[
+			"event" -> "actions",
+			"actions" -> this.location:actions()
+		]
+	);
 .

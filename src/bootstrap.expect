@@ -13,10 +13,8 @@ foreach arg $::argv {
 			continue
 		} elseif [string match "#*" $line] {
 			continue
-		} elseif [string match ";*" $line] {
-			send $line
-			send "\r"
-		} elseif [string match "program *" $line] {
+		} elseif {[string match "program *" $line] ||
+		          [string match ";;" $line]} {
 			set plines $line
 			append plines "\r"
 			while {! [string match "." $line]} {
@@ -25,6 +23,9 @@ foreach arg $::argv {
 				append plines $line "\r" 
 			}
 			send $plines
+		} elseif [string match ";*" $line] {
+			send $line
+			send "\r"
 		} else {
 			puts "***** Unrecognised line: $line"
 			exit 1

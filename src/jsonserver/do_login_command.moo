@@ -23,7 +23,13 @@ program $jsonserver:do_login_command
 					r = this:(command)(s);
 					if ((typeof(r) == OBJ) && (r != $nothing))
 						notify(player, generate_json(
-							["id" -> id, "event" -> "loggedin"]));
+							[
+								"id" -> id,
+								"event" -> "loggedin",
+								"user" -> r.name,
+								"uid" -> r
+							]
+						));
 						return r;
 					endif
 				except e (ANY)

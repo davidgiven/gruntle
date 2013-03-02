@@ -9,6 +9,7 @@ program $realm:find_room
 	except e (ANY)
 		template = realm:find_room_template(roomname);
 		room = create(template, this.owner);
+		room.instance = this;
 		this.instantiated_rooms[roomname] = room;
 	endtry
 	return room;

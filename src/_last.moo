@@ -11,7 +11,28 @@
 ;$defaultrealm = $god:create_realm("The Hub")
 ;$defaultinstance = $defaultrealm:create_instance()
 
-;$defaultrealm:find_room_template("entrypoint").description = "An infinite, perfectly flat plain of dull grey stretches out beneath a dull grey sky."
+;;
+	r = $defaultrealm:find_room_template("entrypoint");
+	r.title = "The Hub";
+	r.description = tostr(
+		"An infinite, perfectly flat plain of dull grey stretches out ",
+		"beneath a dull grey sky. It looks incredibly generic. The only ",
+		"interesting feature is a stairwell leading down into darkness, and ",
+		"a small yellow sign marked 'Under Construction'.");
+	
+	r:add_action("Follow the stairwell down?", "storeroom");
+.
+
+;;
+	r = $defaultrealm:create_room("storeroom");
+	r.title = "Cluttered storeroom";
+	r.description = tostr(
+		"It's dark here and you keep tripping over things. The only thing ",
+		"that's even slightly interesting to do here is to head back up ",
+		"the stairs.");
+		
+	r:add_action("Return back up the stairs?", "entrypoint");
+.
 
 # ...set up god.
 

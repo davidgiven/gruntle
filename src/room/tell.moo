@@ -7,9 +7,9 @@ program $room:tell
 		endfor
 	else
 		/* Broadcast message to all players in this room. */
-		for player in (this.contents)
-			if (is_player(player))
-				player:tell(@args);
+		for p in (this.contents)
+			if (is_player(p) && (p != player))
+				p:tell(@args);
 			endif
 		endfor
 	endif

@@ -2,5 +2,4 @@
 program $jsonserver:user_connected
 	player.connectionmode = "json";
 	player:cmd_look();
-	player:cmd_actions();
 .

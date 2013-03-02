@@ -42,6 +42,29 @@
             );
         },
         
+        MovedEvent: function(message)
+        {
+        	current_actions_div.remove();
+        	current_text_div.addClass("scrollback");
+        	current_status_div.addClass("scrollback");
+        
+    		current_text_div = $("<div class='room'/>");
+    		content.append(current_text_div);
+        	
+        	var top = current_text_div.offset().top;
+        	$('html, body').animate({
+                scrollTop: (top - 100)+"px"
+            }, 500);
+        	
+    		current_actions_div = $("<div class='actions'/>");
+    		content.append(current_actions_div);
+        	
+    		current_status_div = $("<div class='status'/>");
+    		content.append(current_status_div);
+    		
+    		shown_user_list = false;
+        },
+        
         LookEvent: function(message)
         {
         	if (!content)
@@ -63,10 +86,13 @@
         		$.each(message.contents,
         			function(name, uid)
         			{
-        				var m = $("<p/>");
-        				m.text(name+" is here.");
-        				
-        				current_status_div.append(m);
+        				if (uid != W.Userid)
+        				{
+            				var m = $("<p/>");
+            				m.text(name+" is here.");
+            				
+            				current_status_div.append(m);
+        				}
         			}
         		);
         		
@@ -92,10 +118,17 @@
             		var e = $("<a href='#'/>");
             		e.text(action.description);
             		
-            		e.onclick = function()
-            		{
-            			console.log("action "+id+" clicked");
-            		}
+            		e.click(
+            			function()
+                		{
+                			W.Socket.Send(
+                				{
+                				 	command: "action",
+                				 	actionid: id
+                				}
+                			);
+                		}
+            		);
             		
             		var li = $("<li/>");
             		li.append(e);

@@ -6,3 +6,4 @@
 ;$room.actions = []
 ;$property($room, "actionid", $god, "rc")
 ;$room.actionid = 0
+;$property($room, "instance", $god, "rc")

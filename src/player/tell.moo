@@ -3,13 +3,13 @@ program $player:tell
 	set_task_perms(this);
 	{message, @rest} = args;
 
-	if (player.connectionmode == "json")
-		notify(player, generate_json(message));
+	if (this.connectionmode == "json")
+		notify(this, generate_json(message));
 	else
 		if (typeof(message) == MAP)
-			notify(player, generate_json(message));
+			notify(this, generate_json(message));
 		else
-			notify(player, tostr(@args));
+			notify(this, tostr(@args));
 		endif
 	endif
 .

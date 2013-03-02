@@ -4,8 +4,10 @@
     
     var cbt =
     {
-    	"loggedin": function()
+    	"loggedin": function(message)
     	{
+    		W.Username = message.user;
+    		W.Userid = message.uid;
     		W.GamePage.Show();
     	},
     	
@@ -27,6 +29,11 @@
     	"departed": function(message)
     	{
     		W.GamePage.DepartedEvent(message);
+    	},
+    	
+    	"moved": function(message)
+    	{
+    		W.GamePage.MovedEvent(message);
     	}
     };
     
