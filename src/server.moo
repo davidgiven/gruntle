@@ -77,25 +77,27 @@ program $jsonserver:do_command
 			endif
 		endif
 	endif
-	result["id"] = id;
-	notify(player, generate_json(result));
+	if (typeof(result) == MAP)
+		result["id"] = id;
+		player:tell(result);
+	endif
 	
 	return 1;
 .
 
 ;$verb($jsonserver, "user_connected", $god)
 program $jsonserver:user_connected
+	player:cmd_look();
+	player:cmd_actions();
 .
 
 ;$verb($jsonserver, "user_created", $god)
 program $jsonserver:user_created
-	server_log(tostr("Player ", player.name, " (", player, ") created"));
 	this:user_connected(player);
 .
 
 ;$verb($jsonserver, "user_reconnected", $god)
 program $jsonserver:user_reconnected
-	server_log(tostr("Player ", player.name, " (", player, ") reconnected"));
 	this:user_connected(player);
 .
 
@@ -143,6 +145,18 @@ program $jsonserver:logincmd_createplayer
 
 # Player server commands.
 
+# Tell the player something.
+
+;$verb($player, "tell", $god)
+program $player:tell
+	set_task_perms(this);
+	{message} = args;
+
+	notify(player, generate_json(message));
+.
+
+# Evaluate arbitrary MOO code (mostly a debugging tool).
+
 ;$verb($player, "cmd_eval", $god)
 program $player:cmd_eval
 	set_task_perms(this);
@@ -151,6 +165,33 @@ program $player:cmd_eval
 	expr = `message["code"] ! E_RANGE => "0"';
 	result = eval(expr);
 	return ["result"->"eval", "value"->result];
+.
+
+# Reannounce the current room description and actions.
+
+;$verb($player, "cmd_look", $god)
+program $player:cmd_look
+	set_task_perms(this);
+
+	player:tell(
+		[
+			"result" -> "look",
+			"roomtitle" -> this.location:title(),
+			"roomdescription" -> this.location:description()
+		]
+	);
+.
+
+;$verb($player, "cmd_actions", $god)
+program $player:cmd_actions
+	set_task_perms(this);
+
+	player:tell(
+		[
+			"result" -> "actions",
+			"actions" -> this.location:actions()
+		]
+	);
 .
 
 # Start server on system start.

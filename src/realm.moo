@@ -5,7 +5,6 @@
 
 ;$class("realm", "Generic Realm", $nothing);
 ;$realm.f = 1
-;$property($realm, "entrypoint", $god, "rc")
 ;$property($realm, "instantiated_rooms", $god, "rc")
 
 ;$class("room", "Generic Room", #7);
@@ -40,19 +39,24 @@ program $player:create_realm
 		/* Create the default room. */
 		
 		room = create($room, this);
-		room.name = "Featureless void";
+		room.name = "entrypoint";
+		room.title = "Featureless void";
 		room.description = "Unshaped nothingness stretches as far as you can see, tempting you to start shaping it.";
-		realm.entrypoint = room;
 		move(room, realm);
-		return realm;
-	except e (ANY)
+
+		/* Commit changes. */
+
+		r = realm;
+		room = $nothing;
+		realm = $nothing;
+		return r;
+	finally
 		if (room != $nothing)
 			recycle(room);
 		endif
 		if (realm != $nothing)
 			recycle(realm);
 		endif
-		raise(@e[1..3]);
 	endtry
 .
 
@@ -69,41 +73,59 @@ program $player:realms
 
 # Realms.
 
+;$verb($realm, "isrealm", $god)
+program $realm:isrealm
+	return ($realm in parents(this));
+.
+
+;$verb($realm, "checkrealm", $god)
+program $realm:checkrealm
+	if (!this:isrealm())
+		raise(E_INVARG, "not a realm");
+	endif
+.
+
+;$verb($realm, "isinstance", $god)
+program $realm:isinstance
+	return parent(this):isrealm();
+.
+
+;$verb($realm, "checkinstance", $god)
+program $realm:checkinstance
+	if (!this:isinstance())
+		raise(E_INVARG, "not an instance");
+	endif
+.
+
 ;$verb($realm, "accept", $god)
 program $realm:accept
+	this:checkrealm();
 	{o} = args;
 	return ($room in parents(o)) && (o.owner == this.owner);
 .
 
 ;$verb($realm, "rooms", $god)
 program $realm:rooms
+	this:checkrealm();
 	return this.contents;
 .
 
 ;$verb($realm, "instances", $god)
 program $realm:instances
+	this:checkrealm();
 	return children(this);
-.
-
-;$verb($realm, "instantiate_room", $god)
-program $realm:instantiate_room
-	$permit("owner");
-	{room} = args;
-	if (room.location != this)
-		raise(E_INVARG, "Room not a template, or not part of this realm.");
-	endif
 .
 
 # To be called on realm.
 ;$verb($realm, "create_instance", $god)
 program $realm:create_instance
 	$permit("owner");
+	this:checkrealm();
 	instance = $nothing;
 	entrypoint = $nothing;
 	try
 		instance = create(this, this.owner);
 		instance.instantiated_rooms = [];
-		entrypoint = instance:find_instantiated_room(this.entrypoint);
 		return instance;
 	except e (ANY)
 		if (instance != $nothing)
@@ -121,9 +143,10 @@ program $realm:create_instance
 ;$verb($realm, "destroy_instance", $god)
 program $realm:destroy_instance
 	$permit("owner");
+	this:checkrealm();
 	{instance} = args;
 	if (!(this in parents(instance)))
-		raise(E_INVARG, "This realm is not an instance.");
+		raise(E_INVARG, "Not an instance of this realm.");
 	endif
 	
 	for v, k in (instance.instantiated_rooms)
@@ -133,31 +156,47 @@ program $realm:destroy_instance
 .
 
 # To be called on instance.
-;$verb($realm, "find_instantiated_room", $god)
-program $realm:find_instantiated_room
-	{room} = args;
+;$verb($realm, "find_room", $god)
+program $realm:find_room
+	{roomname} = args;
+	this:checkinstance();
 	realm = parent(this);
-	if (realm == $realm)
-		raise(E_INVARG, "must call this on instance, not realm");
-	endif 
-	if (!(room in realm.contents))
-		raise(E_INVARG, "room not part of this instance");
-	endif
-	
+
 	try
-		return this.instantiated_rooms[room];
+		return this.instantiated_rooms[roomname];
 	except e (ANY)
-		iroom = create(room, this.owner);
-		iroom.name = room.name;
-		this.instantiated_rooms[room] = iroom;
-		return iroom;
+		for room in (realm:rooms())
+			if (room.name == roomname)
+				iroom = create(room, this.owner);
+				this.instantiated_rooms[roomname] = iroom;
+				return iroom;
+			endif
+		endfor
+		raise(E_RANGE, "realm does not contain room with that name");
 	endtry
 .
 
 # Room descriptions.
 
-;$property($room, "description", $god)
+;$property($room, "title", $god, "rc")
+;$verb($room, "title", $god)
+program $room:title
+	set_task_perms(caller_perms());
+	return this.title;
+.
+
+;$property($room, "description", $god, "rc")
 ;$verb($room, "description", $god)
 program $room:description
+	set_task_perms(caller_perms());
 	return this.description;
 .
+
+;$verb($room, "actions", $god)
+program $room:actions
+	set_task_perms(caller_perms());
+	
+	props = properties(this);
+	return [];
+.
+
