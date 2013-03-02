@@ -1,14 +1,14 @@
 # Create the user object, and change god to be a subclass of it.
 
-;add_property(#0, "player", #-1, {$god, "r"})
-;$player = create(#-1, $god)
-;$player.name = "Generic Player"
+;$class("player", "Generic Player", $nothing)
 ;chparent($god, $player)
 
 # Create some useful attributes.
 
-;add_property($player, "password", "", {$god, ""})
-;add_property($player, "salt", tostr("$1$", random()), {$god, ""})
+;$property($player, "password", $god, "")
+;$player.password = ""
+;$property($player, "salt", $god, "")
+;$player.salt = tostr("$1$", random())
 
 # Add some verbs for creating players.
 
@@ -23,6 +23,7 @@ program $player:create_player
 	newplayer.name = name;
 	newplayer.programmer = 1;
 	newplayer.password = crypt(password, $player.salt);
+	move(newplayer, $defaultroom);
 	return newplayer;
 .
 
