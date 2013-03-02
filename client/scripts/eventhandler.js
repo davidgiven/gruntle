@@ -8,11 +8,16 @@
     	{
     		W.GamePage.Show();
     	},
+    	
+    	"look": function(message)
+    	{
+    		W.GamePage.LookEvent(message);
+    	}
     };
     
     W.OnMessageReceived = function(s)
     {
-    	var messagetype = s.result;
+    	var messagetype = s.event;
     	if (!messagetype)
     		return;
     	var handler = cbt[messagetype];

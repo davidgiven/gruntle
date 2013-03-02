@@ -4,9 +4,9 @@ program $player:cmd_look
 
 	player:tell(
 		[
-			"result" -> "look",
-			"roomtitle" -> this.location:title(),
-			"roomdescription" -> this.location:description()
+			"event" -> "look",
+			"title" -> this.location:title(),
+			"description" -> this.location:description()
 		]
 	);
 .

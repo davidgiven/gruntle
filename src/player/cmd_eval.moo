@@ -5,5 +5,5 @@ program $player:cmd_eval
 	
 	expr = `message["code"] ! E_RANGE => "0"';
 	result = eval(expr);
-	return ["result"->"eval", "value"->result];
+	return ["event"->"eval", "value"->result];
 .

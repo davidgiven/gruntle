@@ -4,7 +4,7 @@ program $player:cmd_actions
 
 	player:tell(
 		[
-			"result" -> "actions",
+			"event" -> "actions",
 			"actions" -> this.location:actions()
 		]
 	);

@@ -8,7 +8,7 @@ program $jsonserver:do_command
 		
 	s = `parse_json(argstr) ! ANY => $nothing';
 	id = `s["id"] ! ANY => 0';
-	result = ["result" -> "malformed"];
+	result = ["event" -> "malformed"];
 	if (typeof(s) == MAP)
 		command = `s["command"] ! ANY => 0';
 		if (typeof(command) == STR)
@@ -17,7 +17,7 @@ program $jsonserver:do_command
 				try
 					result = player:(command)(s);
 				except e (ANY)
-					result["result"] = "internalerror";
+					result["event"] = "internalerror";
 					result["errorcode"] = e[1];
 					result["errormessage"] = e[2];
 					result["errorvalue"] = e[3];

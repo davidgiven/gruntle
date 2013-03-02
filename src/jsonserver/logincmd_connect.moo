@@ -17,6 +17,6 @@ program $jsonserver:logincmd_connect
 		return r;
 	except e (ANY)
 		this:_log_error(e);
-		return ["result" -> "authfailed"];
+		return ["event" -> "authfailed"];
 	endtry
 .
