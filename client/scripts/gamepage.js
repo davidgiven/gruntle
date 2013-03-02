@@ -26,6 +26,16 @@
             	function ()
             	{
             		content = $("#gamecontainer");
+            		
+            		current_text_div = $("<div class='room'/>");
+            		content.append(current_text_div);
+                	
+            		current_actions_div = $("<div class='actions'/>");
+            		content.append(current_actions_div);
+                	
+            		current_status_div = $("<div class='status'/>");
+            		content.append(current_status_div);
+
             		update_game_page();
             	}
             );
@@ -41,27 +51,10 @@
         	else
         		pending_look = null;
         	
-        	if (!current_text_div)
-        	{
-        		current_text_div = $("<div class='room'/>");
-        		content.append(current_text_div);
-        	}
-        	
-        	if (!current_actions_div)
-        	{
-        		current_actions_div = $("<div class='actions'/>");
-        		content.append(current_actions_div);
-        	}
-        	
-        	if (!current_status_div)
-        	{
-        		current_status_div = $("<div class='status'/>");
-        		content.append(current_status_div);
-        	}
-
         	var header = $("<h1/>").text(message.title);
         	var body = $("<p/>").text(message.description);
         	
+        	current_text_div.empty();
         	current_text_div.append(header, body);
         },
         
@@ -74,6 +67,34 @@
         	}
         	else
         		pending_actions = null;
+        	
+        	var list = $("<ul/>");
+        	var count = 0;
+        	$.each(message.actions,
+        		function (id, action)
+        		{
+            		var e = $("<a href='#'/>");
+            		e.text(action.description);
+            		
+            		e.onclick = function()
+            		{
+            			console.log("action "+id+" clicked");
+            		}
+            		
+            		var li = $("<li/>");
+            		li.append(e);
+            		list.append(li);
+            		
+            		count++;
+        		}
+        	);
+        	
+        	current_actions_div.empty();
+        	if (count > 0)
+        	{
+            	current_actions_div.append("<p>Would you like to:</p>");
+            	current_actions_div.append(list);
+        	}
         }
     };
 }

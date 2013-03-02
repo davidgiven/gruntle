@@ -12,7 +12,12 @@
     	"look": function(message)
     	{
     		W.GamePage.LookEvent(message);
-    	}
+    	},
+    	
+    	"actions": function(message)
+    	{
+    		W.GamePage.ActionsEvent(message);
+    	},
     };
     
     W.OnMessageReceived = function(s)
