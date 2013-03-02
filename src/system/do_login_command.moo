@@ -1,8 +1,3 @@
-# This is a really simple text mode login system intended for test purposes.
-
-;#0.welcome_message = "If you don't know what to do here, you shouldn't be here."
-;#0.disable_passkey_login = 1
-
 program #0:do_login_command
 	$restrict_to_server();
 	if (!args)
@@ -32,18 +27,4 @@ program #0:do_login_command
     endif
 
 	return subject;
-.
-
-program $kernel:authenticate
-	$restrict_to_caller($system, "authenticate");
-	{playername, password} = args;
-	cpass = crypt(password, $player.salt);
-	for p in (players())
-		if (p.name == playername)
-			if (strcmp(p.password, cpass) == 0)
-				return p;
-			endif
-			return $nothing;
-		endif
-	endfor
 .

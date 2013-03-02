@@ -1,14 +1,10 @@
 all: db/minimal.db
 
 MOOFILES = \
-	src/_init.moo \
-	src/core.moo \
-	src/player.moo \
-	src/login.moo \
-	src/server.moo \
-	src/textvr.moo \
-	src/realm.moo \
-	src/hub.moo
+	src/_first.moo \
+	src/_classes.moo \
+	$(shell find src/*/ -name '*.moo' | LC_ALL=C sort) \
+	src/_last.moo
 	
 db/minimal.db: db/Stunt.db src/bootstrap.expect $(MOOFILES) \
 		files/primitive-0.0.4.json
