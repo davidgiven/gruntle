@@ -38,5 +38,5 @@
 # ...set up god.
 
 ;$god.name = "God"
-;$god.password = crypt("testpassword", $player.salt)
+;$god:change_password("testpassword")
 ;move($god, $defaultinstance:find_room("entrypoint"))

@@ -3,5 +3,5 @@ program $player:change_password
 	set_task_perms(caller_perms());
 	
 	{password} = args;
-	this.password = password;
+	this.password = crypt(password, $player.salt);
 .
