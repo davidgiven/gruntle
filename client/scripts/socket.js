@@ -40,7 +40,25 @@
             		
             		if (s.length > 0)
             		{
-            			W.OnMessageReceived($.evalJSON(s));
+            			if (s[0] == "*")
+            			{
+            				/* Whoops --- the server has sent us an out-of-band
+            				 * message (which is naughty of it). Fake up a
+            				 * message packet to put it in. */
+            				
+            				W.OnMessageReceived(
+            					{
+            						event: "outofband",
+            						message: s
+            					}
+            				);
+            			}
+            			else
+            			{
+            				/* Otherwise it must be a JSON message. */
+            				
+            				W.OnMessageReceived($.evalJSON(s));
+            			}
             		}
             		
             		/* Remove the bit of the buffer that we just processed
