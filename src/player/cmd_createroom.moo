@@ -9,7 +9,7 @@ program $player:cmd_createroom
 	
 	name = message["name"];
 	template = realm:create_room(name);
-	room = instance:find_room(name);
+	room = instance:find_room(template);
 	move(player, room);
 	this:cmd_look();
 	this:cmd_realms();

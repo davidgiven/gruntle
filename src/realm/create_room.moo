@@ -4,11 +4,6 @@ program $realm:create_room
 	this:checkrealm();
 	{name} = args;
 	
-	template = `this:find_room_template(name) ! E_RANGE => $failed_match';
-	if (template != $failed_match)
-		raise(E_RANGE, "This realm already contains a room with that name.");
-	endif
-	
 	template = create($room, this.owner);
 	template.name = name;
 	template.title = "Featureless void";
