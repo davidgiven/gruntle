@@ -75,7 +75,23 @@
 					}
 				);
 				
-				li.append(t, " (", n, ")");
+				li.append(t, " (", n, ") ");
+				
+				var d = $("<a href='#'>[Delete]</a>");
+				d.click(
+					function()
+					{
+						W.Socket.Send(
+							{
+								command: "delroom",
+								realmid: W.CurrentRealm.id,
+								room: name
+							}
+						);
+					}
+				);
+				li.append(d);
+				
 				ul.append(li);
 			}
 		);
