@@ -1,8 +1,14 @@
 ;$verb($player, "create_player", $god)
 program $player:create_player
 	$permit("wizard");
-
 	{name, password} = args;
+	
+	for p in (players())
+		if (p.name == name)
+			return $nothing;
+		endif
+	endfor
+	
 	newplayer = create($player, $god);
 	set_player_flag(newplayer, 1);
 	newplayer.owner = newplayer;

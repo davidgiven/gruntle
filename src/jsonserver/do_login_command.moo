@@ -32,6 +32,9 @@ program $jsonserver:do_login_command
 						));
 						return r;
 					endif
+					if (typeof(r) != MAP)
+						result["event"] = r;
+					endif
 				except e (ANY)
 					result["event"] = "internalerror";
 					result["errorcode"] = e[1];
