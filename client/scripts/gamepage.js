@@ -37,6 +37,27 @@
             		current_status_div = $("<div class='status'/>");
             		content.append(current_status_div);
 
+                    $("#chatinput").keydown(
+                        function (event)
+                        {
+                            if (event.keyCode === 13)
+                            {
+                            	var msg = $("#chatinput").prop("value");
+                            	$("#chatinput").prop("value", "");
+                            	msg = msg.trim();
+                            	if (msg != "")
+                            	{
+                            		W.Socket.Send(
+                            			{
+                            				command: "say",
+                            				text: msg
+                            			}
+                            		);
+                            	}
+                            }
+                        }
+                    );
+
             		update_game_page();
             	}
             );
@@ -51,10 +72,12 @@
     		current_text_div = $("<div class='room'/>");
     		content.append(current_text_div);
         	
-        	var top = current_text_div.offset().top;
-        	$('html, body').animate({
-                scrollTop: (top - 100)+"px"
-            }, 500);
+    		var top = $("#padding").offset().top - 50;
+    		$.scrollTo(top,
+    			{
+    				duration: 0
+    			}
+    		);
         	
     		current_actions_div = $("<div class='actions'/>");
     		content.append(current_actions_div);
@@ -166,6 +189,21 @@
 			m.text(message.user+" has left.");
 			
 			current_status_div.append(m);
+        },
+        
+        SpeechEvent: function(message)
+        {
+        	var s;
+        	if (message.uid === W.Userid)
+        		s = 'You say, "';
+        	else
+        		s = message.user + ' says, "';
+        	s += message.text;
+        	s += '".';
+        	
+        	var m = $("<p/>");
+        	m.text(s);
+        	current_status_div.append(m);
         }
     };
 }

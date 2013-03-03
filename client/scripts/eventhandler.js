@@ -34,6 +34,11 @@
     	"moved": function(message)
     	{
     		W.GamePage.MovedEvent(message);
+    	},
+    	
+    	"speech": function(message)
+    	{
+    		W.GamePage.SpeechEvent(message);
     	}
     };
     
