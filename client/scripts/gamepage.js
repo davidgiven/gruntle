@@ -283,7 +283,11 @@
         	$("#instance").text(W.CurrentInstance);
         	
         	var header = $("<h1/>").text(message.title);
-        	var body = $("<p/>").text(message.description);
+        	var body = $("<div/>");
+
+		var paras = message.description.split("\n");
+		for (var i = 0; i < paras.length; i++)
+			body.append($("<p/>").text(paras[i]));
         	
         	current_text_div.empty();
         	current_text_div.append(header, body);
@@ -304,7 +308,7 @@
         						command: "editroom",
         						room: message.room,
         						newtitle: header.text(),
-        						newdescription: body.text()
+        						newdescription: body.textWithBreaks()
         					}
         				);
         			}

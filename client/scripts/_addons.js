@@ -22,5 +22,22 @@
             );
             return self;
        	};
+
+    $.fn.textWithBreaks =
+    	function ()
+    	{
+    		var st = [];
+    		
+    		this.children().each(
+    			function(i, e)
+    			{
+    				var s = $(e).text().trim();
+    				if (s !== "")
+    					st.push(s);
+    			}
+    		);
+    		
+    		return st.join("\n");
+    	};
 }
 )();
