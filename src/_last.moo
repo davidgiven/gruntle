@@ -21,7 +21,7 @@
 		"interesting feature is a stairwell leading down into darkness, and ",
 		"a small yellow sign marked 'Under Construction'.");
 	
-	r:add_action("Follow the stairwell down?", "storeroom");
+	r:add_action("Follow the stairwell down", "storeroom");
 .
 
 ;;
@@ -32,7 +32,7 @@
 		"that's even slightly interesting to do here is to head back up ",
 		"the stairs.");
 		
-	r:add_action("Return back up the stairs?", "entrypoint");
+	r:add_action("Return back up the stairs", "entrypoint");
 .
 
 # ...set up god.
