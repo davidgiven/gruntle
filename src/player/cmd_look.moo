@@ -9,18 +9,22 @@ program $player:cmd_look
 		endif
 	endfor
 	
+	editable = (this.location.owner == this);
+	
 	player:tell(
 		[
 			"event" -> "look",
 			"title" -> this.location:title(),
 			"description" -> this.location:description(),
-			"contents" -> contents
+			"contents" -> contents,
+			"editable" -> editable
 		]
 	);
 	player:tell(
 		[
 			"event" -> "actions",
-			"actions" -> this.location:actions()
+			"actions" -> this.location:actions(),
+			"editable" -> editable
 		]
 	);
 .

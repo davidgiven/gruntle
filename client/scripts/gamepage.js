@@ -9,6 +9,7 @@
 	var current_actions_div = null;
 	var current_status_div = null;
 	var shown_user_list = false;
+	var editcontrols = null;
 	
 	var update_game_page = function()
 	{
@@ -65,6 +66,9 @@
         
         MovedEvent: function(message)
         {
+    		current_text_div.children().attr("contenteditable", "false");
+    		current_text_div.children().removeClass("editable");
+
         	current_actions_div.remove();
         	current_text_div.addClass("scrollback");
         	current_status_div.addClass("scrollback");
@@ -72,8 +76,7 @@
     		current_text_div = $("<div class='room'/>");
     		content.append(current_text_div);
         	
-    		var top = $("#padding").offset().top - 50;
-    		$.scrollTo(top,
+    		$.scrollTo(current_text_div,
     			{
     				duration: 0
     			}
@@ -86,6 +89,12 @@
     		content.append(current_status_div);
     		
     		shown_user_list = false;
+    		
+    		if (editcontrols)
+    		{
+    			editcontrols.remove();
+    			editcontrols = null;
+    		}
         },
         
         LookEvent: function(message)
@@ -103,6 +112,59 @@
         	
         	current_text_div.empty();
         	current_text_div.append(header, body);
+        	
+        	if (message.editable)
+        	{
+        		header.attr("contenteditable", "true");
+        		body.attr("contenteditable", "true");
+        		header.addClass("editable");
+        		body.addClass("editable");
+        		
+        		var savebutton = $('<input id="savebutton" type="button" value="Save"/>');
+        		var cancelbutton = $('<input id="savebutton" type="button" value="Cancel"/>');
+        		
+        		savebutton.click(
+        			function()
+        			{
+        				W.Socket.Send(
+        					{
+        						command: "editroom",
+        						newtitle: header.text(),
+        						newdescription: body.text()
+        					}
+        				);
+        			}
+        		);
+        		
+        		cancelbutton.click(
+        			function()
+        			{
+        				W.Socket.Send(
+        					{
+        						command: "look"
+        					}
+        				);
+        			}
+        		);
+        		
+        		var changeevent =
+        			function(event)
+        			{
+                       	savebutton.addClass("urgent");
+        			};
+        			
+        		header.keypress(changeevent);
+        		body.keypress(changeevent);
+
+        		editcontrols = $("<p class='edithelp'/>");
+        		editcontrols.append($("<span>Edit the title or description text above and then press </span>"),
+        			savebutton,
+        			$("<span> or </span>"),
+        			cancelbutton,
+        			$("<span>.</span>"));
+        		
+        		current_text_div.append(editcontrols);
+        	}
         	
         	if (!shown_user_list)
         	{

@@ -1,0 +1,25 @@
+#padding
+{
+	display: block;
+	height: 500px;
+}
+
+.scrollback
+{
+	color: #888;
+}
+
+#chatinput
+{
+	width: 100%;
+}
+
+.editable
+{
+	border: 1px dotted red;
+}
+
+.urgent
+{
+	background-color: #8ff;
+}
