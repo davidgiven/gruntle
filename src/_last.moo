@@ -13,7 +13,7 @@
 
 ;;
 	r = $defaultrealm:find_room_template("entrypoint");
-	r.title = "The Hub";
+	r.title = "Centre of the Universe";
 	r.description = tostr(
 		"An infinite, perfectly flat plain of dull grey stretches out ",
 		"beneath a dull grey sky. It looks incredibly generic. The only ",

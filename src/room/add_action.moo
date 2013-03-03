@@ -6,12 +6,6 @@ program $room:add_action
 	id = this.actionid;
 	this.actionid = this.actionid + 1;
 	
-	this.actions[id] =
-		[
-			"description" -> description,
-			"target" -> target
-		];
-		
-	this:changed();
+	this:edit_action(id, description, target);
 	return id;
 .

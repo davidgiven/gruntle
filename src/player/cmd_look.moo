@@ -29,11 +29,6 @@ program $player:cmd_look
 			"editable" -> editable
 		]
 	);
-	player:tell(
-		[
-			"event" -> "actions",
-			"actions" -> this.location:actions(),
-			"editable" -> editable
-		]
-	);
+	
+	this:cmd_actions();
 .

@@ -105,7 +105,6 @@
         MovedEvent: function(message)
         {
     		current_text_div.children().attr("contenteditable", "false");
-    		current_text_div.children().removeClass("editable");
 
     		/*
         	current_text_div.addClass("scrollback");
@@ -165,8 +164,6 @@
         	{
         		header.attr("contenteditable", "true");
         		body.attr("contenteditable", "true");
-        		header.addClass("editable");
-        		body.addClass("editable");
         		
         		var savebutton = $('<input id="savebutton" type="button" value="Save"/>');
         		var cancelbutton = $('<input id="savebutton" type="button" value="Cancel"/>');
@@ -277,6 +274,79 @@
             	current_actions_div.append("<p>Would you like to:</p>");
             	current_actions_div.append(list);
         	}
+        	
+        	if (message.editable)
+        	{
+        		current_actions_div.append("<p>The following actions are defined on this room:</p>");
+        		
+            	var list = $("<ul/>");
+            	var count = 0;
+            	$.each(message.allactions,
+            		function (id, action)
+            		{
+            			var message = $("<span contenteditable='true'/>");
+            			var target = $("<span contenteditable='true'/>");
+            			var deletelink = $("<a href='#'>[Delete]</a>");
+                		var li = $("<li/>");
+                		li.append(message, $("<span> ⇒ </span>"), target,
+                			"<span> </span>", deletelink);
+            			
+                		message.text(action.description);
+                		target.text(action.target);
+                		
+                		var commit_cb =
+                			function()
+                			{
+                				W.Socket.Send(
+                					{
+                						command: "editaction",
+                						actionid: id,
+                						newdescription: message.text(),
+                						newtarget: target.text()
+                					}
+                				);
+                			};
+                			
+                		message.singleLineEditor(commit_cb);
+                		target.singleLineEditor(commit_cb);
+                		
+                		list.append(li);
+                		
+                		deletelink.click(
+                			function()
+                			{
+                				W.Socket.Send(
+                					{
+                						command: "delaction",
+                						actionid: id
+                					}
+                				);
+                			}
+                		);
+                		
+                		count++;
+            		}
+            	);
+            	if (count == 0)
+            		list.append($("<li><span>(none yet)</span></li>"));
+            	
+            	current_actions_div.append(list);
+            	
+            	var createlink = $("<p><a href='#'>[Create action]</a></p>")
+            		.click(
+            			function()
+            			{
+            				W.Socket.Send(
+            					{
+            						command: "addaction",
+            						description: "<description>",
+            						target: "<target room>"
+            					}
+            				);
+            			}
+            		);
+            	current_actions_div.append(createlink);
+        	}
         },
         
         ArrivedEvent: function(message)
@@ -365,23 +435,16 @@
         			var realmname = $("<span/>");
         			realmname.text(realm.name);
         			realmname.attr("contenteditable", "true");
-        			realmname.addClass("editable");
         			
-        			realmname.keydown(
-        				function (event)
+        			realmname.singleLineEditor(
+        				function()
         				{
-        					if (event.which == 13)
-        					{
-        						W.Socket.Send(
-        							{
-        								command: "renamerealm",
-        								newname: realmname.text()
-        							}
-        						);
-        						event.preventDefault();
-        					}
-        					else
-        						realmname.addClass("urgent");
+    						W.Socket.Send(
+    							{
+    								command: "renamerealm",
+    								newname: realmname.text()
+    							}
+    						);
         				}
         			);
         			

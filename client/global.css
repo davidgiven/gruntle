@@ -14,7 +14,7 @@
 	width: 100%;
 }
 
-.editable
+[contenteditable=true]
 {
 	border: 1px dotted red;
 }

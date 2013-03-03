@@ -10,6 +10,5 @@ program $room:action
 	targetroom = this:instance():find_room(target);
 	
 	move(player, targetroom);
-	player:tell(["event" -> "moved"]);
 	player:cmd_look();
 .

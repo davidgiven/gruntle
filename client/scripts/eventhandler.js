@@ -21,6 +21,11 @@
     		W.GamePage.ActionsEvent(message);
     	},
     	
+    	"allactions": function(message)
+    	{
+    		W.GamePage.AllActionsEvent(message);
+    	},
+    	
     	"arrived": function(message)
     	{
     		W.GamePage.ArrivedEvent(message);

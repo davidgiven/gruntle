@@ -10,5 +10,13 @@ program $room:enterfunc
 				"uid" -> o
 			]
 		);
-	endif 
+	endif
+	
+	if (o == player)
+		player:tell(
+			[
+				"event" -> "moved"
+			]
+		);
+	endif
 .
