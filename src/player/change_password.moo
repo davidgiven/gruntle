@@ -1,6 +1,6 @@
 ;$verb($player, "change_password", $god)
 program $player:change_password
-	$permit("owner");
+	set_task_perms(caller_perms());
 	
 	{password} = args;
 	this.password = password;

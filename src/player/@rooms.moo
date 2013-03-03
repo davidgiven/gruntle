@@ -1,7 +1,8 @@
 ;$verb($player, "@rooms", $god, "rx")
 ;set_verb_args($player, "@rooms", {"none", "none", "none"});
 program $player:@rooms
-	set_task_perms(this);
+	$restrict_to_server();
+
 	realm = player.location:realm();
 	if (realm.owner != player)
 		notify(player, "You don't own this realm.");

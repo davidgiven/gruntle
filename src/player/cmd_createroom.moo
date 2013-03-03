@@ -1,6 +1,6 @@
 ;$verb($player, "cmd_createroom", $god)
 program $player:cmd_createroom
-	set_task_perms(this);
+	set_task_perms(caller_perms());
 
 	{message} = args;
 	instance = $cast(message["instance"], $realm);

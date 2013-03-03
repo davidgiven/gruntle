@@ -1,6 +1,6 @@
 ;$verb($player, "cmd_delroom", $god)
 program $player:cmd_delroom
-	set_task_perms(this);
+	set_task_perms(caller_perms());
 	{message} = args;
 	
 	room = $cast(message["room"], $room);

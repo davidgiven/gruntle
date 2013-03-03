@@ -1,6 +1,6 @@
 ;$verb($player, "cmd_say", $god)
 program $player:cmd_say
-	set_task_perms(this);
+	set_task_perms(caller_perms());
 	{message} = args;
 	
 	this:tell(

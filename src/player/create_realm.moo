@@ -1,6 +1,6 @@
 ;$verb($player, "create_realm", $god)
 program $player:create_realm
-	set_task_perms(this);
+	set_task_perms(caller_perms());
 	{name} = args;
 	
 	/* Create the realm. */

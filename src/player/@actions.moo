@@ -1,7 +1,8 @@
 ;$verb($player, "@actions", $god, "rx")
 ;set_verb_args($player, "@actions", {"any", "none", "none"});
 program $player:@actions
-	set_task_perms(this);
+	$restrict_to_server();
+
 	template = player.location:template();
 	if (template.owner != player)
 		notify(player, "You don't own this realm.");

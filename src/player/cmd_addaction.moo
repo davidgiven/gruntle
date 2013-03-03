@@ -1,6 +1,6 @@
 ;$verb($player, "cmd_addaction", $god, "rx")
 program $player:cmd_addaction
-	set_task_perms(this);
+	set_task_perms(caller_perms());
 	{message} = args;
 	
 	template = $cast(message["room"], $room);

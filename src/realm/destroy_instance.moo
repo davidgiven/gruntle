@@ -1,6 +1,6 @@
 ;$verb($realm, "destroy_instance", $god)
 program $realm:destroy_instance
-	$permit("owner");
+	set_task_perms(caller_perms());
 	this:checkrealm();
 	{instance} = args;
 	if (!(this in parents(instance)))

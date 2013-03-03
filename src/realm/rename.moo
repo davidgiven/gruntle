@@ -1,6 +1,6 @@
 ;$verb($realm, "rename", $god)
 program $realm:rename
-	$permit("owner");
+	set_task_perms(caller_perms());
 	this:checkrealm();
 	{name} = args;
 	

@@ -1,6 +1,6 @@
 ;$verb($player, "tell", $god)
 program $player:tell
-	set_task_perms(this);
+	set_task_perms(caller_perms());
 	{message, @rest} = args;
 
 	if (this.connectionmode == "json")

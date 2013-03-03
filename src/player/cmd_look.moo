@@ -1,6 +1,6 @@
 ;$verb($player, "cmd_look", $god)
 program $player:cmd_look
-	set_task_perms(this);
+	set_task_perms(caller_perms());
 
 	contents = [];
 	for p in (this.location.contents)

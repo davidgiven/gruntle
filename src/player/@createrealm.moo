@@ -1,7 +1,7 @@
 ;$verb($player, "@createrealm", $god, "rx")
 ;set_verb_args($player, "@createrealm", {"any", "none", "none"});
 program $player:@createrealm
-	set_task_perms(this);
+	$restrict_to_server();
 
 	realm = this:create_realm(argstr);
 	instance = realm:create_instance();

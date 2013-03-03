@@ -1,6 +1,6 @@
 ;$verb($realm, "create_instance", $god)
 program $realm:create_instance
-	$permit("owner");
+	set_task_perms(caller_perms());
 	this:checkrealm();
 	instance = $nothing;
 	entrypoint = $nothing;

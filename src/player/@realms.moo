@@ -1,7 +1,8 @@
 ;$verb($player, "@realms", $god, "rx")
 ;set_verb_args($player, "@realms", {"none", "none", "none"});
 program $player:@realms
-	set_task_perms(this);
+	$restrict_to_server();
+
 	notify(player, "Realms you own:");
 	
 	count = 0;

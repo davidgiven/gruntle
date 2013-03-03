@@ -1,6 +1,6 @@
 ;$verb($realm, "create_room", $god)
 program $realm:create_room
-	$permit("owner");
+	set_task_perms(caller_perms());
 	this:checkrealm();
 	{name} = args;
 	

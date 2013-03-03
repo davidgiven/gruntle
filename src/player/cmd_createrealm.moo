@@ -1,6 +1,6 @@
 ;$verb($player, "cmd_createrealm", $god)
 program $player:cmd_createrealm
-	set_task_perms(this);
+	set_task_perms(caller_perms());
 	{message} = args;
 
 	realm = this:create_realm(message["name"]);

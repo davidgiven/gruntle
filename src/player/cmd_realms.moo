@@ -1,6 +1,6 @@
 ;$verb($player, "cmd_realms", $god)
 program $player:cmd_realms
-	set_task_perms(this);
+	set_task_perms(caller_perms());
 	
 	realms = [];
 	for realm in (this:realms())
