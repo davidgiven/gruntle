@@ -1,6 +1,26 @@
-<div id="gamecontainer"/>
-<div id="chatbox">
-	<p>Say something:
-	<input id="chatinput" type="text" value=""/> 
+
+<div id="adminarea">
+	<div id="worldinfoarea">
+		<p>
+			You are in <b><span id="realmname"/></b> (<span id="realmid"/>)
+			by <span id="realmowner"/>.
+		</p>
+		<p>You can <a href="#" id="warptoentrypoint">warp back to the entry
+		point</a>, or leave and go to <span id="specialrealmlist"/>.</p>
+		<p>Your realms are:</p>
+		<ul id="yourrealmlist"/>
+		<p><a href="#" id="createnewrealm">[Create new realm]</a></p>
+	</div>
+	
+	<div id="editarea">
+		<p>Realm admin controls go here.</p>
+	</div>
 </div>
-<div id="padding"/>
+
+<div id="playarea">
+	<div id="gamecontainer"/>
+	<div id="chatbox">
+		<p>Say something:
+		<input id="chatinput" type="text" value=""/> 
+	</div>
+</div>

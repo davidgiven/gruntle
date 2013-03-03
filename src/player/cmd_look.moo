@@ -10,10 +10,19 @@ program $player:cmd_look
 	endfor
 	
 	editable = (this.location.owner == this);
+	realm = this.location:realm();
 	
 	player:tell(
 		[
 			"event" -> "look",
+			"instance" -> this.location:instance(),
+			"realm" ->
+				[
+					"id" -> realm,
+					"name" -> realm.name,
+					"user" -> realm.owner.name,
+					"uid" -> realm.owner
+				],
 			"title" -> this.location:title(),
 			"description" -> this.location:description(),
 			"contents" -> contents,

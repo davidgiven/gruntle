@@ -23,3 +23,14 @@
 {
 	background-color: #8ff;
 }
+
+#playarea
+{
+	margin-right: 21em;
+}
+
+#adminarea
+{
+	float: right;
+	width: 20em;
+}

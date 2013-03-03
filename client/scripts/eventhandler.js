@@ -39,6 +39,11 @@
     	"speech": function(message)
     	{
     		W.GamePage.SpeechEvent(message);
+    	},
+    	
+    	"realms": function(message)
+    	{
+    		W.GamePage.RealmsEvent(message);
     	}
     };
     

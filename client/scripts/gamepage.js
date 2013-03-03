@@ -5,6 +5,7 @@
 	var content = null;
 	var pending_look = null;
 	var pending_actions = null;
+	var pending_realms = null;
 	var current_text_div = null;
 	var current_actions_div = null;
 	var current_status_div = null;
@@ -17,7 +18,8 @@
 			W.GamePage.LookEvent(pending_look);
 		if (pending_actions)
 			W.GamePage.ActionsEvent(pending_actions);
-		
+		if (pending_realms)
+			W.GamePage.RealmsEvent(pending_realms);
 	};
 	
     W.GamePage =
@@ -69,11 +71,11 @@
     		current_text_div.children().attr("contenteditable", "false");
     		current_text_div.children().removeClass("editable");
 
-        	current_actions_div.remove();
+    		/*
         	current_text_div.addClass("scrollback");
         	current_status_div.addClass("scrollback");
         
-    		current_text_div = $("<div class='room'/>");
+        	current_text_div = $("<div class='room'/>");
     		content.append(current_text_div);
         	
     		$.scrollTo(current_text_div,
@@ -82,12 +84,15 @@
     			}
     		);
         	
+        	current_actions_div.remove();
     		current_actions_div = $("<div class='actions'/>");
     		content.append(current_actions_div);
         	
     		current_status_div = $("<div class='status'/>");
     		content.append(current_status_div);
+    		*/
     		
+        	current_status_div.empty();
     		shown_user_list = false;
     		
     		if (editcontrols)
@@ -266,6 +271,48 @@
         	var m = $("<p/>");
         	m.text(s);
         	current_status_div.append(m);
+        },
+        
+        RealmsEvent: function(message)
+        {
+        	if (!content)
+        	{
+        		pending_realms = message;
+        		return;
+        	}
+        	else
+        		pending_realms = null;
+        	
+        	var srl = $("#specialrealmlist");
+        	srl.empty();
+        	
+        	var first = true;
+        	$.each(message.specialrealms,
+        		function (id, realm)
+        		{
+        			if (!first)
+        			{
+        				srl.append($("<span>, </span>"));
+        				first = false;
+        			}
+        			
+        			var a = $("<a href='#'/>").text(realm.name);
+        			
+        			a.click(
+        				function()
+        				{
+        					W.Socket.Send(
+        						{
+        						 	command: "enter",
+        						 	instance: realm.instance
+        						}
+        					);
+        				}
+        			);
+        			
+        			srl.append(a);
+        		}
+        	);
         }
     };
 }
