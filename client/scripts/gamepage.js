@@ -52,67 +52,96 @@
 		map.append("<p>Rooms in this realm:</p>");
 		
 		var ul = $("<ul/>");
+		var count = 0;
 		$.each(realm.rooms,
-			function (name, room)
+			function (id, room)
 			{
 				var li = $("<li/>");
 				var t = $("<span/>").text(room.title);
-				var n = $("<a href='#'/>").text(name);
+				var n = $("<span/>").text(room.name);
 				
-				if (W.CurrentRoom === name)
+				var changed_cb = function()
+				{
+					var msg =
+						{
+							command: "editroom",
+							room: id,
+							newtitle: t.text()
+						};
+					
+					if (!room.immutable)
+						msg.newname = n.text();
+					
+					W.Socket.Send(msg);
+				};
+				
+				if (!room.immutable)
+					n.singleLineEditor(changed_cb);
+				t.singleLineEditor(changed_cb);
+				
+				if (W.CurrentRoom === id)
 					li.addClass("currentRoom");
 				
-				n.click(
-					function()
-					{
-						W.Socket.Send(
+				li.append(n, " ⇒ ", t, " ");
+				li.append(
+					$("<a href='#'>[Warp]</a>")
+						.click(
+							function()
 							{
-								command: "warp",
-								instance: W.CurrentInstance,
-								room: name
+								W.Socket.Send(
+									{
+										command: "warp",
+										instance: W.CurrentInstance,
+										roomname: room.name
+									}
+								);
 							}
-						);
-					}
+						)
 				);
 				
-				li.append(t, " (", n, ") ");
-				
-				var d = $("<a href='#'>[Delete]</a>");
-				d.click(
-					function()
-					{
-						W.Socket.Send(
-							{
-								command: "delroom",
-								realmid: W.CurrentRealm.id,
-								room: name
-							}
-						);
-					}
-				);
-				li.append(d);
-				
+				if (!room.immutable)
+				{
+    				li.append(" ");
+    				li.append(
+    					$("<a href='#'>[Delete]</a>")
+    						.click(
+            					function()
+            					{
+            						W.Socket.Send(
+            							{
+            								command: "delroom",
+            								room: id
+            							}
+            						);
+            					}
+    						)
+    				);
+				}
+
 				ul.append(li);
+				count = count + 1;
 			}
 		);
+		if (count == 0)
+			ul.append("<li>(none)</li>");
 		map.append(ul);
 		
-		var createtext = $("<input type='text'/>");
-		var createbutton = $("<input type='button' value='Create room'/>");
-		createbutton.click(
-			function()
-			{
-				W.Socket.Send(
-					{
-						command: "createroom",
-						instance: W.CurrentInstance,
-						name: createtext.prop("value")
-					}
-				);
-			}
-		);
-		map.append($("<p/>").append(createtext, createbutton));
-		map.append($("<p>Note! You can't change a room ID once you've created it.</p>"));
+		map.append(
+			$("<a href='#'>[Create room]</a>")
+    			.click(
+    				function()
+    				{
+        				W.Socket.Send(
+        					{
+        						command: "createroom",
+        						instance: W.CurrentInstance,
+        						name: "id",
+        						title: "New room"
+        					}
+        				);
+    				}
+    			)
+    	);
 	};
 	
 	var hide_realm_map = function()
@@ -273,7 +302,6 @@
         				W.Socket.Send(
         					{
         						command: "editroom",
-        						realmid: W.CurrentRealm.id, 
         						room: message.room,
         						newtitle: header.text(),
         						newdescription: body.text()
@@ -374,7 +402,7 @@
         	current_actions_div.empty();
         	if (count > 0)
         	{
-            	current_actions_div.append("<p>Would you like to:</p>");
+            	current_actions_div.append("<p>Things to do:</p>");
             	current_actions_div.append(list);
         	}
         	
@@ -387,8 +415,8 @@
             	$.each(message.allactions,
             		function (id, action)
             		{
-            			var message = $("<span contenteditable='true'/>");
-            			var target = $("<span contenteditable='true'/>");
+            			var message = $("<span/>");
+            			var target = $("<span/>");
             			var deletelink = $("<a href='#'>[Delete]</a>");
                 		var li = $("<li/>");
                 		li.append(message, $("<span> ⇒ </span>"), target,
@@ -403,7 +431,6 @@
                 				W.Socket.Send(
                 					{
                 						command: "editaction",
-                						instance: W.CurrentInstance,
                 						room: W.CurrentRoom,
                 						actionid: id,
                 						newdescription: message.text(),
@@ -433,7 +460,7 @@
             		}
             	);
             	if (count == 0)
-            		list.append($("<li><span>(none yet)</span></li>"));
+            		list.append($("<li><span>(you can't do anything here)</span></li>"));
             	
             	current_actions_div.append(list);
             	
@@ -444,6 +471,7 @@
             				W.Socket.Send(
             					{
             						command: "addaction",
+            						room: W.CurrentRoom,
             						description: "<description>",
             						target: "<target room>"
             					}
@@ -535,8 +563,6 @@
         			var li = $("<li/>");
         			var realmname = $("<span/>");
         			realmname.text(realm.name);
-        			realmname.attr("contenteditable", "true");
-        			
         			realmname.singleLineEditor(
         				function()
         				{

@@ -40,7 +40,7 @@
             		
             		if (s.length > 0)
             		{
-            			if (s[0] == "*")
+            			if (s[0] != "{")
             			{
             				/* Whoops --- the server has sent us an out-of-band
             				 * message (which is naughty of it). Fake up a

@@ -7,6 +7,7 @@
     	{
     		var self = this;
     		
+    		self.attr("contenteditable", "true");
             self.keydown(
                 function (event)
                 {

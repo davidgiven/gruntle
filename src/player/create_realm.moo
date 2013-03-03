@@ -15,6 +15,7 @@ program $player:create_realm
 		/* Create the default room. */
 		
 		room = create($room, this);
+		room.immutable = 1;
 		room.name = "entrypoint";
 		room.title = "Featureless void";
 		room.description = "Unshaped nothingness stretches as far as you can see, tempting you to start shaping it.";

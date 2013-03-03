@@ -3,7 +3,7 @@ program $player:cmd_say
 	set_task_perms(this);
 	{message} = args;
 	
-	player:tell(
+	this:tell(
 		[
 			"event" -> "speech",
 			"user" -> player.name,

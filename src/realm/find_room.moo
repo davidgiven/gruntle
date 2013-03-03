@@ -4,14 +4,20 @@ program $realm:find_room
 	this:checkinstance();
 	realm = parent(this);
 
-	try
-		room = this.instantiated_rooms[roomname];
-	except e (ANY)
+	room = $nothing;
+	for r in (this.instantiated_rooms)
+		if (valid(r) && (r.name == roomname))
+			room = r;
+			break;
+		endif
+	endfor
+	
+	if (room == $nothing)
 		template = realm:find_room_template(roomname);
 		room = create(template, this.owner);
 		room.instance = this;
 		room.name = template.name;
-		this.instantiated_rooms[roomname] = room;
-	endtry
+		this.instantiated_rooms = setadd(this.instantiated_rooms, room);
+	endif
 	return room;
 .

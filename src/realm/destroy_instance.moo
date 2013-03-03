@@ -7,8 +7,8 @@ program $realm:destroy_instance
 		raise(E_INVARG, "Not an instance of this realm.");
 	endif
 	
-	for v, k in (instance.instantiated_rooms)
-		recycle(v);
+	for r in (instance.instantiated_rooms)
+		recycle(r);
 	endfor
 	recycle(instance);
 .

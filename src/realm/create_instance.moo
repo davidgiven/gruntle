@@ -6,7 +6,7 @@ program $realm:create_instance
 	entrypoint = $nothing;
 	try
 		instance = create(this, this.owner);
-		instance.instantiated_rooms = [];
+		instance.instantiated_rooms = {};
 		return instance;
 	except e (ANY)
 		if (instance != $nothing)

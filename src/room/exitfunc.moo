@@ -10,5 +10,5 @@ program $room:exitfunc
 				"uid" -> o
 			]
 		);
-	endif 
+	endif
 .

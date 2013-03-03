@@ -11,9 +11,11 @@ program $player:cmd_realms
 		
 		rooms = [];
 		for room in (realm.contents)
-			rooms[room.name] =
+			rooms[room] =
 				[
-					"title" -> room.title
+					"name" -> room.name,
+					"title" -> room.title,
+					"immutable" -> room.immutable
 				];
 		endfor
 		
