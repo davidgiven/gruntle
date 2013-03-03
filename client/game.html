@@ -2,11 +2,17 @@
 <div id="adminarea">
 	<div id="worldinfoarea">
 		<p>
-			You are in <b><span id="realmname"/></b> (<span id="realmid"/>)
+			You are in <b><span id="realmname"/></b> (<span id="instance"/>)
 			by <span id="realmowner"/>.
 		</p>
 		<p>You can <a href="#" id="warptoentrypoint">warp back to the entry
 		point</a>, or leave and go to <span id="specialrealmlist"/>.</p>
+		
+		<p>Enter an instance ID to warp there:
+		<input id="warptoinstance" type="text"/>
+		<input id="warptoinstancebtn" type="button" value="Go"/>
+		</p>
+		
 		<p>Your realms are:</p>
 		<ul id="yourrealmlist"/>
 		<p><a href="#" id="createnewrealm">[Create new realm]</a></p>

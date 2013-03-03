@@ -3,16 +3,6 @@ program $player:create_realm
 	set_task_perms(this);
 	{name} = args;
 	
-	/* Does the player have a realm of this name already? */
-	
-	for o in (this.contents)
-		if ($realm in parents(o))
-			if (name == o.name)
-				raise(E_RANGE, "You already have a realm of that name.");
-			endif
-		endif
-	endfor
-	
 	/* Create the realm. */
 	
 	realm = $nothing;

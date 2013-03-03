@@ -1,5 +1,5 @@
-;$verb($player, "cmd_enter", $god)
-program $player:cmd_enter
+;$verb($player, "cmd_warp", $god)
+program $player:cmd_warp
 	set_task_perms(this);
 
 	{message} = args;

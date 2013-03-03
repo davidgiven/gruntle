@@ -1,6 +1,6 @@
-;$verb($player, "@enter", $god, "rx")
-;set_verb_args($player, "@enter", {"any", "none", "none"});
-program $player:@enter
+;$verb($player, "@warp", $god, "rx")
+;set_verb_args($player, "@warp", {"any", "none", "none"});
+program $player:@warp
 	set_task_perms(this);
 	if (!respond_to(dobj, "isinstance") || !dobj:isinstance())
 		notify(player, "That's not a valid instance ID.");

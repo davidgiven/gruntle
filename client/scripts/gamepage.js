@@ -61,6 +61,42 @@
                         }
                     );
 
+                    $("#warptoentrypoint").click(
+                    	function (event)
+                    	{
+                    		W.Socket.Send(
+                    			{
+                    			 	command: "warp",
+                    			 	instance: W.CurrentInstance
+                    			}
+                    		);
+                    	}
+                    );
+                    
+                    $("#warptoinstancebtn").click(
+                    	function (event)
+                    	{
+                    		W.Socket.Send(
+                    			{
+                    			 	command: "warp",
+                    			 	instance: $("#warptoinstance").prop("value")
+                    			}
+                    		);
+                    	}
+                    );
+                    
+                    $("#createnewrealm").click(
+                    	function (event)
+                    	{
+                    		W.Socket.Send(
+                    			{
+                    				command: "createrealm",
+                    				name: "An Empty Realm"
+                    			}
+                    		);
+                    	}
+                    );
+                    	
             		update_game_page();
             	}
             );
@@ -111,6 +147,13 @@
         	}
         	else
         		pending_look = null;
+        	
+        	W.CurrentInstance = message.instance;
+        	W.CurrentRealm = message.realm;
+        	
+        	$("#realmname").text(W.CurrentRealm.name);
+        	$("#realmowner").text(W.CurrentRealm.user);
+        	$("#instance").text(W.CurrentInstance);
         	
         	var header = $("<h1/>").text(message.title);
         	var body = $("<p/>").text(message.description);
@@ -291,10 +334,9 @@
         		function (id, realm)
         		{
         			if (!first)
-        			{
         				srl.append($("<span>, </span>"));
+        			else
         				first = false;
-        			}
         			
         			var a = $("<a href='#'/>").text(realm.name);
         			
@@ -303,7 +345,7 @@
         				{
         					W.Socket.Send(
         						{
-        						 	command: "enter",
+        						 	command: "warp",
         						 	instance: realm.instance
         						}
         					);
@@ -313,6 +355,76 @@
         			srl.append(a);
         		}
         	);
+        	
+        	var yrl = $("#yourrealmlist");
+        	yrl.empty();
+        	$.each(message.realms,
+        		function (id, realm)
+        		{
+        			var li = $("<li/>");
+        			var realmname = $("<span/>");
+        			realmname.text(realm.name);
+        			realmname.attr("contenteditable", "true");
+        			realmname.addClass("editable");
+        			
+        			realmname.keydown(
+        				function (event)
+        				{
+        					if (event.which == 13)
+        					{
+        						W.Socket.Send(
+        							{
+        								command: "renamerealm",
+        								newname: realmname.text()
+        							}
+        						);
+        						event.preventDefault();
+        					}
+        					else
+        						realmname.addClass("urgent");
+        				}
+        			);
+        			
+        			li.append(realmname);
+        			
+        			var il = $("<span> (</span>");
+        			var first = true;
+        			$.each(realm.instances,
+        				function (_, instanceid)
+        				{
+        					if (!first)
+        						il.append("<span>, </span>");
+        					else
+        						first = false;
+        					
+        					var a = $("<a href='#'/>");
+        					a.text(instanceid)
+        					
+		        			a.click(
+                				function()
+                				{
+                					W.Socket.Send(
+                						{
+                						 	command: "warp",
+                						 	instance: instanceid
+                						}
+                					);
+                				}
+                			);
+                			
+        					il.append(a);
+        				}
+        			);
+        			if (first)
+        				il.append($("<span>no instances</span>"));
+        			il.append($("<span>)</span>"));
+        			
+        			li.append(il);
+        			yrl.append(li);
+        		}
+        	);
+        	if (yrl.children().length == 0)
+        		yrl.append("<li>You don't have any realms yet</li>");
         }
     };
 }

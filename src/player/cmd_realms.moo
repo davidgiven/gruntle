@@ -8,10 +8,20 @@ program $player:cmd_realms
 		for instance in (realm:instances())
 			instances = listappend(instances, instance);
 		endfor
+		
+		rooms = [];
+		for room in (realm.contents)
+			rooms[room.name] =
+				[
+					"title" -> room.title
+				];
+		endfor
+		
 		realms[realm] =
 			[
 				"name" -> realm.name,
-				"instances" -> instances
+				"instances" -> instances,
+				"rooms" -> rooms
 			];
 	endfor
 	
