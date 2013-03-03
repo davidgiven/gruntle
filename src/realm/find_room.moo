@@ -10,6 +10,7 @@ program $realm:find_room
 		template = realm:find_room_template(roomname);
 		room = create(template, this.owner);
 		room.instance = this;
+		room.name = template.name;
 		this.instantiated_rooms[roomname] = room;
 	endtry
 	return room;

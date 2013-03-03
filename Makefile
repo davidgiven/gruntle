@@ -1,14 +1,27 @@
 all: db/minimal.db
 
 MOOFILES = \
+	$(shell find src/*/ -name '*.moo' | LC_ALL=C sort)
+	
+ALLFILES = \
 	src/_first.moo \
 	src/_classes.moo \
-	$(shell find src/*/ -name '*.moo' | LC_ALL=C sort) \
+	$(MOOFILES) \
 	src/_last.moo
 	
-db/minimal.db: db/Stunt.db src/bootstrap.expect $(MOOFILES) \
+PATCHFILES = \
+	src/_classes.moo \
+	$(MOOFILES)
+	
+new: db/minimal.db
+
+patch::
+	expect src/bootstrap.expect -- current.db $(PATCHFILES)
+
+db/minimal.db: db/Stunt.db src/bootstrap.expect $(ALLFILES) \
 		files/primitive-0.0.4.json
-	expect src/bootstrap.expect -- $(MOOFILES)
+	cp db/Stunt.db db/minimal.db
+	expect src/bootstrap.expect -- db/minimal.db $(ALLFILES)
 
 db/Stunt.db:
 	mkdir -p db

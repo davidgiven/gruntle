@@ -23,6 +23,7 @@ program $player:cmd_look
 					"user" -> realm.owner.name,
 					"uid" -> realm.owner
 				],
+			"room" -> this.location.name,
 			"title" -> this.location:title(),
 			"description" -> this.location:description(),
 			"contents" -> contents,

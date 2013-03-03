@@ -34,3 +34,8 @@
 	float: right;
 	width: 20em;
 }
+
+.currentRoom
+{
+	font-weight: bold;
+}

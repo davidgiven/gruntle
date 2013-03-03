@@ -58,6 +58,13 @@ program $system:class
 	
 	if (name in properties($system))
 		o = $system.(name);
+		if (typeof(parents) != LIST)
+			if (parents == $nothing)
+				parents = {};
+			else
+				parents = {parents};
+			endif
+		endif
 		chparents(o, parents);
 	else
 		o = create(parents, $god);

@@ -1,14 +1,20 @@
 ;$verb($player, "cmd_warp", $god)
 program $player:cmd_warp
-	set_task_perms(this);
+	/* set_task_perms(this); */
 
 	{message} = args;
-	instance = toobj(message["instance"]);
-	if (!respond_to(instance, "isinstance") || !instance:isinstance())
-		raise(E_INVARG, "That's not a valid instance ID.");
+	instance = $cast(message["instance"], $room);
+	instance:checkinstance();
+
+	roomname = "entrypoint";
+	if (instance.owner == this)
+		try
+			roomname = message["room"];
+		except e (ANY)
+		endtry
 	endif
 	
-	room = instance:find_room("entrypoint");
+	room = instance:find_room(roomname);
 	move(player, room);
 	player:l();
 .

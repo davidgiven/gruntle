@@ -2,6 +2,7 @@
 
 ;$welcome_message = "If you don't know what to do here, you shouldn't be here."
 ;$disable_passkey_login = 1
+;$player.salt = tostr("$1$", random())
 
 # Create the default realm, which belongs to god.
 

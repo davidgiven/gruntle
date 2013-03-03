@@ -5,12 +5,12 @@
 	var content = null;
 	var pending_look = null;
 	var pending_actions = null;
-	var pending_realms = null;
 	var current_text_div = null;
 	var current_actions_div = null;
 	var current_status_div = null;
 	var shown_user_list = false;
 	var editcontrols = null;
+	var realms = null;
 	
 	var update_game_page = function()
 	{
@@ -18,8 +18,90 @@
 			W.GamePage.LookEvent(pending_look);
 		if (pending_actions)
 			W.GamePage.ActionsEvent(pending_actions);
-		if (pending_realms)
-			W.GamePage.RealmsEvent(pending_realms);
+		if (realms)
+			W.GamePage.RealmsEvent(realms);
+	};
+	
+	var update_realm_map = function()
+	{
+		if (W.CurrentRealm.uid === W.Userid)
+    		show_realm_map();
+    	else
+    		hide_realm_map();
+	};
+
+	var show_realm_map = function()
+	{
+		if (!realms)
+			return;
+		
+		var realm = realms.realms[W.CurrentRealm.id];
+		if (!realm)
+		{
+			/* We haven't received an update with this realm data in it ---
+			 * one will be along in a moment.
+			 */
+			hide_realm_map();
+			return;
+		}
+		
+		var map = $("#realmmap");
+		map.show();
+		map.empty();
+		
+		map.append("<p>Rooms in this realm:</p>");
+		
+		var ul = $("<ul/>");
+		$.each(realm.rooms,
+			function (name, room)
+			{
+				var li = $("<li/>");
+				var t = $("<span/>").text(room.title);
+				var n = $("<a href='#'/>").text(name);
+				
+				if (W.CurrentRoom === name)
+					li.addClass("currentRoom");
+				
+				n.click(
+					function()
+					{
+						W.Socket.Send(
+							{
+								command: "warp",
+								instance: W.CurrentInstance,
+								room: name
+							}
+						);
+					}
+				);
+				
+				li.append(t, " (", n, ")");
+				ul.append(li);
+			}
+		);
+		map.append(ul);
+		
+		var createtext = $("<input type='text'/>");
+		var createbutton = $("<input type='button' value='Create room'/>");
+		createbutton.click(
+			function()
+			{
+				W.Socket.Send(
+					{
+						command: "createroom",
+						instance: W.CurrentInstance,
+						name: createtext.prop("value")
+					}
+				);
+			}
+		);
+		map.append($("<p/>").append(createtext, createbutton));
+		map.append($("<p>Note! You can't change a room ID once you've created it.</p>"));
+	};
+	
+	var hide_realm_map = function()
+	{
+		$("#realmmap").hide();
 	};
 	
     W.GamePage =
@@ -149,6 +231,7 @@
         	
         	W.CurrentInstance = message.instance;
         	W.CurrentRealm = message.realm;
+        	W.CurrentRoom = message.room;
         	
         	$("#realmname").text(W.CurrentRealm.name);
         	$("#realmowner").text(W.CurrentRealm.user);
@@ -174,6 +257,8 @@
         				W.Socket.Send(
         					{
         						command: "editroom",
+        						realmid: W.CurrentRealm.id, 
+        						room: message.room,
         						newtitle: header.text(),
         						newdescription: body.text()
         					}
@@ -228,6 +313,8 @@
         		
         		shown_user_list = true;
         	}
+        	
+        	update_realm_map();
         },
         
         ActionsEvent: function(message)
@@ -300,6 +387,8 @@
                 				W.Socket.Send(
                 					{
                 						command: "editaction",
+                						instance: W.CurrentInstance,
+                						room: W.CurrentRoom,
                 						actionid: id,
                 						newdescription: message.text(),
                 						newtarget: target.text()
@@ -388,14 +477,10 @@
         
         RealmsEvent: function(message)
         {
-        	if (!content)
-        	{
-        		pending_realms = message;
+       		realms = message;
+        	if (!content || !message)
         		return;
-        	}
-        	else
-        		pending_realms = null;
-        	
+        	        	
         	var srl = $("#specialrealmlist");
         	srl.empty();
         	
@@ -442,6 +527,7 @@
     						W.Socket.Send(
     							{
     								command: "renamerealm",
+    								realmid: id,
     								newname: realmname.text()
     							}
     						);
@@ -488,6 +574,8 @@
         	);
         	if (yrl.children().length == 0)
         		yrl.append("<li>You don't have any realms yet</li>");
+        	
+        	update_realm_map();
         }
     };
 }
