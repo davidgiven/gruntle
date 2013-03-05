@@ -1,0 +1,54 @@
+<title>a text-based MMORPG engine</title>
+
+<h3>What is it?</h3>
+
+thickishstring is a text-based MMORPG engine with a lightweight web-browser
+client.
+
+The client uses Javascript/HTML with a WebSockets connection to the server
+so it's fast and responsive --- if you're used to accessing AJAX websites
+you'll be astounded at how fast it is. The server is based on the tried-and-
+tested Stunt application engine, based on old LambdaMOO technology, with its
+robust object model, the ability to safely run arbitrary player scripts, and
+incredibly small server footprint.
+
+Right now it's in an incredibly rough prototype stage, but there's enough here
+to let you log in, move around, talk to other players, create your own realms
+and let other players play them.
+
+This is where the source code and what we shall try to laughingly call 'the
+documentation' is stored. If you want to actually <i>try</i> it, you probably
+want <a href="http://cowlark.com/~dg/thickishstring">the test server</a>
+instead. It may even be up.
+
+<h3>Where can I get it?</h3>
+
+Right now you'll need to check it out of the source repository using
+<a href="http://fossil-scm.org">the Fossil DVCS</a>. Use the
+following commands:
+
+<verbatim>mkdir thickishstring
+cd thickishstring
+fossil clone http://cowlark.com/thickishstring thickishstring.fossil
+fossil open thickishstring.fossil
+</verbatim>
+
+More installation instructions are in the README.
+
+<h3>Who wrote it?</h3>
+
+I, <a href="http://cowlark.com">David Given</a>, wrote it. Got any comments,
+criticism, cake? Send it to <a href="mailto:dg@cowlark.com">dg@cowlark.com</a>.
+If there's interest, I'll set up a mailing list.
+
+<h3>What's the license?</h3>
+
+thickishstring is distributable under the terms of the
+<a href="copying.wiki">Simplified BSD License</a>.
+
+<h2 class='comments-title'>Comments on this page</h2>
+<table class='comments' border='0'><tr>
+<td id='commentator-viewer'></td>
+<td id='commentator-poster'></td>
+</tr></table>
+
