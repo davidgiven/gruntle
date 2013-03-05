@@ -454,6 +454,7 @@
                 				W.Socket.Send(
                 					{
                 						command: "delaction",
+                						room: W.CurrentRoom,
                 						actionid: id
                 					}
                 				);
