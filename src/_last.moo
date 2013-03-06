@@ -9,7 +9,7 @@
 ;$property($system, "defaultrealm", $god)
 ;$property($system, "defaultinstance", $god)
 
-;$defaultrealm = $god:create_realm("The Hub")
+;$defaultrealm = $thoth:create_realm("The Hub")
 ;$defaultinstance = $defaultrealm:create_instance()
 
 ;;
@@ -35,8 +35,12 @@
 	r:add_action("Return back up the stairs", "entrypoint");
 .
 
-# ...set up god.
+# ...set up god and Thoth.
 
 ;$god.name = "God"
 ;$god:change_password("testpassword")
-;move($god, $defaultinstance:find_room("entrypoint"))
+;move($god, $nothing)
+
+;$thoth:change_password("testpassword")
+;move($thoth, $defaultinstance:find_room("entrypoint"))
+

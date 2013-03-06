@@ -58,6 +58,7 @@ is one very important thing we need to do before going live, which is to
 change the admin password. Type this:
 
   ;$god:change_password("new password for the god user here")
+  ;$thoth:change_password("new password for the Thoth user here")
 
 Now do:
 
@@ -117,6 +118,12 @@ Okay, er... there is no admin interface. In order to do things like change
 passwords, delete users, adjust server settings etc, you'll need to connect as
 the God user via the text client (or restart the server in Emergency Wizard
 Mode) and use commands in MOOcode. This is unsatisfactory. Sorry.
+
+There are two users who are important. God, who owns everything and can do
+anything. Try not to use god to create scenery; it's a security risk.
+
+Instead, the Thoth user owns the core realm. Thoth is just an ordinary user
+and it's safe to log in as Thoth as a character. Thoth owns The Hub.
 
 Important commands:
 
