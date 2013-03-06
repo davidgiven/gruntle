@@ -4,21 +4,20 @@ program #0:do_login_command
 		return;
 	endif
 	subject = $nothing;
-	if (args[1] == "connect")
-		try
+
+	try
+		if (args[1] == "connect")
 			subject = $authenticate(@args[2..$]);
-		except e (ANY)
-			this:_log_error(e);
-		endtry
-	elseif (args[1] == "create")
-		try
+		elseif (args[1] == "create")
 			subject = $player:create_player(@args[2..$]);
-		except e (ANY)
-			this:_log_error(e);
-		endtry
-	else
-		notify(player, "*** invalid command");
-	endif
+		elseif (args[1] == "guest")
+			subject = $guest:create_guest();
+		else
+			notify(player, "*** invalid command");
+		endif
+	except e (ANY)
+		this:_log_error(e);
+	endtry
 	
 	if (!valid(subject) || !is_player(subject))
     	suspend(2);
