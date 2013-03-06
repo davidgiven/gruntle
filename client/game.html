@@ -1,18 +1,24 @@
 
+<table id="menubar">
+	<tr>
+		<td class="left">
+			<b><span id="realmname"/></b>, written by <span id="realmowner"/>
+			(instance <span id="instance"/>)
+		</td>
+		
+		<td class="right"> 
+			<a href="#" id="warptoentrypoint">Back to entry</a>
+			<span> ◈ </span>
+			<span id="specialrealmlist">special realm list</span>
+			<span> ◈ </span>
+			<span>Or to id: </span>
+			<span id="warptoinstance" contenteditable="true"/>
+		</td>
+	</tr>
+</table>
+
 <div id="adminarea">
 	<div id="worldinfoarea">
-		<p>
-			You are in <b><span id="realmname"/></b> (<span id="instance"/>)
-			by <span id="realmowner"/>.
-		</p>
-		<p>You can <a href="#" id="warptoentrypoint">warp back to the entry
-		point</a>, or leave and go to <span id="specialrealmlist"/>.</p>
-		
-		<p>Enter an instance ID to warp there:
-		<input id="warptoinstance" type="text"/>
-		<input id="warptoinstancebtn" type="button" value="Go"/>
-		</p>
-		
 		<p>Your realms are:</p>
 		<ul id="yourrealmlist"/>
 		<p><a href="#" id="createnewrealm">[Create new realm]</a></p>
@@ -23,10 +29,20 @@
 	</div>
 </div>
 
-<div id="playarea">
-	<div id="gamecontainer"/>
-	<div id="chatbox">
-		<p>Say something:
-		<input id="chatinput" type="text" value=""/> 
+<div id="playcontainer">
+	<div id="playarea"/>
+	<div id="padding"/>
+</div>
+
+<div id="actionsarea">
+	<div class="list">
+		<p>Things to do:</p>
+		<ul id="actionslist"/>
 	</div>
+	<p class="speech">
+		<span class="wrapper">
+			<span id="chatinput" contenteditable="true"/>
+		</span>
+	</p>
+	</div> 
 </div>

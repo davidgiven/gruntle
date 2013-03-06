@@ -2,15 +2,60 @@
 {
 	"use strict";
 
+	var defaultduration = 300;
+	var defaulteasing = "easeInOutQuad";
+	
 	var content = null;
 	var pending_look = null;
 	var pending_actions = null;
 	var current_text_div = null;
-	var current_actions_div = null;
 	var current_status_div = null;
+	var waiting_for_room_description = true;
 	var shown_user_list = false;
+	var edit_button = null;
 	var editcontrols = null;
 	var realms = null;
+	
+	var fadeOut = function()
+	{
+		for (var i=0; i<arguments.length; i++)
+		{
+			$(arguments[i]).fadeOut(
+    			{
+    				duration: defaultduration,
+    				easing: defaulteasing
+    			}
+    		);
+		}
+	}
+	
+	var fadeInText = function()
+	{
+		for (var i=0; i<arguments.length; i++)
+		{
+			$(arguments[i]).fadeIn(
+    			{
+    				duration: defaultduration * 2,
+    				easing: defaulteasing
+    			}
+    		);
+		}
+	};
+	
+	var fadeOutAndRemove = function(e)
+	{
+		e.fadeOut(
+			{
+				duration: defaultduration,
+				easing: defaulteasing,
+				complete:
+					function()
+					{
+						e.remove();
+					}
+			}
+		);
+	};
 	
 	var update_game_page = function()
 	{
@@ -95,6 +140,7 @@
 										roomname: room.name
 									}
 								);
+								return false;
 							}
 						)
 				);
@@ -113,6 +159,7 @@
             								room: id
             							}
             						);
+            						return false;
             					}
     						)
     				);
@@ -139,6 +186,7 @@
         						title: "New room"
         					}
         				);
+        				return false;
     				}
     			)
     	);
@@ -156,24 +204,15 @@
             $("#page").load("game.html",
             	function ()
             	{
-            		content = $("#gamecontainer");
+            		content = $("#playarea");
             		
-            		current_text_div = $("<div class='room'/>");
-            		content.append(current_text_div);
-                	
-            		current_actions_div = $("<div class='actions'/>");
-            		content.append(current_actions_div);
-                	
-            		current_status_div = $("<div class='status'/>");
-            		content.append(current_status_div);
-
                     $("#chatinput").keydown(
                         function (event)
                         {
                             if (event.keyCode === 13)
                             {
-                            	var msg = $("#chatinput").prop("value");
-                            	$("#chatinput").prop("value", "");
+                            	var msg = $("#chatinput").text();
+                            	$("#chatinput").text("");
                             	msg = msg.trim();
                             	if (msg != "")
                             	{
@@ -197,18 +236,21 @@
                     			 	instance: W.CurrentInstance
                     			}
                     		);
+                    		return false;
                     	}
                     );
                     
-                    $("#warptoinstancebtn").click(
+                    $("#warptoinstance").singleLineEditor(
                     	function (event)
                     	{
                     		W.Socket.Send(
                     			{
                     			 	command: "warp",
-                    			 	instance: $("#warptoinstance").prop("value")
+                    			 	instance: $("#warptoinstance").text()
                     			}
                     		);
+                    		$("#warptoinstance").removeClass("urgent").empty();
+                    		return false;
                     	}
                     );
                     
@@ -221,9 +263,12 @@
                     				name: "An Empty Realm"
                     			}
                     		);
+                    		return false;
                     	}
                     );
-                    	
+                    
+                    $("#actionsarea").hide();
+                    
             		update_game_page();
             	}
             );
@@ -231,8 +276,12 @@
         
         MovedEvent: function(message)
         {
-    		current_text_div.children().attr("contenteditable", "false");
+        	
+//    		current_text_div.children().attr("contenteditable", "false");
 
+        	current_text_div.addClass("scrollback");
+        	current_status_div.addClass("scrollback");
+        	
     		/*
         	current_text_div.addClass("scrollback");
         	current_status_div.addClass("scrollback");
@@ -254,14 +303,29 @@
     		content.append(current_status_div);
     		*/
     		
+    		/*
         	current_status_div.empty();
     		shown_user_list = false;
+    		*/
     		
-    		if (editcontrols)
-    		{
-    			editcontrols.remove();
-    			editcontrols = null;
-    		}
+        	if (edit_button)
+        	{
+       			fadeOutAndRemove(edit_button);
+        		edit_button = null;
+        	}
+        	
+        	waiting_for_room_description = true;
+        	
+        	var menubarheight = $("#menubar").height();
+        	
+        	var voffset = $("#padding").offset().top - menubarheight*2;
+        	$('html, body').animate(
+        		{
+        			scrollTop: voffset,
+        			duration: defaultduration,
+        			easing: defaulteasing
+        		}
+        	);
         },
         
         LookEvent: function(message)
@@ -274,95 +338,130 @@
         	else
         		pending_look = null;
         	
-        	W.CurrentInstance = message.instance;
-        	W.CurrentRealm = message.realm;
-        	W.CurrentRoom = message.room;
-        	
-        	$("#realmname").text(W.CurrentRealm.name);
-        	$("#realmowner").text(W.CurrentRealm.user);
-        	$("#instance").text(W.CurrentInstance);
-        	
-        	var header = $("<h1/>").text(message.title);
-        	var body = $("<div/>");
-
-		var paras = message.description.split("\n");
-		for (var i = 0; i < paras.length; i++)
-			body.append($("<p/>").text(paras[i]));
-        	
-        	current_text_div.empty();
-        	current_text_div.append(header, body);
-        	
-        	if (message.editable)
+        	var update_text = function()
         	{
-        		header.attr("contenteditable", "true");
-        		body.attr("contenteditable", "true");
-        		
-        		var savebutton = $('<input id="savebutton" type="button" value="Save"/>');
-        		var cancelbutton = $('<input id="savebutton" type="button" value="Cancel"/>');
-        		
-        		savebutton.click(
-        			function()
-        			{
-        				W.Socket.Send(
-        					{
-        						command: "editroom",
-        						room: message.room,
-        						newtitle: header.text(),
-        						newdescription: body.textWithBreaks()
-        					}
-        				);
-        			}
-        		);
-        		
-        		cancelbutton.click(
-        			function()
-        			{
-        				W.Socket.Send(
-        					{
-        						command: "look"
-        					}
-        				);
-        			}
-        		);
-        		
-        		var changeevent =
-        			function(event)
-        			{
-                       	savebutton.addClass("urgent");
-        			};
-        			
-        		header.keypress(changeevent);
-        		body.keypress(changeevent);
+            	W.CurrentInstance = message.instance;
+            	W.CurrentRealm = message.realm;
+            	W.CurrentRoom = message.room;
+            	
+            	$("#realmname").text(W.CurrentRealm.name);
+            	$("#realmowner").text(W.CurrentRealm.user);
+            	$("#instance").text(W.CurrentInstance);
+            	
+            	var header = $("<h1/>").text(message.title);
+            	var body = $("<div/>");
+    
+            	var paras = message.description.split("\n");
+            	for (var i = 0; i < paras.length; i++)
+            		body.append($("<p/>").text(paras[i]));
+            	
+            	current_text_div.empty();
+            	
+            	if (message.editable)
+            	{
+            		if (edit_button)
+            			fadeOutAndRemove(edit_button);
 
-        		editcontrols = $("<p class='edithelp'/>");
-        		editcontrols.append($("<span>Edit the title or description text above and then press </span>"),
-        			savebutton,
-        			$("<span> or </span>"),
-        			cancelbutton,
-        			$("<span>.</span>"));
-        		
-        		current_text_div.append(editcontrols);
-        	}
+            		edit_button = $("<div class='editbutton'><div>Click to edit</div></div>");
+            		current_text_div.append(edit_button);
+            	}
+
+            	current_text_div.append(header, body);
+            	
+            	if (message.editable)
+            	{            		
+            		header.attr("contenteditable", "true");
+            		body.attr("contenteditable", "true");
+            		
+            		var savebutton = $('<input id="savebutton" type="button" value="Save"/>');
+            		var cancelbutton = $('<input id="savebutton" type="button" value="Cancel"/>');
+            		
+            		savebutton.click(
+            			function()
+            			{
+            				W.Socket.Send(
+            					{
+            						command: "editroom",
+            						room: message.room,
+            						newtitle: header.text(),
+            						newdescription: body.textWithBreaks()
+            					}
+            				);
+                    		return false;
+            			}
+            		);
+            		
+            		cancelbutton.click(
+            			function()
+            			{
+            				W.Socket.Send(
+            					{
+            						command: "look"
+            					}
+            				);
+                    		return false;
+            			}
+            		);
+            		
+            		var changeevent =
+            			function(event)
+            			{
+                           	savebutton.addClass("urgent");
+            			};
+            			
+            		header.keypress(changeevent);
+            		body.keypress(changeevent);
+    
+            		editcontrols = $("<p class='edithelp'/>");
+            		editcontrols.append($("<span>Edit the title or description text above and then press </span>"),
+            			savebutton,
+            			$("<span> or </span>"),
+            			cancelbutton,
+            			$("<span>.</span>"));
+            		
+            		current_text_div.append(editcontrols);
+            	}
+            	
+            	if (!shown_user_list)
+            	{
+            		$.each(message.contents,
+            			function(name, uid)
+            			{
+            				if (uid != W.Userid)
+            				{
+                				var m = $("<p/>");
+                				m.text(name+" is here.");
+                				
+                				current_status_div.append(m);
+            				}
+            			}
+            		);
+            		
+            		shown_user_list = true;
+            	}
+            	
+            	update_realm_map();
+        	};
         	
-        	if (!shown_user_list)
+        	if (waiting_for_room_description)
         	{
-        		$.each(message.contents,
-        			function(name, uid)
-        			{
-        				if (uid != W.Userid)
-        				{
-            				var m = $("<p/>");
-            				m.text(name+" is here.");
-            				
-            				current_status_div.append(m);
-        				}
-        			}
-        		);
+        		waiting_for_room_description = true;
         		
-        		shown_user_list = true;
+        		current_text_div = $("<div class='room'/>")
+        			.hide()
+        			.appendTo(content);
+            	
+        		current_status_div = $("<div class='status'/>")
+        			.hide()
+        			.appendTo(content);
+
+        		update_text();
+        		fadeInText(current_text_div, current_status_div);
         	}
-        	
-        	update_realm_map();
+        	else
+        	{
+        		update_text();
+        	}
         },
         
         ActionsEvent: function(message)
@@ -375,116 +474,152 @@
         	else
         		pending_actions = null;
         	
-        	var list = $("<ul/>");
-        	var count = 0;
-        	$.each(message.actions,
-        		function (id, action)
-        		{
-            		var e = $("<a href='#'/>");
-            		e.text(action.description);
-            		
-            		e.click(
-            			function()
-                		{
-                			W.Socket.Send(
-                				{
-                				 	command: "action",
-                				 	actionid: id
-                				}
-                			);
-                		}
-            		);
-            		
-            		var li = $("<li/>");
-            		li.append(e);
-            		list.append(li);
-            		
-            		count++;
-        		}
-        	);
-        	
-        	current_actions_div.empty();
-        	if (count > 0)
+        	var update_actions = function()
         	{
-            	current_actions_div.append("<p>Things to do:</p>");
-            	current_actions_div.append(list);
-        	}
-        	
-        	if (message.editable)
-        	{
-        		current_actions_div.append("<p>The following actions are defined on this room:</p>");
-        		
-            	var list = $("<ul/>");
+            	var list = $("#actionslist");
+            	list.empty();
+            	
             	var count = 0;
-            	$.each(message.allactions,
+            	$.each(message.actions,
             		function (id, action)
             		{
-            			var message = $("<span/>");
-            			var target = $("<span/>");
-            			var deletelink = $("<a href='#'>[Delete]</a>");
-                		var li = $("<li/>");
-                		li.append(message, $("<span> ⇒ </span>"), target,
-                			"<span> </span>", deletelink);
-            			
-                		message.text(action.description);
-                		target.text(action.target);
+                		var e = $("<a href='#'/>");
+                		e.text(action.description);
                 		
-                		var commit_cb =
+                		e.click(
                 			function()
-                			{
-                				W.Socket.Send(
-                					{
-                						command: "editaction",
-                						room: W.CurrentRoom,
-                						actionid: id,
-                						newdescription: message.text(),
-                						newtarget: target.text()
-                					}
-                				);
-                			};
-                			
-                		message.singleLineEditor(commit_cb);
-                		target.singleLineEditor(commit_cb);
-                		
-                		list.append(li);
-                		
-                		deletelink.click(
-                			function()
-                			{
-                				W.Socket.Send(
-                					{
-                						command: "delaction",
-                						room: W.CurrentRoom,
-                						actionid: id
-                					}
-                				);
-                			}
+                    		{
+                    			W.Socket.Send(
+                    				{
+                    				 	command: "action",
+                    				 	actionid: id
+                    				}
+                    			);
+                    			return false;
+                    		}
                 		);
+                		
+                		var li = $("<li/>");
+                		li.append(e);
+                		list.append(li);
                 		
                 		count++;
             		}
             	);
+            	
             	if (count == 0)
-            		list.append($("<li><span>(you can't do anything here)</span></li>"));
+            		list.append("<li>(You can't do anything here.)</li>");
             	
-            	current_actions_div.append(list);
-            	
-            	var createlink = $("<p><a href='#'>[Create action]</a></p>")
-            		.click(
-            			function()
-            			{
-            				W.Socket.Send(
-            					{
-            						command: "addaction",
-            						room: W.CurrentRoom,
-            						description: "<description>",
-            						target: "<target room>"
-            					}
-            				);
-            			}
-            		);
-            	current_actions_div.append(createlink);
+            	if (message.editable)
+            	{
+            		/*
+            		current_actions_div.append("<p>The following actions are defined on this room:</p>");
+            		
+                	var list = $("<ul/>");
+                	var count = 0;
+                	$.each(message.allactions,
+                		function (id, action)
+                		{
+                			var message = $("<span/>");
+                			var target = $("<span/>");
+                			var deletelink = $("<a href='#'>[Delete]</a>");
+                    		var li = $("<li/>");
+                    		li.append(message, $("<span> ⇒ </span>"), target,
+                    			"<span> </span>", deletelink);
+                			
+                    		message.text(action.description);
+                    		target.text(action.target);
+                    		
+                    		var commit_cb =
+                    			function()
+                    			{
+                    				W.Socket.Send(
+                    					{
+                    						command: "editaction",
+                    						room: W.CurrentRoom,
+                    						actionid: id,
+                    						newdescription: message.text(),
+                    						newtarget: target.text()
+                    					}
+                    				);
+                    			};
+                    			
+                    		message.singleLineEditor(commit_cb);
+                    		target.singleLineEditor(commit_cb);
+                    		
+                    		list.append(li);
+                    		
+                    		deletelink.click(
+                    			function()
+                    			{
+                    				W.Socket.Send(
+                    					{
+                    						command: "delaction",
+                    						room: W.CurrentRoom,
+                    						actionid: id
+                    					}
+                    				);
+                    				return false;
+                    			}
+                    		);
+                    		
+                    		count++;
+                		}
+                	);
+                	if (count == 0)
+                		list.append($("<li><span>(you can't do anything here)</span></li>"));
+                	
+                	current_actions_div.append(list);
+                	
+                	var createlink = $("<p><a href='#'>[Create action]</a></p>")
+                		.click(
+                			function()
+                			{
+                				W.Socket.Send(
+                					{
+                						command: "addaction",
+                						room: W.CurrentRoom,
+                						description: "<description>",
+                						target: "<target room>"
+                					}
+                				);
+                    			return false;
+                			}
+                		);
+                	current_actions_div.append(createlink);
+                	                		*/
+
+            	}
+        	};
+
+        	var show_actions = function()
+        	{
+    			update_actions();
+    			
+    			$("#actionsarea").show(
+    				{
+            			effect: "slide",
+            			easing: defaulteasing,
+            			duration: defaultduration,
+            			direction: "down",
+    				}
+    			);
+        	};
+        	
+        	if ($("#actionsarea").is(":visible"))
+        	{
+        		$("#actionsarea").hide(
+            		{
+            			effect: "slide",
+            			easing: defaulteasing,
+            			duration: defaultduration,
+            			direction: "down",
+            			complete: show_actions
+            		}
+            	);
         	}
+        	else
+        		show_actions();
         },
         
         ArrivedEvent: function(message)
@@ -513,15 +648,17 @@
         {
         	var s;
         	if (message.uid === W.Userid)
-        		s = 'You say, "';
+        		s = 'You say, “';
         	else
-        		s = message.user + ' says, "';
+        		s = message.user + ' says, “';
         	s += message.text;
-        	s += '".';
+        	s += '”';
         	
         	var m = $("<p/>");
         	m.text(s);
+        	m.hide();
         	current_status_div.append(m);
+        	fadeInText(m);
         },
         
         RealmsEvent: function(message)
@@ -553,6 +690,7 @@
         						 	instance: realm.instance
         						}
         					);
+                    		return false;
         				}
         			);
         			
@@ -605,6 +743,7 @@
                 						 	instance: instanceid
                 						}
                 					);
+                            		return false;
                 				}
                 			);
                 			
