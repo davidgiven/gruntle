@@ -1,10 +1,8 @@
-BODY, HTML
+HTML
 {
 	background-color: black;
 	font-family: 'IM Fell DW Pica', serif;
 	//font-family: 'IM Fell French Canon', serif;
-	width: 100%;
-	height: 100%;
 }
 
 #page
@@ -23,19 +21,26 @@ BODY, HTML
 	background-color: white;
 }
 
+#gamebackground
+{
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-image: url("res/background.jpg");
+	background-size: cover;
+	z-index: -999;
+}
+
 .scrollback
 {
-	color: #888;
+	color: rgba(0, 0, 0, 0.5);
 }
 
 #chatinput
 {
 	width: 100%;
-}
-
-[contenteditable=true]
-{
-	border: 1px dotted red;
 }
 
 .urgent
@@ -73,18 +78,58 @@ BODY, HTML
 	}
 }
 
+#leftborder
+{
+	margin-left: 3%;
+	height: 100%;
+
+	DIV
+	{
+		position: relative;
+		float: left;
+		width: 48px;
+		height: 100%;
+		left: -20px;
+		background-image: url("res/paper-left.png");
+		background-repeat: repeat-y;
+	}
+}
+
 #playcontainer
 {
 	margin-left: 3%;
-	padding-top: 3.5em;
+	padding-top: 0;
 	width: 50%;
-	background-color: white;
+	table-layout: fixed;
+
+	#leftcell
+	{
+		background-image: url("res/paper-left.png");
+		background-repeat: repeat;
+		width: 24px;
+	}
+	
+	#rightcell
+	{
+		background-image: url("res/paper-right.png");
+		background-repeat: repeat;
+		width: 24px;
+	}
+	
+	#playcell
+	{
+		background-image: url("res/paper.jpg");
+		background-repeat: repeat;
+		width: 100%;
+		height: 100%;
+	}
 	
 	#playarea
 	{
 		margin-left: 1em;
 		margin-right: 1em;
 		text-align: justify;
+		padding-top: 3.5em;
 		
 		H1
 		{
@@ -110,7 +155,7 @@ BODY, HTML
 		div
 		{
 			position: absolute;
-			left: 105%;
+			left: 100%;
 			width: 7em;
 			text-align: center;
 			border: 3px solid red;
