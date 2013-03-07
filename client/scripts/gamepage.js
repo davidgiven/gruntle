@@ -16,6 +16,19 @@
 	var editcontrols = null;
 	var realms = null;
 	
+	var fadeIn = function()
+	{
+		for (var i=0; i<arguments.length; i++)
+		{
+			$(arguments[i]).fadeIn(
+    			{
+    				duration: defaultduration,
+    				easing: defaulteasing
+    			}
+    		);
+		}
+	}
+	
 	var fadeOut = function()
 	{
 		for (var i=0; i<arguments.length; i++)
@@ -199,6 +212,7 @@
 	
 	var show_room_editor = function(message)
 	{
+		$("#editbutton .label").text("Close editor");
 		$("#editroomname").text(message.title);
 
 		$("#editdescription").empty()
@@ -208,10 +222,9 @@
 
     	$("#editarea").show(
 			{
-    			effect: "slide",
+    			effect: "fadeIn",
     			easing: defaulteasing,
     			duration: defaultduration,
-    			direction: "right",
 			}
 		);
 	};
@@ -287,7 +300,14 @@
                     );
                     
                     $("#actionsarea").hide();
-                    $("#editarea").hide();
+                    $("#editbutton").hide();
+                    
+                    $(".dialogue").draggable(
+                    	{
+                    		handle: "h3.dialogue-title"
+                    	}
+                    ).hide();
+                    $(".resizable").resizable();
                     
             		update_game_page();
             	}
@@ -379,20 +399,19 @@
             	
             	if (message.editable)
             	{
-            		if (edit_button)
-            			fadeOutAndRemove(edit_button);
-
             		if (!$("#editarea").is(":visible"))
             		{
-                		edit_button = $("<div class='editbutton'><div>Click to edit</div></div>");
-                		edit_button.click(
-                			function()
-                			{
-                				show_room_editor(message);
-                				fadeOut(edit_button);
-                			}
-                		);
-                		current_text_div.append(edit_button);
+            			$("#editbutton")
+            				.remove()
+            				.appendTo(current_text_div)
+            				.click(
+            					function()
+            					{
+            						show_room_editor(message);
+            					}
+            				);
+            			$("#editbutton .label").text("Click to edit");
+            			fadeIn($("#editbutton"));
             		}
             	}
 

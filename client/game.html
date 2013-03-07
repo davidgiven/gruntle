@@ -53,28 +53,35 @@
 	</div>
 </div>
 
-<div id="editarea">
-	<div>
-		<table>
-			<tr>
-				<th>Room name:</th>
-				<td id="editroomname" contenteditable="true"/>
-			</tr>
-			<tr>
-				<th>Description:</th>
-				<td id="editdescription" contenteditable="true"/>
-			</tr>
-			<tr>
-				<th>Actions:</th>
-				<td id="actions"/>
-			</tr>
-			<tr>
-				<th/>
-				<td>
-					<input type="button" id="editcancelbutton" value="Cancel"/>
-					<input type="button" id="editsavebutton" value="Save"/>
-				</td>
-			</tr>
-		</table>
+<div id='editbutton'>
+	<div class="label">Click to edit</div>
+</div>
+
+<div id="editarea" class="dialogue">
+	<div class="resizable">
+		<h3 class="dialogue-title">Room editor</h3>
+		<div class="container">
+			<table>
+				<tr>
+					<th>Room name:</th>
+					<td><div id="editroomname" contenteditable="true"/></td>
+				</tr>
+				<tr>
+					<th>Description:</th>
+					<td><div id="editdescription" contenteditable="true"/></td>
+				</tr>
+				<tr>
+					<th>Actions:</th>
+					<td id="actions"/>
+				</tr>
+				<tr>
+					<th/>
+					<td>
+						<input type="button" id="editcancelbutton" value="Cancel"/>
+						<input type="button" id="editsavebutton" value="Save"/>
+					</td>
+				</tr>
+			</table>
+		</div>
 	</div>
 </div>

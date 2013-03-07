@@ -1,3 +1,5 @@
+@import "jqueryui.less";
+
 HTML
 {
 	background-color: black;
@@ -129,22 +131,6 @@ HTML
 		height: 100em;
 	}
 	
-	.editbutton
-	{
-		position: relative;
-		height: 0;
-		
-		div
-		{
-			position: absolute;
-			left: 100%;
-			width: 7em;
-			text-align: center;
-			border: 3px solid yellow;
-			background-color: yellow;
-		}
-	}
-	
 	.editwindow
 	{
 		position: relative;
@@ -229,43 +215,99 @@ HTML
 	height: 0;
 }
 
-#editarea
+#editbutton
 {
-	position: fixed;
-	left: 57%;
-	top: 4em;
-	bottom: 1em;
-	right: 0em;
+	position: relative;
+	height: 0;
 	
 	> DIV
 	{
-		background-color: yellow; 
-	    border-radius: 10px 10px 10px 10px;
-	    margin-right: 1em;
-	    padding-top: 0.5em;
-	    width: auto;
-	    height: 100%;
+		position: absolute;
+		left: 100%;
+		width: 7em;
+		text-align: center;
+		border: 3px solid yellow;
+		background-color: yellow;
+	}
+}
+
+.dialogue
+{
+	position: fixed !important;
+	width: auto;
+	height: auto;
+	background: rgba(0, 0, 0, 0.5);
+	border-radius: 3px 3px 3px 3px;
+	box-shadow: 8px 8px 10px 0 rgba(0, 0, 0, 0.9);
+    
+    @borderwidth: 0.5em;
+    @titleheight: 1.3em;
+    
+    .dialogue-title
+    {
+    	position: absolute;
+    	top: @borderwidth;
+    	left: @borderwidth;
+    	right: @borderwidth;
+    	height: @titleheight; 
+    	
+    	text-align: center;
+    	font-weight: bold;
+    	color: white;
+    }
+    
+    .container
+    {
+    	position: absolute;
+    	top: @titleheight + (@borderwidth * 2);
+    	bottom: @borderwidth;
+    	left: @borderwidth;
+    	right: @borderwidth;
 	    overflow: auto;
+		background-image: url("res/dialogue-background.jpg");
+		background-repeat: repeat;
+    }
+    
+    [contenteditable="true"]
+    {
+    	border: 1px solid black;
+    	padding: 0.2em;
+    	background-color: white;
+    }
+}
+
+#editarea
+{
+	left: 55%;
+	top: 4em;
+
+	.resizable
+	{
+	    width: 30em;
+	    height: 20em;
+	}
 	    
-	    #editroomname, #editdescription
-	    {
-	    	border: 1px solid black;
-	    	padding: 0.2em;
-	    }
-	    
+    .container
+    {
+    	padding: 0.5em;
+    	
 	    TABLE
 	    {
-	    	width: 100%;
-		    border-collapse: separate; 
-			border-spacing: 1em 0.5em;
+		    border-collapse: collapse;
 	    }
 	
+		TR + TR
+		{
+	    	border-top: 0.5em solid transparent;
+		}
+		
 	    TH
 	    {
 	    	font-weight: bold;
 	    	white-space: nowrap;
 	    	vertical-align: top;
-	    	padding: 0.2em;
+	    	padding-top: 0.2em;
+	    	border-right: 0.5em solid transparent;
 	    }
 	    
 	    TD
