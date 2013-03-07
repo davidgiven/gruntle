@@ -46,10 +46,35 @@
 		<p>Things to do:</p>
 		<ul id="actionslist"/>
 	</div>
-	<p class="speech">
+	<div class="speech">
 		<span class="wrapper">
 			<span id="chatinput" contenteditable="true"/>
 		</span>
-	</p>
-	</div> 
+	</div>
+</div>
+
+<div id="editarea">
+	<div>
+		<table>
+			<tr>
+				<th>Room name:</th>
+				<td id="editroomname" contenteditable="true"/>
+			</tr>
+			<tr>
+				<th>Description:</th>
+				<td id="editdescription" contenteditable="true"/>
+			</tr>
+			<tr>
+				<th>Actions:</th>
+				<td id="actions"/>
+			</tr>
+			<tr>
+				<th/>
+				<td>
+					<input type="button" id="editcancelbutton" value="Cancel"/>
+					<input type="button" id="editsavebutton" value="Save"/>
+				</td>
+			</tr>
+		</table>
+	</div>
 </div>

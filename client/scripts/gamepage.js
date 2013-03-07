@@ -197,6 +197,25 @@
 		$("#realmmap").hide();
 	};
 	
+	var show_room_editor = function(message)
+	{
+		$("#editroomname").text(message.title);
+
+		$("#editdescription").empty()
+    	var paras = message.description.split("\n");
+    	for (var i = 0; i < paras.length; i++)
+    		$("#editdescription").append($("<p/>").text(paras[i]));
+
+    	$("#editarea").show(
+			{
+    			effect: "slide",
+    			easing: defaulteasing,
+    			duration: defaultduration,
+    			direction: "right",
+			}
+		);
+	};
+	
     W.GamePage =
     {
         Show: function ()
@@ -268,6 +287,7 @@
                     );
                     
                     $("#actionsarea").hide();
+                    $("#editarea").hide();
                     
             		update_game_page();
             	}
@@ -362,8 +382,18 @@
             		if (edit_button)
             			fadeOutAndRemove(edit_button);
 
-            		edit_button = $("<div class='editbutton'><div>Click to edit</div></div>");
-            		current_text_div.append(edit_button);
+            		if (!$("#editarea").is(":visible"))
+            		{
+                		edit_button = $("<div class='editbutton'><div>Click to edit</div></div>");
+                		edit_button.click(
+                			function()
+                			{
+                				show_room_editor(message);
+                				fadeOut(edit_button);
+                			}
+                		);
+                		current_text_div.append(edit_button);
+            		}
             	}
 
             	current_text_div.append(header, body);
