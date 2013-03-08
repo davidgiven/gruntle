@@ -62,26 +62,66 @@
 		<h3 class="dialogue-title">Room editor</h3>
 		<div class="container">
 			<table>
-				<tr>
-					<th>Room name:</th>
-					<td><div id="editroomname" contenteditable="true"/></td>
-				</tr>
-				<tr>
-					<th>Description:</th>
-					<td><div id="editdescription" contenteditable="true"/></td>
-				</tr>
-				<tr>
-					<th>Actions:</th>
-					<td id="actions"/>
-				</tr>
-				<tr>
-					<th/>
-					<td>
-						<input type="button" id="editcancelbutton" value="Cancel"/>
-						<input type="button" id="editsavebutton" value="Save"/>
-					</td>
-				</tr>
+				<tbody>
+					<tr>
+						<th>Room name:</th>
+						<td><div id="editroomname" contenteditable="true"/></td>
+					</tr>
+					<tr>
+						<th>Description:</th>
+						<td><div id="editdescription" contenteditable="true"/></td>
+					</tr>
+				</tbody>
+				<tbody id="editactions">
+					<tr>
+						<th>
+							<a href="#" id="createactionbutton">[add action]</a>
+						</th>
+						<td class='containsbuttons'>
+							<input type="button" id="editcancelbutton" value="Cancel"/>
+							<input type="button" id="editsavebutton" value="Save"/>
+						</td>
+					</tr>
+				</tbody>
 			</table>
 		</div>
 	</div>
 </div>
+
+<li class="template" id="actioneditortemplate">
+	<p>
+		Action 2: <span contenteditable="true">action description here</span> => 
+		<select>
+			<option>Goes to room</option>
+			<option>Tells player</option>
+			<option>Runs script</option>
+		</select>
+		<span contenteditable="true">action target here</a>
+	</p>
+	<table>
+		<tr>
+			<th colspan="2">
+				Action number <span class="actionid"/>
+				<a href="#">[Delete action]</a>
+			</th>
+		</tr>
+		<tr>
+			<th>Description:</th>
+			<td><div contenteditable="true" class="description"/></td>
+		</tr>
+		<tr>
+			<th>Type:</th>
+			<td>
+				<select>
+					<option>Goes to room</option>
+					<option>Tells player</option>
+					<option>Runs script</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th>Does:</th>
+			<td><div contenteditable="true" class="target"/></td>
+		</tr>
+	</table>
+</li>

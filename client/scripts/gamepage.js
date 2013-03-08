@@ -7,7 +7,6 @@
 	
 	var content = null;
 	var pending_look = null;
-	var pending_actions = null;
 	var current_text_div = null;
 	var current_status_div = null;
 	var waiting_for_room_description = true;
@@ -74,8 +73,6 @@
 	{
 		if (pending_look)
 			W.GamePage.LookEvent(pending_look);
-		if (pending_actions)
-			W.GamePage.ActionsEvent(pending_actions);
 		if (realms)
 			W.GamePage.RealmsEvent(realms);
 	};
@@ -210,27 +207,11 @@
 		$("#realmmap").hide();
 	};
 	
-	var show_room_editor = function(message)
-	{
-		$("#editbutton .label").text("Close editor");
-		$("#editroomname").text(message.title);
-
-		$("#editdescription").empty()
-    	var paras = message.description.split("\n");
-    	for (var i = 0; i < paras.length; i++)
-    		$("#editdescription").append($("<p/>").text(paras[i]));
-
-    	$("#editarea").show(
-			{
-    			effect: "fadeIn",
-    			easing: defaulteasing,
-    			duration: defaultduration,
-			}
-		);
-	};
-	
     W.GamePage =
     {
+    	FadeOut: fadeOut,
+    	FadeIn: fadeIn,
+    	
         Show: function ()
         {
             $("#page").load("game.html",
@@ -399,20 +380,17 @@
             	
             	if (message.editable)
             	{
-            		if (!$("#editarea").is(":visible"))
-            		{
-            			$("#editbutton")
-            				.remove()
-            				.appendTo(current_text_div)
-            				.click(
-            					function()
-            					{
-            						show_room_editor(message);
-            					}
-            				);
-            			$("#editbutton .label").text("Click to edit");
-            			fadeIn($("#editbutton"));
-            		}
+        			$("#editbutton")
+        				.remove()
+        				.appendTo(current_text_div)
+        				.click(
+        					function()
+        					{
+        						W.RoomEditor.Show(message);
+        					}
+        				);
+        			$("#editbutton .label").text("Click to edit");
+        			fadeIn($("#editbutton"));
             	}
 
             	current_text_div.append(header, body);
@@ -511,17 +489,6 @@
         	{
         		update_text();
         	}
-        },
-        
-        ActionsEvent: function(message)
-        {
-        	if (!content)
-        	{
-        		pending_actions = message;
-        		return;
-        	}
-        	else
-        		pending_actions = null;
         	
         	var update_actions = function()
         	{

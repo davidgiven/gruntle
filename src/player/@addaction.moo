@@ -1,7 +1,7 @@
 ;$verb($player, "@addaction", $god, "rx")
 ;set_verb_args($player, "@addaction", {"any", "none", "none"});
 program $player:@addaction
-	$restrict_to_server();
+	set_task_perms(caller_perms());
 
 	template = player.location:template();
 	if (template.owner != player)
@@ -9,7 +9,23 @@ program $player:@addaction
 		return;
 	endif
 
-	{description, target} = args;
-	id = template:add_action(description, target);
+	{description, type, target} = args;
+	
+	actions = template.actions;
+	id = 1;
+	for v, k in (actions)
+		if (k >= id)
+			id = k+1;
+		endif
+	endfor
+	
+	actions[id] =
+		[
+			"description" -> description,
+			"type" -> type,
+			"target" -> target
+		];
+	
+	template:edit_room($nothing, $nothing, $nothing, actions);
 	player:tell("Action ", id, " added.");
 .

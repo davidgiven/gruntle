@@ -1,0 +1,251 @@
+(function()
+{
+	"use strict";
+
+	var currentmessage;
+	
+	var cancel_cb = function()
+	{
+		W.GamePage.FadeOut($("#editarea"));
+	};
+	
+	var save_cb = function()
+	{
+		/* Reload room title/description text. */
+		
+		currentmessage.title = $("#editroomname").textWithBreaks();
+		currentmessage.description = $("#editdescription").textWithBreaks();
+		
+		/* Reload action text. */
+		
+		var actions = currentmessage.allactions;
+		$.each(actions,
+			function (id, action)
+			{
+				var editor = $("#editaction-"+id);
+				action.type = editor.find(".containstype SELECT").val();
+				action.description = editor.find(".description").textWithBreaks();
+				action.target = editor.find(".target").textWithBreaks();
+			}
+		);
+		
+		W.Socket.Send(
+			{
+				command: "editroom",
+				room: currentmessage.room,
+				name: currentmessage.name,
+				title: currentmessage.title,
+				description: currentmessage.description,
+				actions: currentmessage.allactions
+			}
+		);
+		
+		W.GamePage.FadeOut($("#editarea"));
+	};
+	
+	var add_new_action = function()
+	{
+		var actions = currentmessage.allactions;
+		
+		var newid = 1;
+		$.each(actions,
+			function (id, action)
+			{
+				id = id|0;
+				if (id >= newid)
+					newid = id+1;
+			}
+		);
+		
+		var action =
+		{
+			id: newid,
+			description: "<new description here>",
+			target: "<new target here>"
+		};
+		
+		actions[newid] = action;
+		var editor = create_action_editor(newid, action);
+		$("#editactions").before(editor);
+	};
+	
+	var create_action_editor = function(id, action)
+	{
+		var tbody = $("<tbody class='action'/>");
+		
+		var tr1 = $("<tr/>");
+		var title = $("<th>Action "+id+":</th>");
+		$("<a href='#'>[delete]</a>")
+			.click(
+				function()
+				{
+					delete currentmessage.allactions[id];
+					$("#editaction-"+id).remove();
+					return false;
+				}
+			)
+			.appendTo(title);
+		title.appendTo(tr1);
+
+		tr1.append("<td><div class='description' contenteditable='true'/></td>");
+		
+		var tr2 = $("<tr/>");
+		tr2.append("<th class='containstype'><select class='type'>" +
+			"<option value='room'>goes to room</option>" +
+			"<option value='message'>tells player</option>" +
+			"<option value='script'>runs script</option></select></th>");
+		tr2.append("<td><div class='target' contenteditable='true'/></td>");
+		
+		tbody.append(tr1).append(tr2);
+		
+		tbody.find(".containstype SELECT").val(action.type);
+		tbody.find(".description").textWithBreaks(action.description);
+		tbody.find(".target").textWithBreaks(action.target);
+		
+		tbody.attr("id", "editaction-"+id);
+
+		return tbody;
+	};
+	
+	W.RoomEditor =
+	{
+		Show: function(message)
+		{
+			/* If the room editor is currently being shown, cancel it
+			 * instead. */
+			
+			if ($("#editarea").is(":visible"))
+			{
+				cancel_cb();
+				return;
+			}
+			
+	    	/* Deep copy object (so we can change it without altering the 
+	    	 * copy attached to the room upstack). */
+	    	
+	    	currentmessage = $.extend(true, {}, message);
+	    	
+			$("#editroomname").text(currentmessage.title);
+
+			$("#editdescription").empty()
+	    	var paras = currentmessage.description.split("\n");
+	    	for (var i = 0; i < paras.length; i++)
+	    		$("#editdescription").append($("<p/>").text(paras[i]));
+
+	    	$("#editarea .action").remove();
+        	$.each(currentmessage.allactions,
+        		function (id, action)
+        		{
+        			var editor = create_action_editor(id, action);
+        			$("#editactions").before(editor);
+        		}
+        	);
+        	
+        	$("#createactionbutton")
+        		.unbind()
+        		.click(
+        			function()
+        			{
+        				add_new_action();
+        				return false;
+        			}
+        		);
+
+        	$("#editcancelbutton").unbind().click(cancel_cb);
+        	$("#editsavebutton").unbind().click(save_cb);
+        	
+    		/*
+    		current_actions_div.append("<p>The following actions are defined on this room:</p>");
+    		
+        	var list = $("<ul/>");
+        	var count = 0;
+        	$.each(message.allactions,
+        		function (id, action)
+        		{
+        			var message = $("<span/>");
+        			var target = $("<span/>");
+        			var deletelink = $("<a href='#'>[Delete]</a>");
+            		var li = $("<li/>");
+            		li.append(message, $("<span> ⇒ </span>"), target,
+            			"<span> </span>", deletelink);
+        			
+            		message.text(action.description);
+            		target.text(action.target);
+            		
+            		var commit_cb =
+            			function()
+            			{
+            				W.Socket.Send(
+            					{
+            						command: "editaction",
+            						room: W.CurrentRoom,
+            						actionid: id,
+            						newdescription: message.text(),
+            						newtarget: target.text()
+            					}
+            				);
+            			};
+            			
+            		message.singleLineEditor(commit_cb);
+            		target.singleLineEditor(commit_cb);
+            		
+            		list.append(li);
+            		
+            		deletelink.click(
+            			function()
+            			{
+            				W.Socket.Send(
+            					{
+            						command: "delaction",
+            						room: W.CurrentRoom,
+            						actionid: id
+            					}
+            				);
+            				return false;
+            			}
+            		);
+            		
+            		count++;
+        		}
+        	);
+        	if (count == 0)
+        		list.append($("<li><span>(you can't do anything here)</span></li>"));
+        	
+        	current_actions_div.append(list);
+        	
+        	var createlink = $("<p><a href='#'>[Create action]</a></p>")
+        		.click(
+        			function()
+        			{
+        				W.Socket.Send(
+        					{
+        						command: "addaction",
+        						room: W.CurrentRoom,
+        						description: "<description>",
+        						target: "<target room>"
+        					}
+        				);
+            			return false;
+        			}
+        		);
+        	current_actions_div.append(createlink);
+        	                		*/
+
+	    	W.GamePage.FadeIn($("#editarea"));
+	    	/*
+				{
+	    			effect: "fadeIn",
+	    			easing: defaulteasing,
+	    			duration: defaultduration,
+				}
+			);
+			*/
+		},
+		
+		Cancel: function()
+		{
+			cancel_cb();
+		},
+	};
+}
+)();

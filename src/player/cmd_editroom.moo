@@ -6,10 +6,11 @@ program $player:cmd_editroom
 	room = $cast(message["room"], $room);
 	room:checktemplate();
 	
-	name = `message["newname"] ! ANY => $nothing';
-	title = `message["newtitle"] ! ANY => $nothing';
-	description = `message["newdescription"] ! ANY => $nothing';
+	name = `message["name"] ! ANY => $nothing';
+	title = `message["title"] ! ANY => $nothing';
+	description = `message["description"] ! ANY => $nothing';
+	actions = `message["actions"] ! ANY => $nothing';
 	
-	room:change_text(name, title, description);
+	room:edit_room(name, title, description, actions);
 	this:cmd_realms();
 .

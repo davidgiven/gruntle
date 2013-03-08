@@ -3,6 +3,6 @@ program $player:cmd_action
 	set_task_perms(caller_perms());
 	{message} = args;
 
-	id = toint(message["actionid"]);
+	id = message["actionid"];
 	player.location:action(id);
 .

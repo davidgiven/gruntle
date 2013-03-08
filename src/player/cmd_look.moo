@@ -12,7 +12,7 @@ program $player:cmd_look
 	editable = (this.location.owner == this);
 	realm = this.location:realm();
 	
-	player:tell(
+	result =
 		[
 			"event" -> "look",
 			"instance" -> this.location:instance(),
@@ -24,12 +24,17 @@ program $player:cmd_look
 					"uid" -> realm.owner
 				],
 			"room" -> this.location:template(),
+			"name" -> this.location.name,
 			"title" -> this.location:title(),
 			"description" -> this.location:description(),
 			"contents" -> contents,
+			"actions" -> this.location:actions(),
 			"editable" -> editable
-		]
-	);
+		];
 	
-	this:cmd_actions();
+	if (editable)
+		result["allactions"] = this.location:template():actions();
+	endif	
+	
+	player:tell(result);
 .

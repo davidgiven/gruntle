@@ -15,7 +15,8 @@ program $player:@delaction
 		return;
 	endif 
 	id = toint(id);
-	
-	template:del_action(id);
+
+	actions = mapdelete(template.actions, id);
+	template:edit_room($nothing, $nothing, $nothing, actions);
 	player:tell("Action ", id, " removed.");
 .

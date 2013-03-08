@@ -31,7 +31,7 @@ HTML
 	width: 100%;
 	height: 100%;
 	background-image: url("res/background.jpg");
-	background-size: cover;
+	background-repeat: repeat;
 	z-index: -999;
 }
 
@@ -59,6 +59,7 @@ HTML
 	height: 2em;
 	background-color: yellow;
 	z-index: 1000;
+	box-shadow: 8px 8px 10px 0 rgba(0, 0, 0, 0.6);
 	
 	.left
 	{
@@ -236,7 +237,7 @@ HTML
 	position: fixed !important;
 	width: auto;
 	height: auto;
-	background: rgba(0, 0, 0, 0.5);
+	background: rgba(0, 0, 0, 0.6);
 	border-radius: 3px 3px 3px 3px;
 	box-shadow: 8px 8px 10px 0 rgba(0, 0, 0, 0.9);
     
@@ -266,6 +267,7 @@ HTML
 	    overflow: auto;
 		background-image: url("res/dialogue-background.jpg");
 		background-repeat: repeat;
+		border-radius: 3px 3px 3px 3px;
     }
     
     [contenteditable="true"]
@@ -280,6 +282,7 @@ HTML
 {
 	left: 55%;
 	top: 4em;
+	z-index: 2000;
 
 	.resizable
 	{
@@ -296,9 +299,9 @@ HTML
 		    border-collapse: collapse;
 	    }
 	
-		TR + TR
+		TR
 		{
-	    	border-top: 0.5em solid transparent;
+	    	border-bottom: 0.5em solid transparent;
 		}
 		
 	    TH
@@ -320,6 +323,27 @@ HTML
 		{
 			height: 6em;
 		}
+		
+		#editactions LI TABLE
+		{
+			width: 100%;
+		}
+		
+		.containstype
+		{
+			text-align: right;
+		}
+		
+		.containsbuttons
+		{
+			text-align: right;
+			
+			INPUT
+			{
+				width: 5em;
+				margin: 0;
+			}
+		}
 	}
 }
 
@@ -329,4 +353,9 @@ HTML
 	{
 		margin-top: 0.75em;
 	}
+}
+
+.template
+{
+	display: none;
 }

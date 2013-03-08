@@ -16,11 +16,6 @@
     		W.GamePage.LookEvent(message);
     	},
     	
-    	"actions": function(message)
-    	{
-    		W.GamePage.ActionsEvent(message);
-    	},
-    	
     	"allactions": function(message)
     	{
     		W.GamePage.AllActionsEvent(message);
@@ -57,11 +52,11 @@
     	var messagetype = s.event;
     	if (!messagetype)
     		return;
+		console.log("<message ", messagetype, ": ", $.toJSON(s));
     	var handler = cbt[messagetype];
     	if (!handler)
     	{
-    		console.log("unrecognised server message '"+messagetype+"':\n"+
-    			$.toJSON(s));
+    		console.log("unrecognised message type!"); 
     		return;
     	}
     	

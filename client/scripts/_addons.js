@@ -13,7 +13,8 @@
                 {
 					if (event.which == 13)
 					{
-						commit_cb(this);
+						if (commit_cb)
+							commit_cb(this);
 						event.preventDefault();
 					}
 					else
@@ -24,20 +25,38 @@
        	};
 
     $.fn.textWithBreaks =
-    	function ()
+    	function (newtext)
     	{
-    		var st = [];
-    		
-    		this.children().each(
-    			function(i, e)
-    			{
-    				var s = $(e).text().trim();
-    				if (s !== "")
-    					st.push(s);
-    			}
-    		);
-    		
-    		return st.join("\n");
+    		if (newtext)
+    		{
+    			/* Set */
+    			
+    			this.empty();
+            	var paras = newtext.split("\n");
+            	for (var i = 0; i < paras.length; i++)
+            		this.append($("<p/>").text(paras[i]));
+    		}
+    		else
+    		{
+    			/* Get */
+    			
+        		var st = [];
+        		
+        		var c = this.children();
+        		if (c.length == 0)
+        			return this.text();
+        		
+        		c.each(
+        			function(i, e)
+        			{
+        				var s = $(e).text().trim();
+        				if (s !== "")
+        					st.push(s);
+        			}
+        		);
+        		
+        		return st.join("\n");
+    		}
     	};
 }
 )();
