@@ -5,6 +5,9 @@
 	var defaultduration = 300;
 	var defaulteasing = "easeInOutQuad";
 	
+	var roomscrolloffset = 0.0;
+	var actionscrolloffset = 0.3;
+	
 	var content = null;
 	var pending_look = null;
 	var current_text_div = null;
@@ -14,6 +17,8 @@
 	var edit_button = null;
 	var editcontrols = null;
 	var realms = null;
+	
+	var scroll_position = -1;
 	
 	var fadeIn = function()
 	{
@@ -30,28 +35,58 @@
 	
 	var fadeOut = function()
 	{
+		var s = $([]);
 		for (var i=0; i<arguments.length; i++)
-		{
-			$(arguments[i]).fadeOut(
+			s = s.add(arguments[i]);
+		
+		return s.fadeOut(
     			{
     				duration: defaultduration,
     				easing: defaulteasing
     			}
     		);
-		}
+	}
+
+	var slideUp = function()
+	{
+		var s = $([]);
+		for (var i=0; i<arguments.length; i++)
+			s = s.add(arguments[i]);
+
+		return s.slideUp(
+    			{
+    				duration: defaultduration,
+    				easing: defaulteasing
+    			}
+    		);
+	}
+	
+	var slideDown = function()
+	{
+		var s = $([]);
+		for (var i=0; i<arguments.length; i++)
+			s = s.add(arguments[i]);
+
+		return s.slideDown(
+    			{
+    				duration: defaultduration,
+    				easing: defaulteasing
+    			}
+    		);
 	}
 	
 	var fadeInText = function()
 	{
+		var s = $([]);
 		for (var i=0; i<arguments.length; i++)
-		{
-			$(arguments[i]).fadeIn(
+			s = s.add(arguments[i]);
+		
+		return s.fadeIn(
     			{
     				duration: defaultduration * 2,
     				easing: defaulteasing
     			}
     		);
-		}
 	};
 	
 	var fadeOutAndRemove = function(e)
@@ -67,6 +102,38 @@
 					}
 			}
 		);
+	};
+	
+	var updateScrollPosition = function()
+	{
+		if (scroll_position == -1)
+			scroll_position = $("#padding").offset().top;
+	};
+
+	var adjustScrolling = function(room)
+	{
+		if (room && (scroll_position == -1))
+			updateScrollPosition();
+		
+		if (scroll_position != -1)
+		{
+	    	var menubarheight = $("#menubar").height();
+	    	var screenheight = $(window).height();
+	    	
+	    	var voffset = scroll_position - menubarheight*2;
+	    	if (!room)
+	    		voffset -= screenheight * 0.2;
+	    	
+	    	$('html, body').animate(
+	    		{
+	    			scrollTop: voffset,
+	    			duration: defaultduration,
+	    			easing: defaulteasing
+	    		}
+	    	);
+	    	
+	    	scroll_position = -1;
+		}
 	};
 	
 	var update_game_page = function()
@@ -235,6 +302,8 @@
                             				text: msg
                             			}
                             		);
+                            		
+                            		updateScrollPosition();
                             	}
                             }
                         }
@@ -297,38 +366,8 @@
         
         MovedEvent: function(message)
         {
-        	
-//    		current_text_div.children().attr("contenteditable", "false");
-
         	current_text_div.addClass("scrollback");
         	current_status_div.addClass("scrollback");
-        	
-    		/*
-        	current_text_div.addClass("scrollback");
-        	current_status_div.addClass("scrollback");
-        
-        	current_text_div = $("<div class='room'/>");
-    		content.append(current_text_div);
-        	
-    		$.scrollTo(current_text_div,
-    			{
-    				duration: 0
-    			}
-    		);
-        	
-        	current_actions_div.remove();
-    		current_actions_div = $("<div class='actions'/>");
-    		content.append(current_actions_div);
-        	
-    		current_status_div = $("<div class='status'/>");
-    		content.append(current_status_div);
-    		*/
-    		
-    		/*
-        	current_status_div.empty();
-    		shown_user_list = false;
-    		*/
-    		
         	if (edit_button)
         	{
        			fadeOutAndRemove(edit_button);
@@ -336,17 +375,7 @@
         	}
         	
         	waiting_for_room_description = true;
-        	
-        	var menubarheight = $("#menubar").height();
-        	
-        	var voffset = $("#padding").offset().top - menubarheight*2;
-        	$('html, body').animate(
-        		{
-        			scrollTop: voffset,
-        			duration: defaultduration,
-        			easing: defaulteasing
-        		}
-        	);
+        	adjustScrolling(true);
         },
         
         LookEvent: function(message)
@@ -395,60 +424,6 @@
 
             	current_text_div.append(header, body);
             	
-            	if (message.editable)
-            	{            		
-            		header.attr("contenteditable", "true");
-            		body.attr("contenteditable", "true");
-            		
-            		var savebutton = $('<input id="savebutton" type="button" value="Save"/>');
-            		var cancelbutton = $('<input id="savebutton" type="button" value="Cancel"/>');
-            		
-            		savebutton.click(
-            			function()
-            			{
-            				W.Socket.Send(
-            					{
-            						command: "editroom",
-            						room: message.room,
-            						newtitle: header.text(),
-            						newdescription: body.textWithBreaks()
-            					}
-            				);
-                    		return false;
-            			}
-            		);
-            		
-            		cancelbutton.click(
-            			function()
-            			{
-            				W.Socket.Send(
-            					{
-            						command: "look"
-            					}
-            				);
-                    		return false;
-            			}
-            		);
-            		
-            		var changeevent =
-            			function(event)
-            			{
-                           	savebutton.addClass("urgent");
-            			};
-            			
-            		header.keypress(changeevent);
-            		body.keypress(changeevent);
-    
-            		editcontrols = $("<p class='edithelp'/>");
-            		editcontrols.append($("<span>Edit the title or description text above and then press </span>"),
-            			savebutton,
-            			$("<span> or </span>"),
-            			cancelbutton,
-            			$("<span>.</span>"));
-            		
-            		current_text_div.append(editcontrols);
-            	}
-            	
             	if (!shown_user_list)
             	{
             		$.each(message.contents,
@@ -472,7 +447,7 @@
         	
         	if (waiting_for_room_description)
         	{
-        		waiting_for_room_description = true;
+        		waiting_for_room_description = false;
         		
         		current_text_div = $("<div class='room'/>")
         			.hide()
@@ -487,7 +462,13 @@
         	}
         	else
         	{
-        		update_text();
+        		slideUp(current_text_div).promise().done(
+        			function()
+        			{
+                		update_text();
+                		slideDown(current_text_div);
+        			}
+        		);
         	}
         	
         	var update_actions = function()
@@ -511,6 +492,8 @@
                     				 	actionid: id
                     				}
                     			);
+                    			
+                    			updateScrollPosition();
                     			return false;
                     		}
                 		);
@@ -524,88 +507,7 @@
             	);
             	
             	if (count == 0)
-            		list.append("<li>(You can't do anything here.)</li>");
-            	
-            	if (message.editable)
-            	{
-            		/*
-            		current_actions_div.append("<p>The following actions are defined on this room:</p>");
-            		
-                	var list = $("<ul/>");
-                	var count = 0;
-                	$.each(message.allactions,
-                		function (id, action)
-                		{
-                			var message = $("<span/>");
-                			var target = $("<span/>");
-                			var deletelink = $("<a href='#'>[Delete]</a>");
-                    		var li = $("<li/>");
-                    		li.append(message, $("<span> ⇒ </span>"), target,
-                    			"<span> </span>", deletelink);
-                			
-                    		message.text(action.description);
-                    		target.text(action.target);
-                    		
-                    		var commit_cb =
-                    			function()
-                    			{
-                    				W.Socket.Send(
-                    					{
-                    						command: "editaction",
-                    						room: W.CurrentRoom,
-                    						actionid: id,
-                    						newdescription: message.text(),
-                    						newtarget: target.text()
-                    					}
-                    				);
-                    			};
-                    			
-                    		message.singleLineEditor(commit_cb);
-                    		target.singleLineEditor(commit_cb);
-                    		
-                    		list.append(li);
-                    		
-                    		deletelink.click(
-                    			function()
-                    			{
-                    				W.Socket.Send(
-                    					{
-                    						command: "delaction",
-                    						room: W.CurrentRoom,
-                    						actionid: id
-                    					}
-                    				);
-                    				return false;
-                    			}
-                    		);
-                    		
-                    		count++;
-                		}
-                	);
-                	if (count == 0)
-                		list.append($("<li><span>(you can't do anything here)</span></li>"));
-                	
-                	current_actions_div.append(list);
-                	
-                	var createlink = $("<p><a href='#'>[Create action]</a></p>")
-                		.click(
-                			function()
-                			{
-                				W.Socket.Send(
-                					{
-                						command: "addaction",
-                						room: W.CurrentRoom,
-                						description: "<description>",
-                						target: "<target room>"
-                					}
-                				);
-                    			return false;
-                			}
-                		);
-                	current_actions_div.append(createlink);
-                	                		*/
-
-            	}
+            		list.append("<li>(There's nothing to do here.)</li>");
         	};
 
         	var show_actions = function()
@@ -647,6 +549,8 @@
 			m.text(message.user+" has arrived.");
 			
 			current_status_div.append(m);
+			fadeInText(m);
+        	adjustScrolling(false);
         },
         
         DepartedEvent: function(message)
@@ -658,6 +562,8 @@
 			m.text(message.user+" has left.");
 			
 			current_status_div.append(m);
+			fadeInText(m);
+        	adjustScrolling(false);
         },
         
         SpeechEvent: function(message)
@@ -675,6 +581,7 @@
         	m.hide();
         	current_status_div.append(m);
         	fadeInText(m);
+        	adjustScrolling(false);
         },
         
         RealmsEvent: function(message)
