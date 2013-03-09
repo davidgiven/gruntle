@@ -409,17 +409,20 @@
             	
             	if (message.editable)
             	{
-        			$("#editbutton")
-        				.remove()
-        				.appendTo(current_text_div)
+        			edit_button = $("#editbutton")
+        				.clone()
+        				.removeClass("template")
+        				.appendTo(header)
+        				.show()
         				.click(
         					function()
         					{
         						W.RoomEditor.Show(message);
+        						return false;
         					}
         				);
-        			$("#editbutton .label").text("Click to edit");
-        			fadeIn($("#editbutton"));
+        			
+        			fadeIn(edit_button);
             	}
 
             	current_text_div.append(header, body);
