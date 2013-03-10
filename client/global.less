@@ -1,4 +1,5 @@
 @import "jqueryui.less";
+@import "login.less";
 
 HTML
 {
@@ -23,7 +24,7 @@ HTML
 	background-color: white;
 }
 
-#gamebackground
+#background
 {
 	position: fixed;
 	top: 0;
@@ -312,6 +313,14 @@ HTML
     	background-color: rgba(0, 0, 0, 0.2);
     }
     
+    .nonscrollcontainer
+    {
+    	margin-top: @titleheight + (@borderwidth * 2);
+    	margin-bottom: @borderwidth;
+    	margin-left: @borderwidth;
+    	margin-right: @borderwidth;
+    }
+    
     .container
     {
     	position: absolute;
@@ -321,49 +330,58 @@ HTML
     	right: @borderwidth;
 	    overflow: auto;
 	    padding: 0.5em;
+	}
 	    
-	    	    TABLE
-	    {
-		    border-collapse: collapse;
-	    }
+   	TABLE
+    {
+	    border-collapse: collapse;
+    }
+
+	TR + TR, TBODY + TBODY
+	{
+    	border-top: 0.5em solid transparent;
+	}
 	
-		TR
-		{
-	    	border-bottom: 0.5em solid transparent;
-		}
-		
-	    TH
-	    {
-	    	font-weight: bold;
-	    	white-space: nowrap;
-	    	vertical-align: top;
-	    	padding-top: 0.2em;
-	    	border-right: 0.5em solid transparent;
-	    }
-	    
-	    TD
-	    {
-	    	width: 100%;
-	    	vertical-align: top;
-	    }
-	    		
-		.containsbuttons
-		{
-			text-align: right;
-			
-			INPUT
-			{
-				width: 5em;
-				margin: 0;
-			}
-		}
+    TH
+    {
+    	font-weight: bold;
+    	white-space: nowrap;
+    	vertical-align: top;
+    	padding-top: 0.2em;
+    	border-right: 0.5em solid transparent;
     }
     
-    [contenteditable="true"]
+    TD
+    {
+    	width: 100%;
+    	vertical-align: top;
+    }
+    		
+	.containsbuttons
+	{
+		text-align: right;
+		
+		INPUT
+		{
+			width: 5em;
+			margin: 0;
+		}
+	}
+    
+    [contenteditable="true"], INPUT[type="username"],
+    INPUT[type="password"]
     {
     	border: 1px solid black;
-    	padding: 0.2em;
     	background-color: white;
+		width: 100%;
+    }
+    
+    [contenteditable="true"], INPUT[type="username"],
+    INPUT[type="password"], INPUT[type="button"]
+    {
+		box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, 0.6);
+		box-sizing: border-box;
+    	padding: 0.2em;
     }
 }
 

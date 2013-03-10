@@ -12,7 +12,7 @@
     
     W.OnSocketClosed = function()
     {
-    	document.write("Back-end server not responding!<br/>");
+    	W.Main();
     };
     
     W.OnSocketError = function(event)
@@ -26,5 +26,10 @@
     {
     	W.Socket.Connect(W.URL);
     };
+    
+    W.Logout = function()
+    {
+    	W.Socket.Disconnect();
+    }
 }
 )();

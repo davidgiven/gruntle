@@ -226,6 +226,8 @@
                     $("#actionsarea").hide();
                     $("#editbutton").hide();
                     
+                    $("#menulogout").click(W.GamePage.LogoutEvent);
+                    
                     $(".dialogue").draggable(
                     	{
                     		handle: "h3.dialogue-title"
@@ -540,6 +542,16 @@
         	$("<li/>").append(createbutton).appendTo(yrl);
             
         	update_realm_map();
+        },
+        
+        LogoutEvent: function()
+        {
+        	content = null;
+        	pending_look = null;
+        	realms = null;
+        	waiting_for_room_description = true;
+        	shown_user_list = false;
+        	W.Socket.Disconnect();
         }
     };
 }

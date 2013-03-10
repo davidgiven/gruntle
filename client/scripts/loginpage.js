@@ -51,16 +51,18 @@
                         .click(
                             function (event)
                             {
-				W.Socket.Send(
-					{
-						command: "guest"
-					}
-				);
+                				W.Socket.Send(
+                					{
+                						command: "guest"
+                					}
+                				);
                             }
                         );
                         
                     $("#login").button()
                         .click(attempt_login_cb);
+                    
+                    $("#logindialogue").show();
             	}
             );
         }
