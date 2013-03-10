@@ -4,7 +4,20 @@
 ;$disable_passkey_login = 1
 ;$player.salt = tostr("$1$", random())
 
-# Create the default realm, which belongs to god.
+# Create the special realm god lives in.
+
+;;
+	realm = $god:create_realm("Godworld");
+	instance = realm:create_instance();
+	
+	r = realm:find_room_template("entrypoint");
+	r.title = "Heaven";
+	r.description = "Harps, clouds and cherubim as far as the eye can see.";
+	
+	move($god, instance:find_room("entrypoint"));
+.
+
+# Create the default realm, which belongs to Thoth.
 
 ;$property($system, "defaultrealm", $god)
 ;$property($system, "defaultinstance", $god)
@@ -21,7 +34,7 @@
 		"interesting feature is a stairwell leading down into darkness, and ",
 		"a small yellow sign marked 'Under Construction'.");
 	
-	r:add_action("Follow the stairwell down", "storeroom");
+	r:addaction("Follow the stairwell down", "room", "storeroom");
 .
 
 ;;
@@ -32,15 +45,13 @@
 		"that's even slightly interesting to do here is to head back up ",
 		"the stairs.");
 		
-	r:add_action("Return back up the stairs", "entrypoint");
+	r:addaction("Return back up the stairs", "room", "entrypoint");
 .
 
 # ...set up god and Thoth.
 
 ;$god.name = "God"
 ;$god:change_password("testpassword")
-;move($god, $nothing)
 
 ;$thoth:change_password("testpassword")
 ;move($thoth, $defaultinstance:find_room("entrypoint"))
-

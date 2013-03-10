@@ -47,6 +47,10 @@ foreach arg $args {
 				puts "***** MOO compilation error"
 				exit 1
 			}
+			"*syntax error*" {
+				puts "***** MOO compilation error"
+				exit 1
+			}
 			"MOO (#5):"
 		}
 	}
