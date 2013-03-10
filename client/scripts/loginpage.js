@@ -85,6 +85,19 @@
                     W.Effects.ShowPage($("#page"));
             	}
             );
+        },
+        
+        AuthenticationFailedEvent: function(message)
+        {
+        	W.Dialogue(
+        		{
+        			message: "Authentication failed. (Either you are using an "+
+        				"incorrect password, or that user does not exist, "+
+        				"or both.)",
+            		positive: "OK",
+            		positivecb: W.LoginPage.Show
+        		}
+        	);
         }
     };
 }

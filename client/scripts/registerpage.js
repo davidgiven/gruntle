@@ -4,7 +4,12 @@
 
 	var fail = function (message)
 	{
-		S.Dialogue(message);
+		W.Dialogue(
+			{
+				message: message,
+				positive: "OK"
+			}
+		);
 	};
 	
     var attempt_registration_cb = function()
@@ -24,13 +29,20 @@
         if (password !== password2)
         	return fail("Your passwords don't match.");
         
-        W.Socket.Send(
-        	{
-        		command: "createplayer",
-        		username: username,
-        		password: password
-        	}
-        );
+        W.Effects.HidePage($("#page"))
+        	.promise()
+        	.done(
+        		function()
+        		{
+                    W.Socket.Send(
+                    	{
+                    		command: "createplayer",
+                    		username: username,
+                    		password: password
+                    	}
+                    );
+        		}
+            );
     };
     
     W.RegisterPage =
@@ -96,6 +108,18 @@
                     W.Effects.ShowPage($("#page"));
             	}
             );
+        },
+    
+        CreationFailedEvent: function(message)
+        {
+        	W.Dialogue(
+        		{
+        			message: "Player creation failed. (Someone is probably "+
+        				"already using that username. Try a different one.)",
+            		positive: "OK",
+            		positivecb: W.RegisterPage.Show
+        		}
+        	);
         }
     };
 }

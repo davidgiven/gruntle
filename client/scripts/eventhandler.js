@@ -49,6 +49,16 @@
     	"realms": function(message)
     	{
     		W.GamePage.RealmsEvent(message);
+    	},
+    	
+    	"authfailed": function(message)
+    	{
+    		W.LoginPage.AuthenticationFailedEvent(message);
+    	},
+    	
+    	"creationfailed": function(message)
+    	{
+    		W.RegisterPage.CreationFailedEvent(message);
     	}
     };
     

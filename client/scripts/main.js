@@ -14,7 +14,7 @@
     {
     	W.Dialogue(
     		{
-    			message: "Client disconnected from server.",
+    			message: "Disconnected from server.",
     			positive: "Reconnect",
     			positivecb: W.Main
     		}

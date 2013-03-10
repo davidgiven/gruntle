@@ -11,7 +11,13 @@
 			{
 				W.Effects.HideDialogue($("#alertdialogue"))
 					.promise()
-					.done(cb);
+					.done(
+						function()
+						{
+							if (cb)
+								cb();
+						}
+					);
 			};
 			
 			if (options.positive)
