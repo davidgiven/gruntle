@@ -6,13 +6,14 @@
 	
 	var cancel_cb = function()
 	{
-		W.GamePage.FadeOut($("#editarea"));
+		W.GamePage.FadeOut($("#roomeditor"));
 	};
 	
 	var save_cb = function()
 	{
 		/* Reload room title/description text. */
 		
+		currentmessage.name = $("#editroomid").text();
 		currentmessage.title = $("#editroomname").textWithBreaks();
 		currentmessage.description = $("#editdescription").textWithBreaks();
 		
@@ -40,7 +41,7 @@
 			}
 		);
 		
-		W.GamePage.FadeOut($("#editarea"));
+		W.GamePage.FadeOut($("#roomeditor"));
 	};
 	
 	var add_new_action = function()
@@ -74,8 +75,8 @@
 		var tbody = $("<tbody class='action'/>");
 		
 		var tr1 = $("<tr/>");
-		var title = $("<th>Action "+id+":</th>");
-		$("<a href='#'>[delete]</a>")
+		var title = $("<th>Action "+id+":</th><span>&nbsp;</span>");
+		$("<a href='#' class='dangerous iconbutton tableiconright'>✖</a>")
 			.click(
 				function()
 				{
@@ -114,7 +115,7 @@
 			/* If the room editor is currently being shown, cancel it
 			 * instead. */
 			
-			if ($("#editarea").is(":visible"))
+			if ($("#roomeditor").is(":visible"))
 			{
 				cancel_cb();
 				return;
@@ -125,6 +126,7 @@
 	    	
 	    	currentmessage = $.extend(true, {}, message);
 	    	
+	    	$("#editroomid").text(currentmessage.name);
 			$("#editroomname").text(currentmessage.title);
 
 			$("#editdescription").empty()
@@ -132,7 +134,7 @@
 	    	for (var i = 0; i < paras.length; i++)
 	    		$("#editdescription").append($("<p/>").text(paras[i]));
 
-	    	$("#editarea .action").remove();
+	    	$("#roomeditor .action").remove();
         	$.each(currentmessage.allactions,
         		function (id, action)
         		{
@@ -154,7 +156,7 @@
         	$("#editcancelbutton").unbind().click(cancel_cb);
         	$("#editsavebutton").unbind().click(save_cb);
 
-	    	W.GamePage.FadeIn($("#editarea"));
+	    	W.GamePage.FadeIn($("#roomeditor"));
 		},
 		
 		Cancel: function()

@@ -8,12 +8,27 @@
 		</td>
 		
 		<td class="right"> 
-			<a href="#" id="warptoentrypoint">Back to entry</a>
-			<span> ◈ </span>
-			<span id="specialrealmlist">special realm list</span>
-			<span> ◈ </span>
-			<span>Or to id: </span>
-			<span id="warptoinstance" contenteditable="true"/>
+			<ul class="menu">
+				<li>
+					<a href="#">Your realms</a>
+					<span>▾</span>
+					<ul id="yourrealmlist"/>
+				</li>
+				
+				<li>
+					<a href="#">Warp</a>
+					<span>▾</span>
+					<ul id="specialrealmlist"/>
+				</li>
+				
+				<li>
+					<a href="#">Account</a>
+					<span>▾</span>
+					<ul>
+						<li><a href="#" id="menulogout">Log out</a></li>
+					</ul>
+				</li>
+			</ul>
 		</td>
 	</tr>
 </table>
@@ -55,12 +70,16 @@
 
 <a href='#' id='editbutton' class="template editbutton">[edit]</a>
 
-<div id="editarea" class="dialogue">
+<div id="roomeditor" class="dialogue">
 	<div class="resizable">
 		<h3 class="dialogue-title">Room editor</h3>
 		<div class="container">
 			<table>
 				<tbody>
+					<tr>
+						<th>Room ID:</th>
+						<td><div id="editroomid" contenteditable="true"/></td>
+					</tr>
 					<tr>
 						<th>Room title:</th>
 						<td><div id="editroomname" contenteditable="true"/></td>
@@ -86,40 +105,24 @@
 	</div>
 </div>
 
-<li class="template" id="actioneditortemplate">
-	<p>
-		Action 2: <span contenteditable="true">action description here</span> => 
-		<select>
-			<option>Goes to room</option>
-			<option>Tells player</option>
-			<option>Runs script</option>
-		</select>
-		<span contenteditable="true">action target here</a>
-	</p>
-	<table>
-		<tr>
-			<th colspan="2">
-				Action number <span class="actionid"/>
-				<a href="#">[Delete action]</a>
-			</th>
-		</tr>
-		<tr>
-			<th>Description:</th>
-			<td><div contenteditable="true" class="description"/></td>
-		</tr>
-		<tr>
-			<th>Type:</th>
-			<td>
-				<select>
-					<option>Goes to room</option>
-					<option>Tells player</option>
-					<option>Runs script</option>
-				</select>
-			</td>
-		</tr>
-		<tr>
-			<th>Does:</th>
-			<td><div contenteditable="true" class="target"/></td>
-		</tr>
-	</table>
-</li>
+<div id="realmeditor" class="dialogue">
+	<div class="resizable">
+		<h3 class="dialogue-title">Realm editor</h3>
+		<div class="container">
+			<div>
+				<a href='#' class='iconbutton tableiconright'>✍</a>
+				<span>Realm Title Here</span>
+			</div>
+			<div>
+				<div class="clear">
+					<a href='#' class='iconbutton tableiconright'>➟</a>
+					<a href='#' class='iconbutton dangerous tableiconleft'>✖</a>
+					<a href='#'>roomidhere</a>
+				</div>
+			</div>
+			<div class="clear">
+				<a href="#">[add room]</a>
+			</div>
+		</div>
+	</div>
+</div>

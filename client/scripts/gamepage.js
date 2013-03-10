@@ -147,9 +147,15 @@
 	var update_realm_map = function()
 	{
 		if (W.CurrentRealm.uid === W.Userid)
+		{
     		show_realm_map();
+    		W.RealmEditor.Show(realms);
+		}
     	else
+    	{
     		hide_realm_map();
+    		W.RealmEditor.Hide();
+    	}
 	};
 
 	var show_realm_map = function()
@@ -167,106 +173,6 @@
 			return;
 		}
 		
-		var map = $("#realmmap");
-		map.show();
-		map.empty();
-		
-		map.append("<p>Rooms in this realm:</p>");
-		
-		var ul = $("<ul/>");
-		var count = 0;
-		$.each(realm.rooms,
-			function (id, room)
-			{
-				var li = $("<li/>");
-				var t = $("<span/>").text(room.title);
-				var n = $("<span/>").text(room.name);
-				
-				var changed_cb = function()
-				{
-					var msg =
-						{
-							command: "editroom",
-							room: id,
-							newtitle: t.text()
-						};
-					
-					if (!room.immutable)
-						msg.newname = n.text();
-					
-					W.Socket.Send(msg);
-				};
-				
-				if (!room.immutable)
-					n.singleLineEditor(changed_cb);
-				t.singleLineEditor(changed_cb);
-				
-				if (W.CurrentRoom === id)
-					li.addClass("currentRoom");
-				
-				li.append(n, " ⇒ ", t, " ");
-				li.append(
-					$("<a href='#'>[Warp]</a>")
-						.click(
-							function()
-							{
-								W.Socket.Send(
-									{
-										command: "warp",
-										instance: W.CurrentInstance,
-										roomname: room.name
-									}
-								);
-								return false;
-							}
-						)
-				);
-				
-				if (!room.immutable)
-				{
-    				li.append(" ");
-    				li.append(
-    					$("<a href='#'>[Delete]</a>")
-    						.click(
-            					function()
-            					{
-            						W.Socket.Send(
-            							{
-            								command: "delroom",
-            								room: id
-            							}
-            						);
-            						return false;
-            					}
-    						)
-    				);
-				}
-
-				ul.append(li);
-				count = count + 1;
-			}
-		);
-		if (count == 0)
-			ul.append("<li>(none)</li>");
-		map.append(ul);
-		
-		map.append(
-			$("<a href='#'>[Create room]</a>")
-    			.click(
-    				function()
-    				{
-        				W.Socket.Send(
-        					{
-        						command: "createroom",
-        						instance: W.CurrentInstance,
-        						name: "id",
-        						title: "New room"
-        					}
-        				);
-        				return false;
-    				}
-    			)
-    	);
 	};
 	
 	var hide_realm_map = function()
@@ -596,15 +502,9 @@
         	var srl = $("#specialrealmlist");
         	srl.empty();
         	
-        	var first = true;
         	$.each(message.specialrealms,
         		function (id, realm)
         		{
-        			if (!first)
-        				srl.append($("<span>, </span>"));
-        			else
-        				first = false;
-        			
         			var a = $("<a href='#'/>").text(realm.name);
         			
         			a.click(
@@ -620,7 +520,7 @@
         				}
         			);
         			
-        			srl.append(a);
+        			srl.append($("<li/>").append(a));
         		}
         	);
         	
@@ -630,6 +530,8 @@
         		function (id, realm)
         		{
         			var li = $("<li/>");
+        			
+        			/*
         			var realmname = $("<span/>");
         			realmname.text(realm.name);
         			realmname.singleLineEditor(
@@ -649,38 +551,30 @@
         			
         			var il = $("<span> (</span>");
         			var first = true;
-        			$.each(realm.instances,
-        				function (_, instanceid)
-        				{
-        					if (!first)
-        						il.append("<span>, </span>");
-        					else
-        						first = false;
-        					
-        					var a = $("<a href='#'/>");
-        					a.text(instanceid)
-        					
-		        			a.click(
-                				function()
-                				{
-                					W.Socket.Send(
-                						{
-                						 	command: "warp",
-                						 	instance: instanceid
-                						}
-                					);
-                            		return false;
-                				}
-                			);
-                			
-        					il.append(a);
-        				}
-        			);
         			if (first)
         				il.append($("<span>no instances</span>"));
         			il.append($("<span>)</span>"));
+        			*/
+
+        			var instanceid = realm.instances[0];
         			
-        			li.append(il);
+					var a = $("<a href='#'/>");
+					a.text(realm.name)
+        					
+        			a.click(
+        				function()
+        				{
+        					W.Socket.Send(
+        						{
+        						 	command: "warp",
+        						 	instance: instanceid
+        						}
+        					);
+                    		return false;
+        				}
+        			);
+                			
+					li.append(a);
         			yrl.append(li);
         		}
         	);
