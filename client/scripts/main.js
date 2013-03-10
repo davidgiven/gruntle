@@ -12,7 +12,13 @@
     
     W.OnSocketClosed = function()
     {
-    	W.Main();
+    	W.Dialogue(
+    		{
+    			message: "Client disconnected from server.",
+    			positive: "Reconnect",
+    			positivecb: W.Main
+    		}
+    	);
     };
     
     W.OnSocketError = function(event)
@@ -36,12 +42,12 @@
     
     W.StandardMarkup = function(root)
     {
-        $("BODY").find(".dialogue").draggable(
+        $("#page").find(".dialogue").draggable(
         	{
         		handle: "h3.dialogue-title"
         	}
         ).hide();
-        $("BODY").find(".resizable").resizable();
+        $("#page").find(".resizable").resizable();
     };
 }
 )();

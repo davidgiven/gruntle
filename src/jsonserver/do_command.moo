@@ -1,6 +1,7 @@
 ;$verb($jsonserver, "do_command", $god)
 program $jsonserver:do_command
 	$restrict_to_server();
+	set_task_perms(player);
 	
 	if (argstr == "")
 		return 1;

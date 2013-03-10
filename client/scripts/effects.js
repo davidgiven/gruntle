@@ -100,7 +100,7 @@
 		for (var i=0; i<arguments.length; i++)
 			s = s.add(arguments[i]);
 
-    	s.show(
+    	return s.show(
     		{
     			effect: "slide",
     			easing: defaulteasing,
@@ -116,7 +116,7 @@
 		for (var i=0; i<arguments.length; i++)
 			s = s.add(arguments[i]);
 
-    	s.hide(
+    	return s.hide(
     		{
     			effect: "slide",
     			easing: defaulteasing,

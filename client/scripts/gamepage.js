@@ -5,17 +5,27 @@
 	var roomscrolloffset = 0.0;
 	var actionscrolloffset = 0.3;
 	
-	var content = null;
-	var pending_look = null;
+	var content;
+	var pending_look;
+	var waiting_for_room_description;
+	var shown_user_list;
+	var realms;
+	
 	var current_text_div = null;
 	var current_status_div = null;
-	var waiting_for_room_description = true;
-	var shown_user_list = false;
 	var edit_button = null;
 	var editcontrols = null;
-	var realms = null;
 	
 	var scroll_position = -1;
+
+	var init = function()
+	{
+    	content = null;
+    	pending_look = null;
+    	realms = null;
+    	waiting_for_room_description = true;
+    	shown_user_list = false;
+	};
 	
 	var updateScrollPosition = function()
 	{
@@ -78,9 +88,13 @@
     {
         Show: function ()
         {
+        	init();
+
             $("#page").load("game.html",
             	function ()
             	{
+            		console.log("game page loaded");
+            		
             		W.StandardMarkup();                
             		content = $("#playarea");
             		
@@ -107,18 +121,20 @@
                         }
                     );
 
-                    $("#warptoentrypoint").click(
-                    	function (event)
-                    	{
-                    		W.Socket.Send(
-                    			{
-                    			 	command: "warp",
-                    			 	instance: W.CurrentInstance
-                    			}
-                    		);
-                    		return false;
-                    	}
-                    );
+                    $("#warptoentrypoint")
+                    	.unbind()
+                    	.click(
+                        	function (event)
+                        	{
+                        		W.Socket.Send(
+                        			{
+                        			 	command: "warp",
+                        			 	instance: W.CurrentInstance
+                        			}
+                        		);
+                        		return false;
+                        	}
+                        );
                     
                     $("#warptoinstance").singleLineEditor(
                     	function (event)
@@ -137,11 +153,14 @@
                     $("#actionsarea").hide();
                     $("#editbutton").hide();
                     
-                    $("#menulogout").click(W.GamePage.LogoutEvent);
+                    $("#menulogout")
+                    	.unbind()
+                    	.click(W.GamePage.LogoutEvent);
                     
-            		update_game_page();
             		$("#page").hide();
-            		W.Effects.ShowPage($("#page"));
+            		W.Effects.ShowPage($("#page"))
+            			.promise()
+            			.done(update_game_page);
             	}
             );
         },
@@ -211,18 +230,31 @@
             	
             	if (!shown_user_list)
             	{
+            		var players = [];
+            		
             		$.each(message.contents,
             			function(name, uid)
             			{
             				if (uid != W.Userid)
-            				{
-                				var m = $("<p/>");
-                				m.text(name+" is here.");
-                				
-                				current_status_div.append(m);
-            				}
+            					players.push(name);
             			}
             		);
+            		
+            		players.sort();
+            		
+            		if (players.length > 0)
+            		{
+                		var s = "";
+                		for (var i=0; i<(players.length-1); i++)
+                			s += players[i] + ", ";
+                		
+                		if (players.length > 1)
+                			s += " and " + players[players.length-1];
+                		
+                		s += " are here.";
+
+           				$("<p/>").text(s).appendTo(current_status_div);
+            		}
             		
             		shown_user_list = true;
             	}
@@ -258,6 +290,22 @@
         	
         	var update_actions = function()
         	{
+            	if (message.editable)
+            	{
+        			$("#actionseditbutton")
+        				.show()
+        				.unbind()
+        				.click(
+        					function()
+        					{
+        						W.RoomEditor.Show(message);
+        						return false;
+        					}
+        				);
+            	}
+            	else
+            		$("#actionseditbutton").hide();
+
             	var list = $("#actionslist");
             	list.empty();
             	
@@ -303,7 +351,9 @@
         	
         	if ($("#actionsarea").is(":visible"))
         	{
-        		W.Effects.HideActions($("#actionsarea"));
+        		W.Effects.HideActions($("#actionsarea"))
+        			.promise()
+        			.done(show_actions);
         	}
         	else
         		show_actions();
@@ -347,6 +397,16 @@
         	
         	var m = $("<p/>");
         	m.text(s);
+        	m.hide();
+        	current_status_div.append(m);
+        	W.Effects.NewText(m);
+        	adjustScrolling(false);
+        },
+        
+        ActivityEvent: function(message)
+        {
+        	var m = $("<p/>");
+        	m.text(message.message);
         	m.hide();
         	current_status_div.append(m);
         	W.Effects.NewText(m);
@@ -438,17 +498,7 @@
         {
         	W.Effects.HidePage($("#page"))
         		.promise()
-        		.done(
-        			function()
-        			{
-                    	content = null;
-                    	pending_look = null;
-                    	realms = null;
-                    	waiting_for_room_description = true;
-                    	shown_user_list = false;
-                    	W.Socket.Disconnect();
-        			}
-        		);
+        		.done(W.Socket.Disconnect);
         }
     };
 }
