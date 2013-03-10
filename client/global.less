@@ -63,7 +63,7 @@ HTML
 	border: 1px solid black;
 	background-image: url("res/menubar.jpg");
 	background-repeat: repeat;
-	z-index: 2000;
+	z-index: 3500;
 	box-shadow: 8px 8px 10px 0 rgba(0, 0, 0, 0.6);
 	
 	.left
@@ -242,6 +242,8 @@ HTML
 		background-repeat: repeat;
 		border-radius: 3px 3px 3px 3px;
 		box-shadow: 8px 8px 10px 0 rgba(0, 0, 0, 0.6);
+		left: auto;
+		right: 0;
 	}
 	
 	> LI:hover UL
@@ -257,6 +259,11 @@ HTML
 			white-space: nowrap;
 			padding-left: 1em;
 			padding-right: 1em;
+			
+			A
+			{
+				display: block;
+			}
 		}
 		
 		LI:hover
@@ -265,10 +272,10 @@ HTML
 		}
 	}
 	
-	LI:last-child UL
+	LI:first-child UL
 	{
-		left: auto;
-		right: 0;
+		right: auto;
+		left: 0;
 	}
 }
 
@@ -403,16 +410,25 @@ HTML
 
 #realmproperties
 {
-	left: 40%;
+	left: 50%;
 	top: 40%;
 	z-index: 2999;
+	margin-left: -10em;
+    width: 20em;
 
-	.resizable
-	{
-	    width: 20em;
-	    height: 10em;
-	}
-	
+    .container
+    {
+    }
+}
+
+#warptoinstance
+{
+	left: 50%;
+	top: 40%;
+	z-index: 2999;
+	margin-left: -12.5em;
+    width: 25em;
+
     .container
     {
     }

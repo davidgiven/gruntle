@@ -136,20 +136,6 @@
                         	}
                         );
                     
-                    $("#warptoinstance").singleLineEditor(
-                    	function (event)
-                    	{
-                    		W.Socket.Send(
-                    			{
-                    			 	command: "warp",
-                    			 	instance: $("#warptoinstance").text()
-                    			}
-                    		);
-                    		$("#warptoinstance").removeClass("urgent").empty();
-                    		return false;
-                    	}
-                    );
-                    
                     $("#actionsarea").hide();
                     $("#editbutton").hide();
                     
@@ -444,6 +430,18 @@
         		}
         	);
         	
+        	srl.append($("<hr/>"));
+        	var li = $("<li/>");
+        	$("<a href='#'>Warp to instance...</a>")
+        		.click(
+        			function()
+        			{
+        				W.GamePage.WarpToInstanceEvent();
+        				return false;
+        			}
+        		).appendTo(li);
+        	li.appendTo(srl);
+
         	var yrl = $("#yourrealmlist");
         	yrl.empty();
         	$.each(message.realms,
@@ -499,6 +497,38 @@
         	W.Effects.HidePage($("#page"))
         		.promise()
         		.done(W.Socket.Disconnect);
+        },
+        
+        WarpToInstanceEvent: function()
+        {
+        	$("#warptoinstancecancelbutton")
+        		.unbind()
+        		.click(
+        			function()
+        			{
+        				W.Effects.HideDialogue($("#warptoinstance"));
+        			}
+        		);
+        	
+        	$("#warptoinstanceokbutton")
+        		.unbind()
+        		.click(
+        			function()
+        			{
+                		W.Socket.Send(
+                			{
+                			 	command: "warp",
+                			 	instance: $("#warptoinstanceid").text()
+                			}
+                		);
+                		
+        				W.Effects.HideDialogue($("#warptoinstance"));
+        			}
+        		);
+
+        	$("#warptoinstanceid").text("");
+        	
+        	return W.Effects.ShowDialogue($("#warptoinstance"));        	
         }
     };
 }

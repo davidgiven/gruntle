@@ -116,22 +116,46 @@
 </div>
 
 <div id="realmproperties" class="dialogue">
-	<div class="resizable">
-		<h3 class="dialogue-title">Realm properties</h3>
-		<div class="container">
-			<table>
-				<tr>
-					<th>Realm name:</th>
-					<td><div contenteditable="true" id="realmpropertiesname"/></td>
-				</tr>
-				<tr>
-					<th/>
-					<td class='containsbuttons'>
-						<input type="button" id="realmpropertiescancelbutton" value="Cancel"/>
-						<input type="button" id="realmpropertiessavebutton" value="Save"/>
-					</td>
-				</tr>
-			</table>
-		</div>
+	<h3 class="dialogue-title">Realm properties</h3>
+	<div class="nonscrollcontainer">
+		<table>
+			<tr>
+				<th>Realm name:</th>
+				<td><div contenteditable="true" id="realmpropertiesname"/></td>
+			</tr>
+			<tr>
+				<th/>
+				<td class='containsbuttons'>
+					<input type="button" id="realmpropertiescancelbutton" value="Cancel"/>
+					<input type="button" id="realmpropertiessavebutton" value="Save"/>
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>
+
+<div id="warptoinstance" class="dialogue">
+	<h3 class="dialogue-title">Warp to instance</h3>
+	<div class="nonscrollcontainer">
+		<table>
+			<tr>
+				<td colspan="2">
+					<p>To warp directly to someone else's instance, enter the
+					instance ID below. (You'll have to get them to tell it to
+					you.)</p>
+				</td>
+			</tr>
+			<tr>
+				<th>Instance ID:</th>
+				<td><div contenteditable="true" id="warptoinstanceid"/></td>
+			</tr>
+			<tr>
+				<th/>
+				<td class='containsbuttons'>
+					<input type="button" id="warptoinstancecancelbutton" value="Cancel"/>
+					<input type="button" id="warptoinstanceokbutton" value="Warp"/>
+				</td>
+			</tr>
+		</table>
 	</div>
 </div>
