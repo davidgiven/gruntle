@@ -317,6 +317,42 @@ HTML
     	right: @borderwidth;
 	    overflow: auto;
 	    padding: 0.5em;
+	    
+	    	    TABLE
+	    {
+		    border-collapse: collapse;
+	    }
+	
+		TR
+		{
+	    	border-bottom: 0.5em solid transparent;
+		}
+		
+	    TH
+	    {
+	    	font-weight: bold;
+	    	white-space: nowrap;
+	    	vertical-align: top;
+	    	padding-top: 0.2em;
+	    	border-right: 0.5em solid transparent;
+	    }
+	    
+	    TD
+	    {
+	    	width: 100%;
+	    	vertical-align: top;
+	    }
+	    		
+		.containsbuttons
+		{
+			text-align: right;
+			
+			INPUT
+			{
+				width: 5em;
+				margin: 0;
+			}
+		}
     }
     
     [contenteditable="true"]
@@ -341,31 +377,6 @@ HTML
 	    
     .container
     {
-	    TABLE
-	    {
-		    border-collapse: collapse;
-	    }
-	
-		TR
-		{
-	    	border-bottom: 0.5em solid transparent;
-		}
-		
-	    TH
-	    {
-	    	font-weight: bold;
-	    	white-space: nowrap;
-	    	vertical-align: top;
-	    	padding-top: 0.2em;
-	    	border-right: 0.5em solid transparent;
-	    }
-	    
-	    TD
-	    {
-	    	width: 100%;
-	    	vertical-align: top;
-	    }
-	    
 		#editdescription
 		{
 			min-height: 6em;
@@ -379,17 +390,6 @@ HTML
 		.containstype
 		{
 			text-align: right;
-		}
-		
-		.containsbuttons
-		{
-			text-align: right;
-			
-			INPUT
-			{
-				width: 5em;
-				margin: 0;
-			}
 		}
 	}
 }
@@ -476,4 +476,21 @@ HTML
     		margin-top: 1em;
     	}
 	}
+}
+
+#realmproperties
+{
+	left: 40%;
+	top: 40%;
+	z-index: 2999;
+
+	.resizable
+	{
+	    width: 20em;
+	    height: 10em;
+	}
+	
+    .container
+    {
+    }
 }

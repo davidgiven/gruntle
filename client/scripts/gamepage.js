@@ -148,38 +148,19 @@
 	{
 		if (W.CurrentRealm.uid === W.Userid)
 		{
-    		show_realm_map();
-    		W.RealmEditor.Show(realms);
+			var realm = realms.realms[W.CurrentRealm.id];
+			if (realm)
+				W.RealmEditor.Show(realm);
+			else
+			{
+				/* Haven't had an update for this realm yet --- one will be
+				 * along in a minute. */
+			}
 		}
     	else
-    	{
-    		hide_realm_map();
     		W.RealmEditor.Hide();
-    	}
 	};
 
-	var show_realm_map = function()
-	{
-		if (!realms)
-			return;
-		
-		var realm = realms.realms[W.CurrentRealm.id];
-		if (!realm)
-		{
-			/* We haven't received an update with this realm data in it ---
-			 * one will be along in a moment.
-			 */
-			hide_realm_map();
-			return;
-		}
-		
-	};
-	
-	var hide_realm_map = function()
-	{
-		$("#realmmap").hide();
-	};
-	
     W.GamePage =
     {
     	FadeOut: fadeOut,
@@ -238,19 +219,6 @@
                     			}
                     		);
                     		$("#warptoinstance").removeClass("urgent").empty();
-                    		return false;
-                    	}
-                    );
-                    
-                    $("#createnewrealm").click(
-                    	function (event)
-                    	{
-                    		W.Socket.Send(
-                    			{
-                    				command: "createrealm",
-                    				name: "An Empty Realm"
-                    			}
-                    		);
                     		return false;
                     	}
                     );
@@ -531,31 +499,6 @@
         		{
         			var li = $("<li/>");
         			
-        			/*
-        			var realmname = $("<span/>");
-        			realmname.text(realm.name);
-        			realmname.singleLineEditor(
-        				function()
-        				{
-    						W.Socket.Send(
-    							{
-    								command: "renamerealm",
-    								realmid: id,
-    								newname: realmname.text()
-    							}
-    						);
-        				}
-        			);
-        			
-        			li.append(realmname);
-        			
-        			var il = $("<span> (</span>");
-        			var first = true;
-        			if (first)
-        				il.append($("<span>no instances</span>"));
-        			il.append($("<span>)</span>"));
-        			*/
-
         			var instanceid = realm.instances[0];
         			
 					var a = $("<a href='#'/>");
@@ -578,9 +521,24 @@
         			yrl.append(li);
         		}
         	);
-        	if (yrl.children().length == 0)
-        		yrl.append("<li>You don't have any realms yet</li>");
+
+        	$("<hr/>").appendTo(yrl);
         	
+        	var createbutton = $("<a href='#'>Create new realm</a>")
+            	.click(
+                	function (event)
+                	{
+                		W.Socket.Send(
+                			{
+                				command: "createrealm",
+                				name: "An Empty Realm"
+                			}
+                		);
+                		return false;
+                	}
+                );
+        	$("<li/>").append(createbutton).appendTo(yrl);
+            
         	update_realm_map();
         }
     };

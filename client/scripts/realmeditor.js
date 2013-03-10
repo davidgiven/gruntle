@@ -4,10 +4,8 @@
 
 	W.RealmEditor =
 	{
-		Show: function(realms)
+		Show: function(realm)
 		{
-			var realm = realms.realms[W.CurrentRealm.id];
-
 			var container = $("#realmeditor .container");
 			container.empty();
 			
@@ -16,7 +14,13 @@
 				.text(realm.name)
 				.appendTo(titlediv);
 			$("<a href='#' class='iconbutton'>✍</a>")
-				.appendTo(titlediv);
+				.click(
+					function()
+					{
+						W.RealmEditor.ShowProperties(W.CurrentRealm.id, realm);
+						return false;
+					}
+				).appendTo(titlediv);
 			titlediv.appendTo(container);
 			
 			$.each(realm.rooms,
@@ -85,8 +89,51 @@
 		
 		Hide: function()
 		{
+			W.RealmEditor.HideProperties();
 			return W.GamePage.FadeOut($("#realmeditor"));
 		},
+		
+		ShowProperties: function(id, realm)
+		{
+			$("#realmpropertiesname").text(realm.name);
+			
+        	$("#realmpropertiescancelbutton")
+        		.unbind()
+        		.click(
+        			function()
+        			{
+        				W.RealmEditor.HideProperties();
+        				return false;
+        			}
+        		);
+
+        	$("#realmpropertiessavebutton")
+        		.unbind()
+        		.click(
+        			function()
+        			{
+        				var newname = $("#realmpropertiesname").text();
+        				
+						W.Socket.Send(
+							{
+								command: "renamerealm",
+								realmid: id,
+								newname: newname
+							}
+						);
+
+        				W.RealmEditor.HideProperties();
+        				return false;
+        			}
+        		);
+
+			return W.GamePage.FadeIn($("#realmproperties"));
+		},
+		
+		HideProperties: function()
+		{
+			return W.GamePage.FadeOut($("#realmproperties"));
+		}
 	};
 }
 )();
