@@ -1,5 +1,6 @@
 @import "jqueryui.less";
 @import "login.less";
+@import "register.less";
 
 HTML
 {
@@ -368,21 +369,19 @@ HTML
 		}
 	}
     
-    [contenteditable="true"], INPUT[type="username"],
-    INPUT[type="password"]
+    [contenteditable="true"], INPUT:not([type="button"])
     {
     	border: 1px solid black;
     	background-color: white;
 		width: 100%;
-    }
-    
-    [contenteditable="true"], INPUT[type="username"],
-    INPUT[type="password"], INPUT[type="button"]
-    {
 		box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, 0.6);
+	}
+	
+	[contenteditable="true"], INPUT
+	{
 		box-sizing: border-box;
     	padding: 0.2em;
-    }
+    }    
 }
 
 #roomeditor
