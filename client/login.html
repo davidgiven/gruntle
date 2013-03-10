@@ -1,46 +1,38 @@
-<table id="logincontainer">
-	<tr>
-		<td>
-			<div id="maintitle">
-				<div class="main">thickishstring</div>
-				<div class="sub1">Version 0.0.0.1 Mega Prototype Version</div>
-				<div class="sub2">© David Given 2013</div>
-			</div>
-			<table id="loginpane" class="pane">
+<div class="loginpage">
+	<div class="maintitle">
+		<div class="main">thickishstring</div>
+		<div class="sub1">Version 0.1 Prototype Version</div>
+		<div class="sub2">© David Given 2013</div>
+	</div>
+	
+	<div id="logindialogue" class="dialogue">
+		<h3 class="dialogue-title">Login</h3>
+		<div class="nonscrollcontainer">
+			<table>
 				<tr>
-					<td>Username</td>
-					<td><input id="username" type="username"/></td>
-				</tr>
-				<tr>
-					<td>Password</td>
-					<td><input id="password" type="password"/></td>
-				</tr>
-				<tr>
-					<td></td>
-					<td class="right"><input id="login" type="button" value="Login"/></td>
+					<td>
+						<table>
+							<tr>
+								<th>Username:</th>
+								<td><input id="username" type="username"/></td>
+							</tr>
+							<tr>
+								<th>Password:</th>
+								<td><input id="password" type="password"/></td>
+							</tr>
+							<tr>
+								<th/>
+								<td class="containsbuttons">
+									<input id="register" type="button" value="Register"/>
+									<input id="login" type="button" value="Login"/></td>
+								</td>
+							</tr>
+						</table>
+					</td>
 				</tr>
 			</table>
-			<div id="subtitle">
-				You can
-				<input id="register" type="button" value="Register"/>
-				if you don't have an account 
-			</div>
-			<div id="subtitle">
-				Or if you're desperate, connect as a
-				<input id="guest" type="button" value="Guest"/>
-			</div>
-		</td>
-	</tr>
-</table>
-
-<p>Incredibly basic instructions follow:</p>
-<p>Stuff in red dotted boxes can be edited. A box will light up red when it
-contains uncommitted changes --- press RETURN (or look for a save button) to
-do this.</p>
-<p>Things that look like #99 refer to instances of a realm. You can give these
-to your friends (if you have any) so they can visit your realms. You can have
-multiple instances of the same realm running at once, but the UI doesn't allow
-you to create them yet, so there's only one per realm.</p>
-<p>Error reporting is poor. Really poor. If you try to do something and nothing
-whatsoever happens, that's probably an error. Try your local Javascript
-console.</p> 
+		</div>
+	</div>
+	
+	<input class="guest" id="guest" type="button" value="Log in as a guest"/>
+</div>

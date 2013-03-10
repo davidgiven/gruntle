@@ -2,22 +2,67 @@
 {
 	"use strict";
 
-	var content = null;
-	var pending_look = null;
-	var pending_actions = null;
+	var roomscrolloffset = 0.0;
+	var actionscrolloffset = 0.3;
+	
+	var content;
+	var pending_look;
+	var waiting_for_room_description;
+	var shown_user_list;
+	var realms;
+	
 	var current_text_div = null;
-	var current_actions_div = null;
 	var current_status_div = null;
-	var shown_user_list = false;
+	var edit_button = null;
 	var editcontrols = null;
-	var realms = null;
+	
+	var scroll_position = -1;
+
+	var init = function()
+	{
+    	content = null;
+    	pending_look = null;
+    	realms = null;
+    	waiting_for_room_description = true;
+    	shown_user_list = false;
+	};
+	
+	var updateScrollPosition = function()
+	{
+		if (scroll_position == -1)
+			scroll_position = $("#padding").offset().top;
+	};
+
+	var adjustScrolling = function(room)
+	{
+		if (room && (scroll_position == -1))
+			updateScrollPosition();
+		
+		if (scroll_position != -1)
+		{
+	    	var menubarheight = $("#menubar").height();
+	    	var screenheight = $(window).height();
+	    	
+	    	var voffset = scroll_position - menubarheight*2;
+	    	if (!room)
+	    		voffset -= screenheight * 0.2;
+	    	
+	    	$('html, body').animate(
+	    		{
+	    			scrollTop: voffset,
+	    			duration: W.Effects.DefaultDuration,
+	    			easing: W.Effects.DefaultEasing
+	    		}
+	    	);
+	    	
+	    	scroll_position = -1;
+		}
+	};
 	
 	var update_game_page = function()
 	{
 		if (pending_look)
 			W.GamePage.LookEvent(pending_look);
-		if (pending_actions)
-			W.GamePage.ActionsEvent(pending_actions);
 		if (realms)
 			W.GamePage.RealmsEvent(realms);
 	};
@@ -25,155 +70,41 @@
 	var update_realm_map = function()
 	{
 		if (W.CurrentRealm.uid === W.Userid)
-    		show_realm_map();
-    	else
-    		hide_realm_map();
-	};
-
-	var show_realm_map = function()
-	{
-		if (!realms)
-			return;
-		
-		var realm = realms.realms[W.CurrentRealm.id];
-		if (!realm)
 		{
-			/* We haven't received an update with this realm data in it ---
-			 * one will be along in a moment.
-			 */
-			hide_realm_map();
-			return;
-		}
-		
-		var map = $("#realmmap");
-		map.show();
-		map.empty();
-		
-		map.append("<p>Rooms in this realm:</p>");
-		
-		var ul = $("<ul/>");
-		var count = 0;
-		$.each(realm.rooms,
-			function (id, room)
+			var realm = realms.realms[W.CurrentRealm.id];
+			if (realm)
+				W.RealmEditor.Show(realm);
+			else
 			{
-				var li = $("<li/>");
-				var t = $("<span/>").text(room.title);
-				var n = $("<span/>").text(room.name);
-				
-				var changed_cb = function()
-				{
-					var msg =
-						{
-							command: "editroom",
-							room: id,
-							newtitle: t.text()
-						};
-					
-					if (!room.immutable)
-						msg.newname = n.text();
-					
-					W.Socket.Send(msg);
-				};
-				
-				if (!room.immutable)
-					n.singleLineEditor(changed_cb);
-				t.singleLineEditor(changed_cb);
-				
-				if (W.CurrentRoom === id)
-					li.addClass("currentRoom");
-				
-				li.append(n, " ⇒ ", t, " ");
-				li.append(
-					$("<a href='#'>[Warp]</a>")
-						.click(
-							function()
-							{
-								W.Socket.Send(
-									{
-										command: "warp",
-										instance: W.CurrentInstance,
-										roomname: room.name
-									}
-								);
-							}
-						)
-				);
-				
-				if (!room.immutable)
-				{
-    				li.append(" ");
-    				li.append(
-    					$("<a href='#'>[Delete]</a>")
-    						.click(
-            					function()
-            					{
-            						W.Socket.Send(
-            							{
-            								command: "delroom",
-            								room: id
-            							}
-            						);
-            					}
-    						)
-    				);
-				}
-
-				ul.append(li);
-				count = count + 1;
+				/* Haven't had an update for this realm yet --- one will be
+				 * along in a minute. */
 			}
-		);
-		if (count == 0)
-			ul.append("<li>(none)</li>");
-		map.append(ul);
-		
-		map.append(
-			$("<a href='#'>[Create room]</a>")
-    			.click(
-    				function()
-    				{
-        				W.Socket.Send(
-        					{
-        						command: "createroom",
-        						instance: W.CurrentInstance,
-        						name: "id",
-        						title: "New room"
-        					}
-        				);
-    				}
-    			)
-    	);
+		}
+    	else
+    		W.RealmEditor.Hide();
 	};
-	
-	var hide_realm_map = function()
-	{
-		$("#realmmap").hide();
-	};
-	
+
     W.GamePage =
     {
         Show: function ()
         {
+        	init();
+
             $("#page").load("game.html",
             	function ()
             	{
-            		content = $("#gamecontainer");
+            		console.log("game page loaded");
             		
-            		current_text_div = $("<div class='room'/>");
-            		content.append(current_text_div);
-                	
-            		current_actions_div = $("<div class='actions'/>");
-            		content.append(current_actions_div);
-                	
-            		current_status_div = $("<div class='status'/>");
-            		content.append(current_status_div);
-
+            		W.StandardMarkup();                
+            		content = $("#playarea");
+            		
                     $("#chatinput").keydown(
                         function (event)
                         {
                             if (event.keyCode === 13)
                             {
-                            	var msg = $("#chatinput").prop("value");
-                            	$("#chatinput").prop("value", "");
+                            	var msg = $("#chatinput").text();
+                            	$("#chatinput").text("");
                             	msg = msg.trim();
                             	if (msg != "")
                             	{
@@ -183,85 +114,55 @@
                             				text: msg
                             			}
                             		);
+                            		
+                            		updateScrollPosition();
                             	}
                             }
                         }
                     );
 
-                    $("#warptoentrypoint").click(
-                    	function (event)
-                    	{
-                    		W.Socket.Send(
-                    			{
-                    			 	command: "warp",
-                    			 	instance: W.CurrentInstance
-                    			}
-                    		);
-                    	}
-                    );
+                    $("#warptoentrypoint")
+                    	.unbind()
+                    	.click(
+                        	function (event)
+                        	{
+                        		W.Socket.Send(
+                        			{
+                        			 	command: "warp",
+                        			 	instance: W.CurrentInstance
+                        			}
+                        		);
+                        		return false;
+                        	}
+                        );
                     
-                    $("#warptoinstancebtn").click(
-                    	function (event)
-                    	{
-                    		W.Socket.Send(
-                    			{
-                    			 	command: "warp",
-                    			 	instance: $("#warptoinstance").prop("value")
-                    			}
-                    		);
-                    	}
-                    );
+                    $("#actionsarea").hide();
+                    $("#editbutton").hide();
                     
-                    $("#createnewrealm").click(
-                    	function (event)
-                    	{
-                    		W.Socket.Send(
-                    			{
-                    				command: "createrealm",
-                    				name: "An Empty Realm"
-                    			}
-                    		);
-                    	}
-                    );
-                    	
-            		update_game_page();
+                    $("#menulogout")
+                    	.unbind()
+                    	.click(W.GamePage.LogoutEvent);
+                    
+            		$("#page").hide();
+            		W.Effects.ShowPage($("#page"))
+            			.promise()
+            			.done(update_game_page);
             	}
             );
         },
         
         MovedEvent: function(message)
         {
-    		current_text_div.children().attr("contenteditable", "false");
-
-    		/*
         	current_text_div.addClass("scrollback");
         	current_status_div.addClass("scrollback");
-        
-        	current_text_div = $("<div class='room'/>");
-    		content.append(current_text_div);
+        	if (edit_button)
+        	{
+       			W.Effects.RemoveButton(edit_button);
+        		edit_button = null;
+        	}
         	
-    		$.scrollTo(current_text_div,
-    			{
-    				duration: 0
-    			}
-    		);
-        	
-        	current_actions_div.remove();
-    		current_actions_div = $("<div class='actions'/>");
-    		content.append(current_actions_div);
-        	
-    		current_status_div = $("<div class='status'/>");
-    		content.append(current_status_div);
-    		*/
-    		
-        	current_status_div.empty();
-    		shown_user_list = false;
-    		
-    		if (editcontrols)
-    		{
-    			editcontrols.remove();
-    			editcontrols = null;
-    		}
+        	waiting_for_room_description = true;
+        	adjustScrolling(true);
         },
         
         LookEvent: function(message)
@@ -274,217 +175,174 @@
         	else
         		pending_look = null;
         	
-        	W.CurrentInstance = message.instance;
-        	W.CurrentRealm = message.realm;
-        	W.CurrentRoom = message.room;
-        	
-        	$("#realmname").text(W.CurrentRealm.name);
-        	$("#realmowner").text(W.CurrentRealm.user);
-        	$("#instance").text(W.CurrentInstance);
-        	
-        	var header = $("<h1/>").text(message.title);
-        	var body = $("<div/>");
-
-		var paras = message.description.split("\n");
-		for (var i = 0; i < paras.length; i++)
-			body.append($("<p/>").text(paras[i]));
-        	
-        	current_text_div.empty();
-        	current_text_div.append(header, body);
-        	
-        	if (message.editable)
+        	var update_text = function()
         	{
-        		header.attr("contenteditable", "true");
-        		body.attr("contenteditable", "true");
-        		
-        		var savebutton = $('<input id="savebutton" type="button" value="Save"/>');
-        		var cancelbutton = $('<input id="savebutton" type="button" value="Cancel"/>');
-        		
-        		savebutton.click(
-        			function()
-        			{
-        				W.Socket.Send(
+            	W.CurrentInstance = message.instance;
+            	W.CurrentRealm = message.realm;
+            	W.CurrentRoom = message.room;
+            	
+            	$("#realmname").text(W.CurrentRealm.name);
+            	$("#realmowner").text(W.CurrentRealm.user);
+            	$("#instance").text(W.CurrentInstance);
+            	
+            	var header = $("<h1/>").text(message.title);
+            	var body = $("<div/>");
+    
+            	var paras = message.description.split("\n");
+            	for (var i = 0; i < paras.length; i++)
+            		body.append($("<p/>").text(paras[i]));
+            	
+            	current_text_div.empty();
+            	
+            	if (message.editable)
+            	{
+        			edit_button = $("#editbutton")
+        				.clone()
+        				.removeClass("template")
+        				.appendTo(header)
+        				.show()
+        				.click(
+        					function()
         					{
-        						command: "editroom",
-        						room: message.room,
-        						newtitle: header.text(),
-        						newdescription: body.textWithBreaks()
+        						W.RoomEditor.Show(message);
+        						return false;
         					}
         				);
-        			}
-        		);
-        		
-        		cancelbutton.click(
-        			function()
-        			{
-        				W.Socket.Send(
-        					{
-        						command: "look"
-        					}
-        				);
-        			}
-        		);
-        		
-        		var changeevent =
-        			function(event)
-        			{
-                       	savebutton.addClass("urgent");
-        			};
         			
-        		header.keypress(changeevent);
-        		body.keypress(changeevent);
+        			W.Effects.ShowButton(edit_button);
+            	}
 
-        		editcontrols = $("<p class='edithelp'/>");
-        		editcontrols.append($("<span>Edit the title or description text above and then press </span>"),
-        			savebutton,
-        			$("<span> or </span>"),
-        			cancelbutton,
-        			$("<span>.</span>"));
-        		
-        		current_text_div.append(editcontrols);
-        	}
-        	
-        	if (!shown_user_list)
-        	{
-        		$.each(message.contents,
-        			function(name, uid)
-        			{
-        				if (uid != W.Userid)
-        				{
-            				var m = $("<p/>");
-            				m.text(name+" is here.");
-            				
-            				current_status_div.append(m);
-        				}
-        			}
-        		);
-        		
-        		shown_user_list = true;
-        	}
-        	
-        	update_realm_map();
-        },
-        
-        ActionsEvent: function(message)
-        {
-        	if (!content)
-        	{
-        		pending_actions = message;
-        		return;
-        	}
-        	else
-        		pending_actions = null;
-        	
-        	var list = $("<ul/>");
-        	var count = 0;
-        	$.each(message.actions,
-        		function (id, action)
-        		{
-            		var e = $("<a href='#'/>");
-            		e.text(action.description);
+            	current_text_div.append(header, body);
+            	
+            	if (!shown_user_list)
+            	{
+            		var players = [];
             		
-            		e.click(
-            			function()
-                		{
-                			W.Socket.Send(
-                				{
-                				 	command: "action",
-                				 	actionid: id
-                				}
-                			);
-                		}
+            		$.each(message.contents,
+            			function(name, uid)
+            			{
+            				if (uid != W.Userid)
+            					players.push(name);
+            			}
             		);
             		
-            		var li = $("<li/>");
-            		li.append(e);
-            		list.append(li);
+            		players.sort();
             		
-            		count++;
-        		}
-        	);
+            		if (players.length > 0)
+            		{
+                		var s = "";
+                		for (var i=0; i<(players.length-1); i++)
+                			s += players[i] + ", ";
+                		
+                		if (players.length > 1)
+                			s += " and " + players[players.length-1];
+                		
+                		s += " are here.";
+
+           				$("<p/>").text(s).appendTo(current_status_div);
+            		}
+            		
+            		shown_user_list = true;
+            	}
+            	
+            	update_realm_map();
+        	};
         	
-        	current_actions_div.empty();
-        	if (count > 0)
+        	if (waiting_for_room_description)
         	{
-            	current_actions_div.append("<p>Things to do:</p>");
-            	current_actions_div.append(list);
+        		waiting_for_room_description = false;
+        		
+        		current_text_div = $("<div class='room'/>")
+        			.hide()
+        			.appendTo(content);
+            	
+        		current_status_div = $("<div class='status'/>")
+        			.hide()
+        			.appendTo(content);
+
+        		update_text();
+        		W.Effects.NewText(current_text_div, current_status_div);
+        	}
+        	else
+        	{
+        		W.Effects.HideText(current_text_div).promise().done(
+        			function()
+        			{
+                		update_text();
+                		W.Effects.ShowText(current_text_div);
+        			}
+        		);
         	}
         	
-        	if (message.editable)
+        	var update_actions = function()
         	{
-        		current_actions_div.append("<p>The following actions are defined on this room:</p>");
-        		
-            	var list = $("<ul/>");
+            	if (message.editable)
+            	{
+        			$("#actionseditbutton")
+        				.show()
+        				.unbind()
+        				.click(
+        					function()
+        					{
+        						W.RoomEditor.Show(message);
+        						return false;
+        					}
+        				);
+            	}
+            	else
+            		$("#actionseditbutton").hide();
+
+            	var list = $("#actionslist");
+            	list.empty();
+            	
             	var count = 0;
-            	$.each(message.allactions,
+            	$.each(message.actions,
             		function (id, action)
             		{
-            			var message = $("<span/>");
-            			var target = $("<span/>");
-            			var deletelink = $("<a href='#'>[Delete]</a>");
-                		var li = $("<li/>");
-                		li.append(message, $("<span> ⇒ </span>"), target,
-                			"<span> </span>", deletelink);
-            			
-                		message.text(action.description);
-                		target.text(action.target);
+                		var e = $("<a href='#'/>");
+                		e.text(action.description);
                 		
-                		var commit_cb =
+                		e.click(
                 			function()
-                			{
-                				W.Socket.Send(
-                					{
-                						command: "editaction",
-                						room: W.CurrentRoom,
-                						actionid: id,
-                						newdescription: message.text(),
-                						newtarget: target.text()
-                					}
-                				);
-                			};
-                			
-                		message.singleLineEditor(commit_cb);
-                		target.singleLineEditor(commit_cb);
-                		
-                		list.append(li);
-                		
-                		deletelink.click(
-                			function()
-                			{
-                				W.Socket.Send(
-                					{
-                						command: "delaction",
-                						room: W.CurrentRoom,
-                						actionid: id
-                					}
-                				);
-                			}
+                    		{
+                    			W.Socket.Send(
+                    				{
+                    				 	command: "action",
+                    				 	actionid: id
+                    				}
+                    			);
+                    			
+                    			updateScrollPosition();
+                    			return false;
+                    		}
                 		);
+                		
+                		var li = $("<li/>");
+                		li.append(e);
+                		list.append(li);
                 		
                 		count++;
             		}
             	);
+            	
             	if (count == 0)
-            		list.append($("<li><span>(you can't do anything here)</span></li>"));
-            	
-            	current_actions_div.append(list);
-            	
-            	var createlink = $("<p><a href='#'>[Create action]</a></p>")
-            		.click(
-            			function()
-            			{
-            				W.Socket.Send(
-            					{
-            						command: "addaction",
-            						room: W.CurrentRoom,
-            						description: "<description>",
-            						target: "<target room>"
-            					}
-            				);
-            			}
-            		);
-            	current_actions_div.append(createlink);
+            		list.append("<li>(There's nothing to do here.)</li>");
+        	};
+
+        	var show_actions = function()
+        	{
+    			update_actions();
+    			W.Effects.ShowActions($("#actionsarea"));
+        	};
+        	
+        	if ($("#actionsarea").is(":visible"))
+        	{
+        		W.Effects.HideActions($("#actionsarea"))
+        			.promise()
+        			.done(show_actions);
         	}
+        	else
+        		show_actions();
         },
         
         ArrivedEvent: function(message)
@@ -496,6 +354,8 @@
 			m.text(message.user+" has arrived.");
 			
 			current_status_div.append(m);
+			W.Effects.NewText(m);
+        	adjustScrolling(false);
         },
         
         DepartedEvent: function(message)
@@ -507,21 +367,36 @@
 			m.text(message.user+" has left.");
 			
 			current_status_div.append(m);
+			W.Effects.NewText(m);
+        	adjustScrolling(false);
         },
         
         SpeechEvent: function(message)
         {
         	var s;
         	if (message.uid === W.Userid)
-        		s = 'You say, "';
+        		s = 'You say, “';
         	else
-        		s = message.user + ' says, "';
+        		s = message.user + ' says, “';
         	s += message.text;
-        	s += '".';
+        	s += '”';
         	
         	var m = $("<p/>");
         	m.text(s);
+        	m.hide();
         	current_status_div.append(m);
+        	W.Effects.NewText(m);
+        	adjustScrolling(false);
+        },
+        
+        ActivityEvent: function(message)
+        {
+        	var m = $("<p/>");
+        	m.text(message.message);
+        	m.hide();
+        	current_status_div.append(m);
+        	W.Effects.NewText(m);
+        	adjustScrolling(false);
         },
         
         RealmsEvent: function(message)
@@ -533,15 +408,9 @@
         	var srl = $("#specialrealmlist");
         	srl.empty();
         	
-        	var first = true;
         	$.each(message.specialrealms,
         		function (id, realm)
         		{
-        			if (!first)
-        				srl.append($("<span>, </span>"));
-        			else
-        				first = false;
-        			
         			var a = $("<a href='#'/>").text(realm.name);
         			
         			a.click(
@@ -553,76 +422,113 @@
         						 	instance: realm.instance
         						}
         					);
+                    		return false;
         				}
         			);
         			
-        			srl.append(a);
+        			srl.append($("<li/>").append(a));
         		}
         	);
         	
+        	srl.append($("<hr/>"));
+        	var li = $("<li/>");
+        	$("<a href='#'>Warp to instance...</a>")
+        		.click(
+        			function()
+        			{
+        				W.GamePage.WarpToInstanceEvent();
+        				return false;
+        			}
+        		).appendTo(li);
+        	li.appendTo(srl);
+
         	var yrl = $("#yourrealmlist");
         	yrl.empty();
         	$.each(message.realms,
         		function (id, realm)
         		{
         			var li = $("<li/>");
-        			var realmname = $("<span/>");
-        			realmname.text(realm.name);
-        			realmname.singleLineEditor(
+        			
+        			var instanceid = realm.instances[0];
+        			
+					var a = $("<a href='#'/>");
+					a.text(realm.name)
+        					
+        			a.click(
         				function()
         				{
-    						W.Socket.Send(
-    							{
-    								command: "renamerealm",
-    								realmid: id,
-    								newname: realmname.text()
-    							}
-    						);
+        					W.Socket.Send(
+        						{
+        						 	command: "warp",
+        						 	instance: instanceid
+        						}
+        					);
+                    		return false;
         				}
         			);
-        			
-        			li.append(realmname);
-        			
-        			var il = $("<span> (</span>");
-        			var first = true;
-        			$.each(realm.instances,
-        				function (_, instanceid)
-        				{
-        					if (!first)
-        						il.append("<span>, </span>");
-        					else
-        						first = false;
-        					
-        					var a = $("<a href='#'/>");
-        					a.text(instanceid)
-        					
-		        			a.click(
-                				function()
-                				{
-                					W.Socket.Send(
-                						{
-                						 	command: "warp",
-                						 	instance: instanceid
-                						}
-                					);
-                				}
-                			);
                 			
-        					il.append(a);
-        				}
-        			);
-        			if (first)
-        				il.append($("<span>no instances</span>"));
-        			il.append($("<span>)</span>"));
-        			
-        			li.append(il);
+					li.append(a);
         			yrl.append(li);
         		}
         	);
-        	if (yrl.children().length == 0)
-        		yrl.append("<li>You don't have any realms yet</li>");
+
+        	$("<hr/>").appendTo(yrl);
         	
+        	var createbutton = $("<a href='#'>Create new realm</a>")
+            	.click(
+                	function (event)
+                	{
+                		W.Socket.Send(
+                			{
+                				command: "createrealm",
+                				name: "An Empty Realm"
+                			}
+                		);
+                		return false;
+                	}
+                );
+        	$("<li/>").append(createbutton).appendTo(yrl);
+            
         	update_realm_map();
+        },
+        
+        LogoutEvent: function()
+        {
+        	W.Effects.HidePage($("#page"))
+        		.promise()
+        		.done(W.Socket.Disconnect);
+        },
+        
+        WarpToInstanceEvent: function()
+        {
+        	$("#warptoinstancecancelbutton")
+        		.unbind()
+        		.click(
+        			function()
+        			{
+        				W.Effects.HideDialogue($("#warptoinstance"));
+        			}
+        		);
+        	
+        	$("#warptoinstanceokbutton")
+        		.unbind()
+        		.click(
+        			function()
+        			{
+                		W.Socket.Send(
+                			{
+                			 	command: "warp",
+                			 	instance: $("#warptoinstanceid").text()
+                			}
+                		);
+                		
+        				W.Effects.HideDialogue($("#warptoinstance"));
+        			}
+        		);
+
+        	$("#warptoinstanceid").text("");
+        	
+        	return W.Effects.ShowDialogue($("#warptoinstance"));        	
         }
     };
 }

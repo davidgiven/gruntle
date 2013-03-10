@@ -3,7 +3,7 @@
     "use strict";
     
     window.W = {};
-    W.URL = "ws://gate.cowlark.com:8086";
+    W.URL = "ws://localhost:8086";
 
     W.OnSocketOpened = function()
     {
@@ -12,7 +12,13 @@
     
     W.OnSocketClosed = function()
     {
-    	document.write("Back-end server not responding!<br/>");
+    	W.Dialogue(
+    		{
+    			message: "Disconnected from server.",
+    			positive: "Reconnect",
+    			positivecb: W.Main
+    		}
+    	);
     };
     
     W.OnSocketError = function(event)
@@ -25,6 +31,23 @@
     W.Main = function()
     {
     	W.Socket.Connect(W.URL);
+    };
+    
+    W.Logout = function()
+    {
+    	W.Socket.Disconnect();
+    };
+    
+    /* Standard markup --- dialogues etc. */
+    
+    W.StandardMarkup = function(root)
+    {
+        $("#page").find(".dialogue").draggable(
+        	{
+        		handle: "h3.dialogue-title"
+        	}
+        ).hide();
+        $("#page").find(".resizable").resizable();
     };
 }
 )();

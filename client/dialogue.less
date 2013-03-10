@@ -1,0 +1,139 @@
+.dialogue
+{
+	position: fixed !important;
+	width: auto;
+	height: auto;
+	background-image: url("res/dialogue-background.jpg");
+	background-repeat: repeat;
+	border: 1px solid black;
+	border-radius: 3px 3px 3px 3px;
+	box-shadow: 8px 8px 10px 0 rgba(0, 0, 0, 0.6);
+    
+    @borderwidth: 0.5em;
+    @titleheight: 1.3em;
+    
+    .dialogue-title
+    {
+    	position: absolute;
+    	top: @borderwidth;
+    	left: @borderwidth;
+    	right: @borderwidth;
+    	height: @titleheight; 
+    	
+    	text-align: center;
+    	font-weight: bold;
+    	color: black;
+		border-radius: 3px 3px 3px 3px;
+    	background-color: rgba(0, 0, 0, 0.2);
+    	cursor: move;
+    }
+    
+    .nonscrollcontainer
+    {
+    	margin-top: @titleheight + (@borderwidth * 2);
+    	margin-bottom: @borderwidth;
+    	margin-left: @borderwidth;
+    	margin-right: @borderwidth;
+    }
+    
+    .container
+    {
+    	position: absolute;
+    	top: @titleheight + (@borderwidth * 2);
+    	bottom: @borderwidth;
+    	left: @borderwidth;
+    	right: @borderwidth;
+	    overflow: auto;
+	    padding: 0.5em;
+	}
+	    
+   	TABLE
+    {
+	    border-collapse: collapse;
+    }
+
+	TR + TR, TBODY + TBODY
+	{
+    	border-top: 0.5em solid transparent;
+	}
+	
+    TH
+    {
+    	font-weight: bold;
+    	white-space: nowrap;
+    	vertical-align: top;
+    	padding-top: 0.2em;
+    	border-right: 0.5em solid transparent;
+    }
+    
+    TD
+    {
+    	width: 100%;
+    	vertical-align: top;
+    }
+    		
+	.containsbuttons
+	{
+		text-align: right;
+		
+		INPUT
+		{
+			width: 5em;
+			margin: 0;
+		}
+	}
+    
+    [contenteditable="true"], INPUT:not([type="button"])
+    {
+    	border: 1px solid black;
+    	background-color: white;
+		width: 100%;
+		box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, 0.6);
+	}
+	
+	[contenteditable="true"], INPUT
+	{
+		box-sizing: border-box;
+    	padding: 0.2em;
+    }    
+}
+
+.alertdialogue
+{
+	z-index: 3999;
+	position: relative;
+	display: none;
+	
+	.modaloverlay
+	{
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		z-index: 3999;
+	}
+	
+	.dialogue
+	{
+		left: 50%;
+		margin-left: -11em;
+		width: 22em;
+		top: 30%;
+		z-index: 4000;
+	}
+
+	.alerticon
+	{
+		float: left;
+		font-size: 300%;
+		text-shadow: 1px 1px 3px black;
+	}
+	
+	#alertdialoguemessage
+	{
+		margin-left: 4em;
+		margin-bottom: 1em;
+	}	
+}

@@ -16,11 +16,6 @@
     		W.GamePage.LookEvent(message);
     	},
     	
-    	"actions": function(message)
-    	{
-    		W.GamePage.ActionsEvent(message);
-    	},
-    	
     	"allactions": function(message)
     	{
     		W.GamePage.AllActionsEvent(message);
@@ -46,9 +41,24 @@
     		W.GamePage.SpeechEvent(message);
     	},
     	
+    	"activity": function(message)
+    	{
+    		W.GamePage.ActivityEvent(message);
+    	},
+    	
     	"realms": function(message)
     	{
     		W.GamePage.RealmsEvent(message);
+    	},
+    	
+    	"authfailed": function(message)
+    	{
+    		W.LoginPage.AuthenticationFailedEvent(message);
+    	},
+    	
+    	"creationfailed": function(message)
+    	{
+    		W.RegisterPage.CreationFailedEvent(message);
     	}
     };
     
@@ -57,11 +67,11 @@
     	var messagetype = s.event;
     	if (!messagetype)
     		return;
+		console.log("<message ", messagetype, ": ", $.toJSON(s));
     	var handler = cbt[messagetype];
     	if (!handler)
     	{
-    		console.log("unrecognised server message '"+messagetype+"':\n"+
-    			$.toJSON(s));
+    		console.log("unrecognised message type!"); 
     		return;
     	}
     	

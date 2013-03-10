@@ -1,0 +1,435 @@
+@import "jqueryui.less";
+@import "dialogue.less";
+@import "login.less";
+@import "register.less";
+
+HTML
+{
+	background-color: black;
+	font-family: 'IM Fell DW Pica', serif;
+	//font-family: 'IM Fell French Canon', serif;
+}
+
+#page
+{
+	height: auto !important;
+	min-height: 100%;
+}
+
+#logincontainer
+{
+	background-color: white;
+}
+
+#registercontainer
+{
+	background-color: white;
+}
+
+#background
+{
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-image: url("res/background.jpg");
+	background-repeat: repeat;
+	z-index: -999;
+}
+
+.scrollback
+{
+	color: rgba(0, 0, 0, 0.5);
+}
+
+#chatinput
+{
+	width: 100%;
+}
+
+.urgent
+{
+	background-color: #f88;
+}
+
+#menubar
+{
+	position: fixed;
+	top: 1em;
+	left: 0;
+	width: 100%;
+	height: 2em;
+	border: 1px solid black;
+	background-image: url("res/menubar.jpg");
+	background-repeat: repeat;
+	z-index: 3500;
+	box-shadow: 8px 8px 10px 0 rgba(0, 0, 0, 0.6);
+	
+	.left
+	{
+		padding-left: 1em;
+		text-align: left;
+	}
+	
+	.right
+	{
+		padding-right: 1em;
+		text-align: right;
+	}
+	
+	#warptoinstance
+	{
+		display: inline-block;
+		border-bottom: 1px dotted black;
+		width: 5em;
+	}
+}
+
+#playcontainer
+{
+	margin-left: 3%;
+	padding-top: 0;
+	width: 50%;
+	table-layout: fixed;
+
+	#leftcell
+	{
+		background-image: url("res/paper-left.png");
+		background-repeat: repeat;
+		width: 24px;
+	}
+	
+	#rightcell
+	{
+		background-image: url("res/paper-right.png");
+		background-repeat: repeat;
+		width: 24px;
+	}
+	
+	#playcell
+	{
+		background-image: url("res/paper.jpg");
+		background-repeat: repeat;
+		width: 100%;
+		height: 100%;
+	}
+	
+	#playarea
+	{
+		margin-left: 1em;
+		margin-right: 1em;
+		text-align: justify;
+		padding-top: 3.5em;
+		
+		H1
+		{
+			font-weight: bold;
+			font-size: 120%;
+			margin-top: 0.5em;
+			margin-bottom: 0.25em;
+		}
+	}
+	
+	#padding
+	{
+		width: 100%;
+		height: 100em;
+	}
+	
+	.editwindow
+	{
+		position: relative;
+		height: 0;
+		
+		div
+		{
+			position: absolute;
+			left: 110%;
+			width: 100%;
+			height: 10em;
+			border: 3px solid yellow;
+			background-color: yellow;
+		}
+	} 
+}
+
+#actionsarea
+{
+	border-top: 1px solid black;
+	border-left: 1px solid black;
+	border-right: 1px solid black;
+    border-radius: 20px 20px 0 0;
+
+	position: fixed;
+	bottom: 0;
+	left: 2%;
+	width: 52%;
+	background-image: url("res/menubar.jpg");
+	background-repeat: repeat;
+	box-shadow: 8px 8px 10px 0 rgba(0, 0, 0, 0.6);
+	
+	.list, .speech
+	{
+		margin: 0.5em;
+	}
+	
+	.list
+	{
+		UL
+		{
+			margin-left: 2em;
+			margin-top: 0.5em;
+			margin-bottom: 0.5em;
+		}
+		
+		LI
+		{
+			list-style-type: circle;
+			margin-bottom: 0.2em;
+		}
+	}
+	
+	.speech
+	{
+		border-bottom: 1px dotted black;
+		text-align: justify;
+		min-height: 1em;
+		line-height: 1;
+	
+		#chatinput
+		{
+			border-bottom: 1px dotted black;
+		}
+	}
+}
+
+#adminarea
+{
+	position: fixed;
+	width: 20em;
+	color: white;
+	left: 60%;
+	top: 10%;
+}
+
+.menu
+{
+	list-style: none;
+	position: relative;
+
+	> LI
+	{
+		margin-left: 1em;
+	}
+
+	LI
+	{
+		display: inline-block;
+		position: relative;
+		text-align: left;
+	}
+	
+	UL
+	{
+		list-style: none;
+		position: absolute;
+		display: none;
+		border: 1px solid black;
+		padding-top: 0.5em;
+		padding-bottom: 0.5em;
+		background-image: url("res/dialogue-background.jpg");
+		background-repeat: repeat;
+		border-radius: 3px 3px 3px 3px;
+		box-shadow: 8px 8px 10px 0 rgba(0, 0, 0, 0.6);
+		left: auto;
+		right: 0;
+	}
+	
+	> LI:hover UL
+	{
+		display: block;
+	}
+	
+	LI UL
+	{
+		LI
+		{
+			display: block;
+			white-space: nowrap;
+			padding-left: 1em;
+			padding-right: 1em;
+			
+			A
+			{
+				display: block;
+			}
+		}
+		
+		LI:hover
+		{
+			background-color: white;
+		}
+	}
+	
+	LI:first-child UL
+	{
+		right: auto;
+		left: 0;
+	}
+}
+
+.zeroheight
+{
+	height: 0;
+}
+
+#editbutton
+{
+	width: 7em;
+	text-align: center;
+	font-size: 83%;
+	font-weight: normal;
+	margin-left: 1em;
+}
+
+#roomeditor
+{
+	left: 55%;
+	top: 4em;
+	z-index: 3000;
+
+	.resizable
+	{
+	    width: 30em;
+	    height: 20em;
+	}
+	    
+    .container
+    {
+		#editdescription
+		{
+			min-height: 6em;
+		}
+		
+		#editactions LI TABLE
+		{
+			width: 100%;
+		}
+		
+		.containstype
+		{
+			text-align: right;
+		}
+	}
+}
+
+#playarea, #editdescription
+{
+	P
+	{
+		margin-top: 0.75em;
+	}
+}
+
+.template
+{
+	display: none;
+}
+
+.dangerous
+{
+	color: #800 !important;
+}
+
+.iconbutton
+{
+	display: inline-block;
+	text-decoration: none;
+	color: #080;
+	vertical-align: middle;
+	text-align: center;
+	width: 1.5em;
+	height: 1.5em;
+}
+
+.tableiconright
+{
+	float: right;
+}
+
+.tableiconleft
+{
+	float: left;
+}
+
+.clear
+{
+	clear: both;
+}
+
+#realmeditor
+{
+	left: 70%;
+	top: 4em;
+	z-index: 2999;
+
+	.resizable
+	{
+	    width: 15em;
+	    height: 30em;
+	}
+	
+    .container
+    {
+    	.title
+    	{
+    		font-weight: bold;
+    		text-align: center;
+    		margin-bottom: 1em;
+    	}
+    	
+    	.currentRoom
+    	{
+    		background-color: white;
+			font-weight: bold;
+    	}
+    	
+    	.roomideditor
+    	{
+    		margin-left: 1.5em;
+    		margin-right: 1.5em;
+    	}
+    	
+    	.footer
+    	{
+    		margin-top: 1em;
+    	}
+	}
+}
+
+#realmproperties
+{
+	left: 50%;
+	top: 40%;
+	z-index: 2999;
+	margin-left: -10em;
+    width: 20em;
+
+    .container
+    {
+    }
+}
+
+#warptoinstance
+{
+	left: 50%;
+	top: 40%;
+	z-index: 2999;
+	margin-left: -12.5em;
+    width: 25em;
+
+    .container
+    {
+    }
+}

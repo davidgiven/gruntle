@@ -5,21 +5,44 @@
 		<meta http-equiv="Content-Type" content="text/html; charset="UTF-8">
 		<title>thickishstring</title>
 		
-		<link rel="stylesheet" type="text/css" href="global.css"/>
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-        <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/jquery-ui.min.js"></script>
+		<link rel='stylesheet' type='text/css' href='//fonts.googleapis.com/css?family=IM+Fell+DW+Pica:400,400italic|IM+Fell+French+Canon:400,400italic'/>
+		<link rel="stylesheet" type="text/css" href="libraries/reset-min.css"/>
+		<link rel="stylesheet/less" type="text/css" href="global.less"/>
+        <!-- <link rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/themes/humanity/jquery-ui.css"/> -->
+		<script src="libraries/less-1.3.3.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/jquery-ui.min.js"></script>
         <script src="libraries/jquery.json-2.3.min.js"></script>
         <script src="libraries/jquery.scrollTo-1.4.3.1-min.js"></script>
         <script charset="UTF-8" src="scripts/_addons.js"></script>
         <script charset="UTF-8" src="scripts/main.js"></script>
+        <script charset="UTF-8" src="scripts/dialogue.js"></script>
+        <script charset="UTF-8" src="scripts/effects.js"></script>
         <script charset="UTF-8" src="scripts/socket.js"></script>
         <script charset="UTF-8" src="scripts/eventhandler.js"></script>
         <script charset="UTF-8" src="scripts/loginpage.js"></script>
         <script charset="UTF-8" src="scripts/registerpage.js"></script>
         <script charset="UTF-8" src="scripts/gamepage.js"></script>
+        <script charset="UTF-8" src="scripts/roomeditor.js"></script>
+        <script charset="UTF-8" src="scripts/realmeditor.js"></script>
 	</head>
 	<body>
+		<div id="background"></div>
 		<div id="page"></div>
+		<div id="alertdialogue" class="alertdialogue">
+			<div class="modaloverlay"></div>
+			<div class="dialogue">
+				<h3 class="dialogue-title">Alert</h3>
+				<div class="nonscrollcontainer">
+					<div class="alerticon dangerous">&#x26a0;</div>
+					<p id="alertdialoguemessage">Now is the time for all good men to come to the aid of the party.</p>
+					<div class="containsbuttons">
+						<input type="button" id="alertnegativebutton" value="Cancel"/>
+						<input type="button" id="alertpositivebutton" value="OK"/>
+					</div>
+				</div>
+			</div>
+		</div>
 		<script>
 			$(window).load(W.Main);
 		</script>

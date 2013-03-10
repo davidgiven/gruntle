@@ -1,32 +1,161 @@
+<table id="menubar">
+	<tr>
+		<td class="left">
+			<b><span id="realmname"/></b>, written by <span id="realmowner"/>
+			(instance <span id="instance"/>)
+		</td>
+		
+		<td class="right"> 
+			<ul class="menu">
+				<li>
+					<a href="#">Your realms</a>
+					<span>▾</span>
+					<ul id="yourrealmlist"/>
+				</li>
+				
+				<li>
+					<a href="#">Warp</a>
+					<span>▾</span>
+					<ul id="specialrealmlist"/>
+				</li>
+				
+				<li>
+					<a href="#">Account</a>
+					<span>▾</span>
+					<ul>
+						<li><a href="#" id="menulogout">Log out</a></li>
+					</ul>
+				</li>
+			</ul>
+		</td>
+	</tr>
+</table>
 
-<div id="adminarea">
-	<div id="worldinfoarea">
-		<p>
-			You are in <b><span id="realmname"/></b> (<span id="instance"/>)
-			by <span id="realmowner"/>.
+<table id="playcontainer">
+	<tr>
+		<td id="leftcell">&nbsp;</td>
+		<td id="playcell">
+			<div id="playarea"/>
+			<div id="padding"/>
+		</td>
+		<td id="rightcell"/>
+	</tr>
+</table>
+
+<div id="actionsarea">
+	<div class="list">
+		<p>Things to do: 
+		<a href='#' id='actionseditbutton' class="editbutton">[edit]</a>
 		</p>
-		<p>You can <a href="#" id="warptoentrypoint">warp back to the entry
-		point</a>, or leave and go to <span id="specialrealmlist"/>.</p>
-		
-		<p>Enter an instance ID to warp there:
-		<input id="warptoinstance" type="text"/>
-		<input id="warptoinstancebtn" type="button" value="Go"/>
-		</p>
-		
-		<p>Your realms are:</p>
-		<ul id="yourrealmlist"/>
-		<p><a href="#" id="createnewrealm">[Create new realm]</a></p>
+		<ul id="actionslist"/>
 	</div>
-	
-	<div id="realmmap">
-		<p>Realm admin controls go here.</p>
+	<div class="speech">
+		<span class="wrapper">
+			<span id="chatinput" contenteditable="true"/>
+		</span>
 	</div>
 </div>
 
-<div id="playarea">
-	<div id="gamecontainer"/>
-	<div id="chatbox">
-		<p>Say something:
-		<input id="chatinput" type="text" value=""/> 
+<a href='#' id='editbutton' class="template editbutton">[edit]</a>
+
+<div id="roomeditor" class="dialogue">
+	<div class="resizable">
+		<h3 class="dialogue-title">Room editor</h3>
+		<div class="container">
+			<table>
+				<tbody>
+					<tr>
+						<th>Room ID:</th>
+						<td><div id="editroomid" contenteditable="true"/></td>
+					</tr>
+					<tr>
+						<th>Room title:</th>
+						<td><div id="editroomname" contenteditable="true"/></td>
+					</tr>
+					<tr>
+						<th>Description:</th>
+						<td><div id="editdescription" contenteditable="true"/></td>
+					</tr>
+				</tbody>
+				<tbody id="editactions">
+					<tr>
+						<th>
+							<a href="#" id="createactionbutton">[add action]</a>
+						</th>
+						<td class='containsbuttons'>
+							<input type="button" id="editcancelbutton" value="Cancel"/>
+							<input type="button" id="editsavebutton" value="Save"/>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+<div id="realmeditor" class="dialogue">
+	<div class="resizable">
+		<h3 class="dialogue-title">Realm editor</h3>
+		<div class="container">
+			<div>
+				<a href='#' class='iconbutton tableiconright'>✍</a>
+				<span>Realm Title Here</span>
+			</div>
+			<div>
+				<div class="clear">
+					<a href='#' class='iconbutton tableiconright'>➟</a>
+					<a href='#' class='iconbutton dangerous tableiconleft'>✖</a>
+					<a href='#'>roomidhere</a>
+				</div>
+			</div>
+			<div class="clear">
+				<a href="#">[add room]</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="realmproperties" class="dialogue">
+	<h3 class="dialogue-title">Realm properties</h3>
+	<div class="nonscrollcontainer">
+		<table>
+			<tr>
+				<th>Realm name:</th>
+				<td><div contenteditable="true" id="realmpropertiesname"/></td>
+			</tr>
+			<tr>
+				<th/>
+				<td class='containsbuttons'>
+					<input type="button" id="realmpropertiescancelbutton" value="Cancel"/>
+					<input type="button" id="realmpropertiessavebutton" value="Save"/>
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>
+
+<div id="warptoinstance" class="dialogue">
+	<h3 class="dialogue-title">Warp to instance</h3>
+	<div class="nonscrollcontainer">
+		<table>
+			<tr>
+				<td colspan="2">
+					<p>To warp directly to someone else's instance, enter the
+					instance ID below. (You'll have to get them to tell it to
+					you.)</p>
+				</td>
+			</tr>
+			<tr>
+				<th>Instance ID:</th>
+				<td><div contenteditable="true" id="warptoinstanceid"/></td>
+			</tr>
+			<tr>
+				<th/>
+				<td class='containsbuttons'>
+					<input type="button" id="warptoinstancecancelbutton" value="Cancel"/>
+					<input type="button" id="warptoinstanceokbutton" value="Warp"/>
+				</td>
+			</tr>
+		</table>
 	</div>
 </div>

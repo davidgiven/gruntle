@@ -113,7 +113,13 @@
     	Send: function(msg)
     	{
     		var json = $.toJSON(msg);
+    		console.log(">message ", msg.command, ": ", json);
     		W.WS.send(json + "\r\n");
+    	},
+    	
+    	Disconnect: function()
+    	{
+    		W.WS.close();
     	}
     };
 }

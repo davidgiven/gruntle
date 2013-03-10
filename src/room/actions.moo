@@ -8,6 +8,7 @@ program $room:actions
 			actions[id] =
 				[
 					"description" -> action["description"],
+					"type" -> `action["type"] ! ANY => "room"',
 					"target" -> action["target"]
 				];
 		endfor
