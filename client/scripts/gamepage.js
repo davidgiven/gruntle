@@ -234,11 +234,11 @@
                 		for (var i=0; i<(players.length-1); i++)
                 			s += players[i] + ", ";
                 		
-                		if (players.length > 1)
-                			s += " and " + players[players.length-1];
+				if (players.length == 1)
+					s = players[0] + " is here.";
+                		else if (players.length > 1)
+                			s += " and " + players[players.length-1] + " are here.";
                 		
-                		s += " are here.";
-
            				$("<p/>").text(s).appendTo(current_status_div);
             		}
             		
