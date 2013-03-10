@@ -16,6 +16,7 @@
         <script src="libraries/jquery.scrollTo-1.4.3.1-min.js"></script>
         <script charset="UTF-8" src="scripts/_addons.js"></script>
         <script charset="UTF-8" src="scripts/main.js"></script>
+        <script charset="UTF-8" src="scripts/effects.js"></script>
         <script charset="UTF-8" src="scripts/socket.js"></script>
         <script charset="UTF-8" src="scripts/eventhandler.js"></script>
         <script charset="UTF-8" src="scripts/loginpage.js"></script>
@@ -26,6 +27,20 @@
 	</head>
 	<body>
 		<div id="background"></div>
+		<div id="alertdialogue" class="alertdialogue" style="display: none">
+			<div class="modaloverlay"></div>
+			<div class="dialogue">
+				<h3 class="dialogue-title">Alert</h3>
+				<div class="nonscrollcontainer">
+					<div class="alerticon dangerous">&#x26a0;</div>
+					<p id="alertdialoguemessage">Now is the time for all good men to come to the aid of the party.</p>
+					<div class="containsbuttons">
+						<input type="button" id="alertnegativeebutton" value="Cancel"/>
+						<input type="button" id="alertpositivebutton" value="OK"/>
+					</div>
+				</div>
+			</div>
+		</div>
 		<div id="page"></div>
 		<script>
 			$(window).load(W.Main);

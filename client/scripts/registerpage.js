@@ -40,6 +40,8 @@
             $("#page").load("register.html",
             	function ()
             	{
+            		W.StandardMarkup();
+            		
                     $("#username").keydown(
                         function (event)
                         {
@@ -68,7 +70,11 @@
                         function (event)
                         {
                             if (event.keyCode === 13)
-                                attempt_registration_cb();
+                            {
+                            	W.Effects.HidePage($("#page"))
+                            		.promise()
+                            		.done(attempt_registration_cb);
+                            }
                         }
                     );
                             
@@ -76,12 +82,18 @@
                         .click(
                             function (event)
                             {
-                            	W.LoginPage.Show();
+                            	W.Effects.HidePage($("#page"))
+                            		.promise()
+                            		.done(W.LoginPage.Show);
                             }
                         );
                         
                     $("#register").button()
                         .click(attempt_registration_cb);
+                    
+                    $("#registerdialogue").show();
+                    $("#page").hide();
+                    W.Effects.ShowPage($("#page"));
             	}
             );
         }

@@ -2,9 +2,6 @@
 {
 	"use strict";
 
-	var defaultduration = 300;
-	var defaulteasing = "easeInOutQuad";
-	
 	var roomscrolloffset = 0.0;
 	var actionscrolloffset = 0.3;
 	
@@ -19,90 +16,6 @@
 	var realms = null;
 	
 	var scroll_position = -1;
-	
-	var fadeIn = function()
-	{
-		for (var i=0; i<arguments.length; i++)
-		{
-			$(arguments[i]).fadeIn(
-    			{
-    				duration: defaultduration,
-    				easing: defaulteasing
-    			}
-    		);
-		}
-	}
-	
-	var fadeOut = function()
-	{
-		var s = $([]);
-		for (var i=0; i<arguments.length; i++)
-			s = s.add(arguments[i]);
-		
-		return s.fadeOut(
-    			{
-    				duration: defaultduration,
-    				easing: defaulteasing
-    			}
-    		);
-	}
-
-	var slideUp = function()
-	{
-		var s = $([]);
-		for (var i=0; i<arguments.length; i++)
-			s = s.add(arguments[i]);
-
-		return s.slideUp(
-    			{
-    				duration: defaultduration,
-    				easing: defaulteasing
-    			}
-    		);
-	}
-	
-	var slideDown = function()
-	{
-		var s = $([]);
-		for (var i=0; i<arguments.length; i++)
-			s = s.add(arguments[i]);
-
-		return s.slideDown(
-    			{
-    				duration: defaultduration,
-    				easing: defaulteasing
-    			}
-    		);
-	}
-	
-	var fadeInText = function()
-	{
-		var s = $([]);
-		for (var i=0; i<arguments.length; i++)
-			s = s.add(arguments[i]);
-		
-		return s.fadeIn(
-    			{
-    				duration: defaultduration * 2,
-    				easing: defaulteasing
-    			}
-    		);
-	};
-	
-	var fadeOutAndRemove = function(e)
-	{
-		e.fadeOut(
-			{
-				duration: defaultduration,
-				easing: defaulteasing,
-				complete:
-					function()
-					{
-						e.remove();
-					}
-			}
-		);
-	};
 	
 	var updateScrollPosition = function()
 	{
@@ -127,8 +40,8 @@
 	    	$('html, body').animate(
 	    		{
 	    			scrollTop: voffset,
-	    			duration: defaultduration,
-	    			easing: defaulteasing
+	    			duration: W.Effects.DefaultDuration,
+	    			easing: W.Effects.DefaultEasing
 	    		}
 	    	);
 	    	
@@ -163,14 +76,12 @@
 
     W.GamePage =
     {
-    	FadeOut: fadeOut,
-    	FadeIn: fadeIn,
-    	
         Show: function ()
         {
             $("#page").load("game.html",
             	function ()
             	{
+            		W.StandardMarkup();                
             		content = $("#playarea");
             		
                     $("#chatinput").keydown(
@@ -228,14 +139,9 @@
                     
                     $("#menulogout").click(W.GamePage.LogoutEvent);
                     
-                    $(".dialogue").draggable(
-                    	{
-                    		handle: "h3.dialogue-title"
-                    	}
-                    ).hide();
-                    $(".resizable").resizable();
-                    
             		update_game_page();
+            		$("#page").hide();
+            		W.Effects.ShowPage($("#page"));
             	}
             );
         },
@@ -246,7 +152,7 @@
         	current_status_div.addClass("scrollback");
         	if (edit_button)
         	{
-       			fadeOutAndRemove(edit_button);
+       			W.Effects.RemoveButton(edit_button);
         		edit_button = null;
         	}
         	
@@ -298,7 +204,7 @@
         					}
         				);
         			
-        			fadeIn(edit_button);
+        			W.Effects.ShowButton(edit_button);
             	}
 
             	current_text_div.append(header, body);
@@ -337,15 +243,15 @@
         			.appendTo(content);
 
         		update_text();
-        		fadeInText(current_text_div, current_status_div);
+        		W.Effects.NewText(current_text_div, current_status_div);
         	}
         	else
         	{
-        		slideUp(current_text_div).promise().done(
+        		W.Effects.HideText(current_text_div).promise().done(
         			function()
         			{
                 		update_text();
-                		slideDown(current_text_div);
+                		W.Effects.ShowText(current_text_div);
         			}
         		);
         	}
@@ -392,28 +298,12 @@
         	var show_actions = function()
         	{
     			update_actions();
-    			
-    			$("#actionsarea").show(
-    				{
-            			effect: "slide",
-            			easing: defaulteasing,
-            			duration: defaultduration,
-            			direction: "down",
-    				}
-    			);
+    			W.Effects.ShowActions($("#actionsarea"));
         	};
         	
         	if ($("#actionsarea").is(":visible"))
         	{
-        		$("#actionsarea").hide(
-            		{
-            			effect: "slide",
-            			easing: defaulteasing,
-            			duration: defaultduration,
-            			direction: "down",
-            			complete: show_actions
-            		}
-            	);
+        		W.Effects.HideActions($("#actionsarea"));
         	}
         	else
         		show_actions();
@@ -428,7 +318,7 @@
 			m.text(message.user+" has arrived.");
 			
 			current_status_div.append(m);
-			fadeInText(m);
+			W.Effects.NewText(m);
         	adjustScrolling(false);
         },
         
@@ -441,7 +331,7 @@
 			m.text(message.user+" has left.");
 			
 			current_status_div.append(m);
-			fadeInText(m);
+			W.Effects.NewText(m);
         	adjustScrolling(false);
         },
         
@@ -459,7 +349,7 @@
         	m.text(s);
         	m.hide();
         	current_status_div.append(m);
-        	fadeInText(m);
+        	W.Effects.NewText(m);
         	adjustScrolling(false);
         },
         
@@ -546,12 +436,19 @@
         
         LogoutEvent: function()
         {
-        	content = null;
-        	pending_look = null;
-        	realms = null;
-        	waiting_for_room_description = true;
-        	shown_user_list = false;
-        	W.Socket.Disconnect();
+        	W.Effects.HidePage($("#page"))
+        		.promise()
+        		.done(
+        			function()
+        			{
+                    	content = null;
+                    	pending_look = null;
+                    	realms = null;
+                    	waiting_for_room_description = true;
+                    	shown_user_list = false;
+                    	W.Socket.Disconnect();
+        			}
+        		);
         }
     };
 }

@@ -6,7 +6,7 @@
 	
 	var cancel_cb = function()
 	{
-		W.GamePage.FadeOut($("#roomeditor"));
+		W.Effects.HideDialogue($("#roomeditor"));
 	};
 	
 	var save_cb = function()
@@ -41,7 +41,7 @@
 			}
 		);
 		
-		W.GamePage.FadeOut($("#roomeditor"));
+		W.Effects.HideDialogue($("#roomeditor"));
 	};
 	
 	var add_new_action = function()
@@ -156,7 +156,7 @@
         	$("#editcancelbutton").unbind().click(cancel_cb);
         	$("#editsavebutton").unbind().click(save_cb);
 
-	    	W.GamePage.FadeIn($("#roomeditor"));
+	    	W.Effects.ShowDialogue($("#roomeditor"));
 		},
 		
 		Cancel: function()

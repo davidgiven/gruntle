@@ -84,13 +84,13 @@
 				).appendTo(footerdiv);
 			footerdiv.appendTo(container);
 			
-	    	return W.GamePage.FadeIn($("#realmeditor"));
+	    	return W.Effects.ShowDialogue($("#realmeditor"));
 		},
 		
 		Hide: function()
 		{
 			W.RealmEditor.HideProperties();
-			return W.GamePage.FadeOut($("#realmeditor"));
+			return W.Effects.HideDialogue($("#realmeditor"));
 		},
 		
 		ShowProperties: function(id, realm)
@@ -127,12 +127,12 @@
         			}
         		);
 
-			return W.GamePage.FadeIn($("#realmproperties"));
+			return W.Effects.ShowDialogue($("#realmproperties"));
 		},
 		
 		HideProperties: function()
 		{
-			return W.GamePage.FadeOut($("#realmproperties"));
+			return W.Effects.HideDialogue($("#realmproperties"));
 		}
 	};
 }

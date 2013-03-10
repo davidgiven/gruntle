@@ -30,6 +30,18 @@
     W.Logout = function()
     {
     	W.Socket.Disconnect();
-    }
+    };
+    
+    /* Standard markup --- dialogues etc. */
+    
+    W.StandardMarkup = function(root)
+    {
+        $("BODY").find(".dialogue").draggable(
+        	{
+        		handle: "h3.dialogue-title"
+        	}
+        ).hide();
+        $("BODY").find(".resizable").resizable();
+    };
 }
 )();

@@ -7,13 +7,20 @@
         var username = $("#username").prop("value");
         var password = $("#password").prop("value");
 
-        W.Socket.Send(
-        	{
-        		command: "connect",
-        		username: username,
-        		password: password
-        	}
-        );
+    	W.Effects.HidePage($("#page"))
+    		.promise()
+    		.done(
+    			function()
+    			{
+                    W.Socket.Send(
+                    	{
+                    		command: "connect",
+                    		username: username,
+                    		password: password
+                    	}
+                    );
+    			}
+    		);
     };
     
     W.LoginPage =
@@ -23,6 +30,8 @@
             $("#page").load("login.html",
             	function ()
             	{
+            		W.StandardMarkup();
+            		
                     $("#username").keydown(
                         function (event)
                         {
@@ -43,7 +52,9 @@
                         .click(
                             function (event)
                             {
-                            	W.RegisterPage.Show();
+                            	W.Effects.HidePage($("#page"))
+                            		.promise()
+                            		.done(W.RegisterPage.Show);
                             }
                         );
                         
@@ -51,18 +62,27 @@
                         .click(
                             function (event)
                             {
-                				W.Socket.Send(
-                					{
-                						command: "guest"
-                					}
-                				);
+                            	W.Effects.HidePage($("#page"))
+                            		.promise()
+                            		.done(
+                            			function()
+                            			{
+                            				W.Socket.Send(
+                            					{
+                            						command: "guest"
+                            					}
+                            				);
+                            			}
+                            		);
                             }
                         );
                         
                     $("#login").button()
                         .click(attempt_login_cb);
-                    
+                 
                     $("#logindialogue").show();
+                    $("#page").hide();
+                    W.Effects.ShowPage($("#page"));
             	}
             );
         }
