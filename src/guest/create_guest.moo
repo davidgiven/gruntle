@@ -3,7 +3,7 @@ program $guest:create_guest
 	set_task_perms(caller_perms());
 
 	if (typeof(this.all_guests) != LIST)
-		this.all_guests = LIST;
+		this.all_guests = {};
 	endif
 	
 	/* Look for an already created guest that's not in use. */
