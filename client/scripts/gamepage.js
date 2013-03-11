@@ -391,8 +391,8 @@
         
         ActivityEvent: function(message)
         {
-        	var m = $("<p/>");
-        	m.text(message.message);
+        	var m = $("<div/>");
+        	m.textWithBreaks(message.message);
         	m.hide();
         	current_status_div.append(m);
         	W.Effects.NewText(m);
