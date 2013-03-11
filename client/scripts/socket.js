@@ -68,6 +68,17 @@
         		}
         	};
         	
+		if (!("WebSocket" in window))
+		{
+			W.Dialogue(
+				{
+					message: "Sorry, your web browser does not support "+
+						"WebSockets. This means that thickishstring "+
+						"won't work here."
+				}
+			);
+		}
+
         	W.WS = new WebSocket(uri, "binary");
         	W.WS.binaryType = "arraybuffer";
         
