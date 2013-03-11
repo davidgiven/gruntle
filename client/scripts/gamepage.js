@@ -71,7 +71,9 @@
 	{
 		if (W.CurrentRealm.uid === W.Userid)
 		{
-			var realm = realms.realms[W.CurrentRealm.id];
+			var realm = null;
+			if (realms)
+				realm = realms.realms[W.CurrentRealm.id];
 			if (realm)
 				W.RealmEditor.Show(realm);
 			else
@@ -162,6 +164,7 @@
         	}
         	
         	waiting_for_room_description = true;
+		shown_user_list = false;
         	adjustScrolling(true);
         },
         
