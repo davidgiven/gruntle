@@ -235,7 +235,12 @@
             		{
                 		var s = "";
                 		for (var i=0; i<(players.length-1); i++)
-                			s += players[i] + ", ";
+				{
+                			s += players[i];
+					if (i < (players.length-1))
+						s += ",";
+					s += " ";
+				}
                 		
 				if (players.length == 1)
 					s = players[0] + " is here.";
