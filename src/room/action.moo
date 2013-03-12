@@ -11,6 +11,8 @@ program $room:action
 	type = action["type"];
 	target = action["target"];
 	
+	player:tell("> ", action["description"]);
+
 	if (type == "room")
 		targetroom = this:instance():find_room(target);
 		player:moveTo(targetroom);

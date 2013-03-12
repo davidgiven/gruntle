@@ -43,7 +43,7 @@
 	    	var menubarheight = $("#menubar").height();
 	    	var screenheight = $(window).height();
 	    	
-	    	var voffset = scroll_position - menubarheight*2;
+	    	var voffset = scroll_position - menubarheight*3;
 	    	if (!room)
 	    		voffset -= screenheight * 0.2;
 	    	
