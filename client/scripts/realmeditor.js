@@ -95,7 +95,10 @@
 		
 		ShowProperties: function(id, realm)
 		{
-			$("#realmpropertiesname").text(realm.name);
+			$("#realmpropertiesname")
+				.unbind()
+				.singleLineEditor()
+				.text(realm.name);
 			
         	$("#realmpropertiescancelbutton")
         		.unbind()

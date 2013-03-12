@@ -106,7 +106,7 @@
                             if (event.keyCode === 13)
                             {
                             	var msg = $("#chatinput").text();
-                            	$("#chatinput").text("");
+                            	$("#chatinput").html("<br/>");
                             	msg = msg.trim();
                             	if (msg != "")
                             	{
@@ -518,23 +518,27 @@
         			}
         		);
         	
-        	$("#warptoinstanceokbutton")
-        		.unbind()
-        		.click(
-        			function()
+        	var warp_cb = function()
+        	{
+        		W.Socket.Send(
         			{
-                		W.Socket.Send(
-                			{
-                			 	command: "warp",
-                			 	instance: $("#warptoinstanceid").text()
-                			}
-                		);
-                		
-        				W.Effects.HideDialogue($("#warptoinstance"));
+        			 	command: "warp",
+        			 	instance: $("#warptoinstanceid").text()
         			}
         		);
+        		
+				W.Effects.HideDialogue($("#warptoinstance"));
+				return false;
+        	};
+        	
+        	$("#warptoinstanceokbutton")
+        		.unbind()
+        		.click(warp_cb);
 
-        	$("#warptoinstanceid").text("");
+        	$("#warptoinstanceid")
+        		.unbind()
+        		.singleLineEditor(warp_cb)
+        		.html("<br/>");
         	
         	return W.Effects.ShowDialogue($("#warptoinstance"));        	
         }

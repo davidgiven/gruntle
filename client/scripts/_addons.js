@@ -2,6 +2,14 @@
 {
     "use strict";
 
+    $.fn.textEditor =
+    	function ()
+    	{
+    		var self = this;
+    		
+    		
+    	};
+    	
     $.fn.singleLineEditor =
     	function (commit_cb)
     	{
