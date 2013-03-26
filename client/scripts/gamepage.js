@@ -86,6 +86,18 @@
     		W.RealmEditor.Hide();
 	};
 
+	var show_simple_markup = function(markup)
+	{
+    	if (!current_status_div)
+    		return;
+    	
+		var m = $("<p/>").append(W.Markup.ToDOM(markup));
+		
+		current_status_div.append(m);
+		W.Effects.NewText(m);
+    	adjustScrolling(false);
+	};
+	
     W.GamePage =
     {
         Show: function ()
@@ -355,28 +367,12 @@
         
         ArrivedEvent: function(message)
         {
-        	if (!current_status_div)
-        		return;
-        	
-			var m = $("<p/>");
-			m.text(message.user+" has arrived.");
-			
-			current_status_div.append(m);
-			W.Effects.NewText(m);
-        	adjustScrolling(false);
+        	show_simple_markup(message.markup);
         },
         
         DepartedEvent: function(message)
         {
-        	if (!current_status_div)
-        		return;
-        	
-			var m = $("<p/>");
-			m.text(message.user+" has left.");
-			
-			current_status_div.append(m);
-			W.Effects.NewText(m);
-        	adjustScrolling(false);
+        	show_simple_markup(message.markup);
         },
         
         SpeechEvent: function(message)
