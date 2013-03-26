@@ -12,3 +12,13 @@
 ;$class("realm", "Generic Realm", $nothing);
 ;$class("room", "Generic Room", #7);
 ;$class("jsonserver", "JSON Network Server", $nothing);
+
+# The special room for logged off players.
+
+;$property($system, "limbo", $god, "r")
+;;
+	if ($limbo == $nothing)
+		$limbo = create($room, $god);
+		$limbo.name = "Limbo";
+	endif
+.
