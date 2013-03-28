@@ -1,4 +1,4 @@
-import bsddb
+import dbm
 import cPickle as pickle
 
 __database = None
@@ -6,7 +6,7 @@ __database = None
 def open(filename):
 	print("using "+filename+" as database")
 	global __database
-	__database = bsddb.btopen(filename)
+	__database = dbm.open(filename, "c")
 	
 def get(k):
 	return pickle.loads(__database[k])
