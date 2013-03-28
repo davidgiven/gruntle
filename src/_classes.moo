@@ -22,3 +22,7 @@
 		$limbo.name = "Limbo";
 	endif
 .
+
+# Scripting compiler.
+
+;$class("script", "Scripting Compiler", $nothing);
