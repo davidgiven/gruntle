@@ -49,12 +49,10 @@ db.open(args.filename)
 if not db.isset("root"):
 	print("initialising database")
 	db.set("root", True)
-	db.set(("root", "nextobj"), 0)
+	db.set(("root", "nextobj"), 1)
 	
 	thoth = DBPlayer()
 	thoth.create("Thoth", "<no email address>", "testpassword")
-	
-	print(pickle.dumps(thoth))
 	
 	defaultrealm = thoth.addRealm("The Hub")
 	defaultinstance = defaultrealm.addInstance()

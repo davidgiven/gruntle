@@ -12,13 +12,13 @@ import db
 # Base class for a database-backed object.
 
 class DBObject(object):
-	oid = None
-	
 	def __init__(self, oid):
 		self.setOid(oid)
 
 	def __getstate__(self):
-		return self.getOid() 
+		oid = self.getOid()
+		assert(oid)
+		return oid 
 				
 	def __setstate__(self, p):
 		self.setOid(p)
