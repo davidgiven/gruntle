@@ -13,8 +13,8 @@ from DBObject import DBObject
 
 class DBInstance(DBObject):
 	def __init__(self, oid=None):
-		super(DBInstance, self).__init__("instance", oid)
+		super(DBInstance, self).__init__(oid)
 		
 	def create(self, realm):
 		super(DBInstance, self).create()
-		self.set("realm", realm)
+		self.realm = realm

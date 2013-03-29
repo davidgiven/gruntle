@@ -14,20 +14,18 @@ from DBRealm import DBRealm
 
 class DBPlayer(DBObject):
 	def __init__(self, oid=None):
-		super(DBPlayer, self).__init__("player", oid)
+		super(DBPlayer, self).__init__(oid)
 		
 	def create(self, name, email, password):
 		super(DBPlayer, self).create()
-		self.set("name", name)                   # player's username
-		self.set("email", email)                 # player's email
-		self.set("password", password)           # player's password
-		self.set("realms", frozenset())          # realms the player owns
-		self.set("instance", None)               # current instance the player is in
-		self.set("room", None)                   # current room oid player is in
 		
-	def getRealms(self):
-		realms = self.get("realms")
-		return [DBRealm(r) for r in realms]
+		# Account data.
+		
+		(self.name, self.email, self.password) = name, email, password
+		
+		self.realms = frozenset()                # realms the player owns
+		self.instance = None                     # current instance the player is in
+		self.room = None                         # current room oid player is in
 		
 	def addRealm(self, name):
 		realm = DBRealm()
@@ -36,18 +34,7 @@ class DBPlayer(DBObject):
 			"Unshaped nothingness stretches as far as you can see, " +
 			"tempting you to start shaping it."
 		)
-		
-		s = self.get("realms") | {realm.oid}
-		self.set("realms", s)
+
+		self.realms = self.realms | {realm}		
 		return realm
-		
-	def getInstance(self):
-		return DBInstance(self.get("instance"))
-		
-	def getRoom(self):
-		return DBRoom(self.get("room"))
-		
-	def setLocation(self, instance, room):
-		self.set("instance", instance.oid)
-		self.set("room", room.oid)
-		
+	

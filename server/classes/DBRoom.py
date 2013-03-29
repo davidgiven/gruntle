@@ -13,15 +13,10 @@ from DBObject import DBObject
 
 class DBRoom(DBObject):
 	def __init__(self, oid=None):
-		super(DBRoom, self).__init__("room", oid)
+		super(DBRoom, self).__init__(oid)
 		
 	def create(self, realm, name, title, description):
 		super(DBRoom, self).create()
-		self.set("realm", realm)
-		self.set("name", name)
-		self.set("title", title)
-		self.set("description", description)
-
-	def getName(self):
-		return self.get("name")
+		(self.realm, self.name, self.title, self.description) = \
+			realm, name, title, description
 		

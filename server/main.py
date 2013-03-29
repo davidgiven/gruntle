@@ -22,6 +22,8 @@ from connection import Connection
 from classes.DBRealm import DBRealm
 from classes.DBPlayer import DBPlayer
 
+import cPickle as pickle
+
 parser = argparse.ArgumentParser(
 	description = "thickishstring prototype Python server"
 )
@@ -51,11 +53,15 @@ if not db.isset("root"):
 	
 	thoth = DBPlayer()
 	thoth.create("Thoth", "<no email address>", "testpassword")
+	
+	print(pickle.dumps(thoth))
+	
 	defaultrealm = thoth.addRealm("The Hub")
 	defaultinstance = defaultrealm.addInstance()
 	
-	thoth.setLocation(defaultinstance, defaultrealm.findRoom("entrypoint"))
-	db.set(("root", "defaultinstance"), defaultinstance.oid)
+	thoth.instance = defaultinstance
+	thoth.room = defaultrealm.findRoom("entrypoint")
+	db.set(("root", "defaultinstance"), defaultinstance)
 
 # Create and start the server.
 
