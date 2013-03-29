@@ -63,9 +63,12 @@ if not db.isset("root"):
 
 # Create and start the server.
 
+print("opening socket")
 server = WebSocketServer(
 	('0.0.0.0', args.port),
 	websocket_class=Connection
 )
+
+print("listening...")
 server.serve_forever()
 

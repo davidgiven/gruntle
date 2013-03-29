@@ -16,7 +16,6 @@ import db
 class DBPlayer(DBObject):
 	def __init__(self, oid=None):
 		super(DBPlayer, self).__init__(oid)
-		self.__dict__["connection"] = None
 		
 	def create(self, name, email, password):
 		super(DBPlayer, self).create()
@@ -46,16 +45,21 @@ class DBPlayer(DBObject):
 	# Return the player's current connection, or None if the player is
 	# disconnected.
 	
-	def connection():
-		return self.__dict__["connection"]
+	def connection(self):
+		try:
+			return DBPlayer.connections[self.getOid()]
+		except KeyError:
+			return None
 		
 	# The player has just logged in.
 	
 	def onLogIn(self, connection):
-		self.__dict__["connection"] = connection
+		DBPlayer.connections[self.getOid()] = connection
 		
 	# The player has just logged out.
 	
 	def onLogOut(self):
-		self.__dict__["connection"] = connection
+		del DBPlayer.connections[self.getOid()]
 		
+DBPlayer.connections = {}
+
