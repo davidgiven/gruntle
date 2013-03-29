@@ -29,6 +29,13 @@ INSTALLATION
 
 You will need:
 
+ - The following Python modules:
+ 
+      python-ws4py
+      python-gevent
+      python-greenlet
+      python-anyjson
+      
  - a copy of the Stunt application server. You'll have to build this
    yourself, but it's easy. Get it from here:
 

@@ -1,3 +1,12 @@
+# coding=UTF-8
+#
+# thickishstring server
+# Copyright © 2013 David Given
+#
+# This software is redistributable under the terms of the Simplified BSD
+# open source license. Please see the COPYING file in the distribution for
+# the full text.
+
 from gevent import monkey; monkey.patch_all()
 import gevent
 
@@ -10,6 +19,8 @@ import argparse
 
 import db
 from connection import Connection
+from classes.DBRealm import DBRealm
+from classes.DBPlayer import DBPlayer
 
 parser = argparse.ArgumentParser(
 	description = "thickishstring prototype Python server"
@@ -34,7 +45,17 @@ args = parser.parse_args()
 
 db.open(args.filename)
 if not db.isset("root"):
+	print("initialising database")
 	db.set("root", True)
+	db.set(("root", "nextobj"), 0)
+	
+	thoth = DBPlayer()
+	thoth.create("Thoth", "<no email address>", "testpassword")
+	defaultrealm = thoth.addRealm("The Hub")
+	defaultinstance = defaultrealm.addInstance()
+	
+	thoth.setLocation(defaultinstance, defaultrealm.findRoom("entrypoint"))
+	db.set(("root", "defaultinstance"), defaultinstance.oid)
 
 # Create and start the server.
 
