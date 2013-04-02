@@ -11,6 +11,7 @@ from ws4py.websocket import WebSocket
 import anyjson as json
 
 import cPickle as pickle
+import logging
 
 import commands
 import login_commands
@@ -20,6 +21,14 @@ class Connection(WebSocket):
 
 	def __getstate__(self):
 		raise pickle.PicklingError()
+		
+	def opened(self):
+		logging.info("connection %s opened", self)
+		
+	def closed(self, code, reason=None):
+		logging.info("connection %s closed", self)
+		if self.player:
+			self.player.onLogOut()
 		
 	def received_message(self, message):
 		try:
@@ -53,10 +62,9 @@ class Connection(WebSocket):
 		)
 
 	def sendMsg(self, packet):
-		print("> ", packet)
+		self.debug("> ", packet)
 		self.send(json.serialize(packet), False)
 
 	def setPlayer(self, player):
 		self.player = player
-		print("successfully logged in ", player.name)
 		

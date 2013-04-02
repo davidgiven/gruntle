@@ -7,6 +7,8 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
+import logging
+
 from DBObject import DBObject
 from DBRealm import DBRealm
 import db
@@ -54,12 +56,44 @@ class DBPlayer(DBObject):
 	# The player has just logged in.
 	
 	def onLogIn(self, connection):
-		DBPlayer.connections[self.getOid()] = connection
+		oldconnection = self.connection()
+		oid = self.getOid()
+		
+		if oldconnection:
+			# The player was previously logged in on another connection.
+			
+			logging.info("connection %s superceded by connection %s",
+				oldconnection, connection)
+			
+			# Tidy up and close the old connection.
+				
+			if (oldconnection in DBPlayer.connections):
+				del DBPlayer.connections[oldconnection]
+			oldconnection.setPlayer(None)
+			oldconnection.close()
+
+			# Announce that the player has logged in.
+						
+			logging.info("player %s logged in", self.name)
+			
+		DBPlayer.connections[oid] = connection
+		DBPlayer.connections[connection] = self
 		
 	# The player has just logged out.
 	
 	def onLogOut(self):
-		del DBPlayer.connections[self.getOid()]
+		oldconnection = self.connection()
+		oid = self.getOid()
+		logging.info("oldconnection=%s oid=%s", oldconnection, oid)
+		if (oldconnection in DBPlayer.connections):
+			del DBPlayer.connections[oldconnection]
+			del DBPlayer.connections[oid]			
+			logging.info("player %s logged out", self.name)
+		
+def findPlayerFromConnection(connection):
+	try:
+		return DBPlayer.connections[connection]
+	except KeyError:
+		return None
 		
 DBPlayer.connections = {}
-

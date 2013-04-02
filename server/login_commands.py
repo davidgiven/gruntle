@@ -7,6 +7,7 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
+import logging
 import db
 
 def cmd_connect(connection, message):
