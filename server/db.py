@@ -7,6 +7,7 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
+import logging
 import dbm
 import cPickle as pickle
 
@@ -16,7 +17,7 @@ def __makekey(k):
 	return str(k)
 	
 def open(filename):
-	print("using "+filename+" as database")
+	logging.info("using "+filename+" as database")
 	global __database
 	__database = dbm.open(filename, "c")
 	

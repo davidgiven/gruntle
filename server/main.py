@@ -13,7 +13,10 @@ import gevent
 from ws4py.server.geventserver import WebSocketServer
 from ws4py.websocket import EchoWebSocket
 
+import sys
 import argparse
+import logging
+import cPickle as pickle
 
 # Internal modules
 
@@ -22,7 +25,10 @@ from connection import Connection
 from classes.DBRealm import DBRealm
 from classes.DBPlayer import DBPlayer
 
-import cPickle as pickle
+# Basic setup
+
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+logging.info("fnord")
 
 parser = argparse.ArgumentParser(
 	description = "thickishstring prototype Python server"
@@ -47,7 +53,7 @@ args = parser.parse_args()
 
 db.open(args.filename)
 if not db.isset("root"):
-	print("initialising database")
+	logging.info("initialising new database")
 	db.set("root", True)
 	db.set(("root", "nextobj"), 1)
 	
@@ -63,12 +69,12 @@ if not db.isset("root"):
 
 # Create and start the server.
 
-print("opening socket")
+logging.info("opening socket")
 server = WebSocketServer(
 	('0.0.0.0', args.port),
 	websocket_class=Connection
 )
 
-print("listening...")
+logging.info("listening...")
 server.serve_forever()
 
