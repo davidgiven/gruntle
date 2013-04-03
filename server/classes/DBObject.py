@@ -12,37 +12,39 @@ import db
 # Base class for a database-backed object.
 
 class DBObject(object):
-	def __init__(self, oid):
-		self.setOid(oid)
+	id = None
+	
+	def __init__(self, id):
+		self.id = id
 
 	def __getstate__(self):
-		oid = self.getOid()
-		assert(oid)
-		return oid 
+		id = self.id
+		assert(id)
+		return id 
 				
 	def __setstate__(self, p):
-		self.setOid(p)
+		self.id = p
 
-	def getOid(self):
-		return self.__dict__["oid"]
-
-	def setOid(self, oid):
-		self.__dict__["oid"] = oid
-		
 	def __getattr__(self, k):
-		oid = self.getOid()
-		assert(oid != None)
-		return db.get((self.__class__.__name__, oid, k))
+		if (k == "id"):
+			return object.__getattr__(self, k)
+			
+		id = self.id
+		assert(id != None)
+		return db.get((self.__class__.__name__, id, k))
 		
 	def __setattr__(self, k, v):
-		oid = self.getOid()
-		assert(oid != None)
-		db.set((self.__class__.__name__, oid, k), v)
+		if (k == "id"):
+			return object.__setattr__(self, k, v)
+			
+		id = self.id
+		assert(id != None)
+		db.set((self.__class__.__name__, id, k), v)
 	
 	def create(self):
-		assert(self.getOid() == None)
-		oid = db.createObject()
-		self.setOid(oid)
+		assert(self.id == None)
+		id = db.createObject()
+		self.id = id
 		
-		db.set(("object", oid, "type"), self.__class__.__name__)
+		db.set(("object", id, "type"), self.__class__.__name__)
 		

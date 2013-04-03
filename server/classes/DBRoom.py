@@ -12,8 +12,8 @@ from DBObject import DBObject
 # Represents a room template.
 
 class DBRoom(DBObject):
-	def __init__(self, oid=None):
-		super(DBRoom, self).__init__(oid)
+	def __init__(self, id=None):
+		super(DBRoom, self).__init__(id)
 		
 	def create(self, realm, name, title, description):
 		super(DBRoom, self).create()

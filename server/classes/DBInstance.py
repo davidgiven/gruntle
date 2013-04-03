@@ -12,8 +12,8 @@ from DBObject import DBObject
 # An instance of a realm.
 
 class DBInstance(DBObject):
-	def __init__(self, oid=None):
-		super(DBInstance, self).__init__(oid)
+	def __init__(self, id=None):
+		super(DBInstance, self).__init__(id)
 		
 	def create(self, realm):
 		super(DBInstance, self).create()

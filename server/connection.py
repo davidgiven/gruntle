@@ -43,6 +43,11 @@ class Connection(WebSocket):
 	
 	def received_message(self, message):
 		try:
+			p = "(none)"
+			if self.player:
+				p = self.player.name
+			logging.debug("%s< %s", p, message.data)
+		
 			packet = json.deserialize(message.data)
 		except TypeError:
 			self.onInvalidInput()
@@ -53,8 +58,12 @@ class Connection(WebSocket):
 	# Sends a JSON reply to the client.
 	
 	def sendMsg(self, packet):
-		logging.debug("> ", packet)
-		self.send(json.serialize(packet), False)
+		j = json.serialize(packet)
+		p = "(none)"
+		if self.player:
+			p = self.player.name
+		logging.debug("%s> %s", p, j)
+		self.send(j, False)
 
 	# A processed message has arrived.
 	

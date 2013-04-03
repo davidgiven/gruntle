@@ -14,8 +14,8 @@ from DBInstance import DBInstance
 # Base class for a realm.
 
 class DBRealm(DBObject):
-	def __init__(self, oid=None):
-		super(DBRealm, self).__init__(oid)
+	def __init__(self, id=None):
+		super(DBRealm, self).__init__(id)
 		
 	def create(self, owner, name):
 		super(DBRealm, self).create()

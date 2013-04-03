@@ -16,8 +16,8 @@ import db
 # Represents a play.
 
 class DBPlayer(DBObject):
-	def __init__(self, oid=None):
-		super(DBPlayer, self).__init__(oid)
+	def __init__(self, id=None):
+		super(DBPlayer, self).__init__(id)
 		
 	def create(self, name, email, password):
 		super(DBPlayer, self).create()
@@ -28,7 +28,7 @@ class DBPlayer(DBObject):
 		# Game data.
 		self.realms = frozenset()                # realms the player owns
 		self.instance = None                     # current instance the player is in
-		self.room = None                         # current room oid player is in
+		self.room = None                         # current room id player is in
 		
 		# Add the player to the lookup index.
 		db.set(("player", unicode(name.lower())), self)
@@ -50,7 +50,7 @@ class DBPlayer(DBObject):
 	@property
 	def connection(self):
 		try:
-			return DBPlayer.connections[self.getOid()]
+			return DBPlayer.connections[self.id]
 		except KeyError:
 			return None
 		
@@ -63,7 +63,7 @@ class DBPlayer(DBObject):
 	# The player has just logged in.
 	
 	def onLogin(self, newconnection):
-		oid = self.getOid()
+		id = self.id
 		loggedin = False
 		connection = self.connection
 				
@@ -82,7 +82,7 @@ class DBPlayer(DBObject):
 		else:
 			loggedin = True
 			
-		DBPlayer.connections[oid] = newconnection
+		DBPlayer.connections[id] = newconnection
 		DBPlayer.connections[newconnection] = self
 
 		if loggedin:
@@ -94,7 +94,7 @@ class DBPlayer(DBObject):
 				{
 					"event": "loggedin",
 					"user": self.name,
-					"uid": self.getOid()
+					"uid": self.id
 				}
 			)
 			
@@ -104,12 +104,12 @@ class DBPlayer(DBObject):
 	# The player has just logged out.
 	
 	def onLogout(self):
-		oid = self.getOid()
+		id = self.id
 		connection = self.connection
 		
 		if connection:
 			del DBPlayer.connections[connection]
-			del DBPlayer.connections[oid]			
+			del DBPlayer.connections[id]			
 			logging.info("player %s logged out", self.name)
 		
 	# Announce the current room to the client.
@@ -122,15 +122,15 @@ class DBPlayer(DBObject):
 		self.tell(
 			{
 				"event": "look",
-				"instance": instance.getOid(),
+				"instance": instance.id,
 				"realm":
 					{
-						"id": realm.getOid(),
+						"id": realm.id,
 						"name": realm.name,
 						"user": realm.owner.name,
-						"uid": realm.owner.getOid()
+						"uid": realm.owner.id
 					},
-				"room": room.getOid(),
+				"room": room.id,
 				"name": room.name,
 				"title": room.title,
 				"description": room.description,
