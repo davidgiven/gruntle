@@ -29,7 +29,8 @@ class DBRealm(DBObject):
 		room = DBRoom()
 		room.create(self, name, title, description)
 
-		self.rooms = self.rooms | {room}		
+		self.rooms = self.rooms | {room}
+		return room
 
 	def findRoom(self, name):
 		for r in self.rooms:

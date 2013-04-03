@@ -8,6 +8,7 @@
 # the full text.
 
 from DBObject import DBObject
+import db
 
 # An instance of a realm.
 
@@ -18,3 +19,9 @@ class DBInstance(DBObject):
 	def create(self, realm):
 		super(DBInstance, self).create()
 		self.realm = realm
+
+# Return the default instance for the server.
+
+def getDefaultInstance():
+	return db.get(("root", "defaultinstance"))
+	

@@ -15,7 +15,9 @@ class DBObject(object):
 	id = None
 	
 	def __init__(self, id):
-		self.id = id
+		if id:
+			assert(type(id) == int)
+			self.id = id
 
 	def __getstate__(self):
 		id = self.id
@@ -41,6 +43,9 @@ class DBObject(object):
 		assert(id != None)
 		db.set((self.__class__.__name__, id, k), v)
 	
+	def __cmp__(self, other):
+		return self.id.__cmp__(other.id)
+		
 	def create(self):
 		assert(self.id == None)
 		id = db.createObject()

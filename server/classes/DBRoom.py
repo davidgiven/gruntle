@@ -19,4 +19,5 @@ class DBRoom(DBObject):
 		super(DBRoom, self).create()
 		(self.realm, self.name, self.title, self.description) = \
 			realm, name, title, description
-		
+		self.immutable = False
+		self.actions = {}

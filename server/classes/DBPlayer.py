@@ -11,6 +11,7 @@ import logging
 
 from DBObject import DBObject
 from DBRealm import DBRealm
+from DBInstance import getDefaultInstance
 import db
 
 # Represents a play.
@@ -36,10 +37,11 @@ class DBPlayer(DBObject):
 	def addRealm(self, name):
 		realm = DBRealm()
 		realm.create(self, name)
-		realm.addRoom("entrypoint", "Featureless void",
+		room = realm.addRoom("entrypoint", "Featureless void",
 			"Unshaped nothingness stretches as far as you can see, " +
 			"tempting you to start shaping it."
 		)
+		room.immutable = True
 
 		self.realms = self.realms | {realm}		
 		return realm
@@ -119,37 +121,81 @@ class DBPlayer(DBObject):
 		realm = instance.realm
 		room = self.room
 		
-		self.tell(
-			{
-				"event": "look",
-				"instance": instance.id,
-				"realm":
-					{
-						"id": realm.id,
-						"name": realm.name,
-						"user": realm.owner.name,
-						"uid": realm.owner.id
-					},
-				"room": room.id,
-				"name": room.name,
-				"title": room.title,
-				"description": room.description,
-				"contents": [], # contents,
-				"actions": [], #this.location:actions(),
-				"editable": False # editable
-			}
-		)
+		editable = (realm.owner == self)
 		
+		msg = {
+			"event": "look",
+			"instance": instance.id,
+			"realm":
+				{
+					"id": realm.id,
+					"name": realm.name,
+					"user": realm.owner.name,
+					"uid": realm.owner.id
+				},
+			"room": room.id,
+			"name": room.name,
+			"title": room.title,
+			"description": room.description,
+			"contents": [], # contents,
+			"actions": self.validActionsForRoom(),
+			"editable": editable
+		}
+
+		if editable:
+			msg["allactions"] = room.actions
+						
+		self.tell(msg)
+		
+	# Determine the actions that are currently valid for the player.
+	
+	def validActionsForRoom(self):
+		room = self.room
+		
+		actions = {}
+		for id, action in room.actions.iteritems():
+			 actions[id] = {
+			 	"description": action["description"],
+				"type": action["type"],
+				"target": action["target"]
+			}
+		 
+		return actions
+	
 	# Announce what realms the player currently owns.
 	
 	def onRealms(self):
+		realms = {}
+		for realm in self.realms:
+			rooms = {}
+			for room in realm.rooms:
+				rooms[room.id] = {
+					"name": room.name,
+					"title": room.title,
+					"immutable": room.immutable
+				}
+				
+			realms[realm.id] = {
+			 		"name": realm.name,
+			 		"rooms": rooms,
+			 		"instances": [ i.id for i in realm.instances ]
+			 	}
+			 
+		defaultinstance = getDefaultInstance()
+		defaultrealm = defaultinstance.realm
+			 
 		self.tell(
 			{
 				"event": "realms",
 				"specialrealms":
 					{
+						defaultrealm.id:
+						{
+							"name": defaultrealm.name,
+							"instance": defaultinstance.id
+						}
 					},
-				"realms": {}
+				"realms": realms
 			}
 		)
 		
