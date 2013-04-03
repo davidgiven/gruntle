@@ -63,8 +63,29 @@ if not db.isset("root"):
 	defaultrealm = thoth.addRealm("The Hub")
 	defaultinstance = defaultrealm.addInstance()
 	
+	e = defaultrealm.findRoom("entrypoint")
+	r = defaultrealm.addRoom("closet", "Broom Closet", "It's full of junk.")
+	
+	e.actions = {
+		0:
+		{
+			"description": "Head downstairs to the broom closet?",
+			"type": "room",
+			"target": "closet"
+		}
+	}
+	
+	r.actions = {
+		0:
+		{
+			"description": "It's boring here; head back upstairs.",
+			"type": "room",
+			"target": "entrypoint"
+		}
+	}
+	
 	thoth.instance = defaultinstance
-	thoth.room = defaultrealm.findRoom("entrypoint")
+	thoth.room = e
 	db.set(("root", "defaultinstance"), defaultinstance)
 
 # Create and start the server.
