@@ -43,5 +43,6 @@ class DBRealm(DBObject):
 		instance = DBInstance()
 		instance.create(self)
 
-		self.instances = self.instances | {instance}		
+		self.instances = self.instances | {instance}
+		return instance	
 		

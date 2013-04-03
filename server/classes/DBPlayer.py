@@ -47,48 +47,111 @@ class DBPlayer(DBObject):
 	# Return the player's current connection, or None if the player is
 	# disconnected.
 	
+	@property
 	def connection(self):
 		try:
 			return DBPlayer.connections[self.getOid()]
 		except KeyError:
 			return None
 		
+	# Send a message to the player.
+	
+	def tell(self, message):
+		if self.connection:
+			self.connection.sendMsg(message)
+			
 	# The player has just logged in.
 	
-	def onLogIn(self, connection):
-		oldconnection = self.connection()
+	def onLogin(self, newconnection):
 		oid = self.getOid()
-		
-		if oldconnection:
+		loggedin = False
+		connection = self.connection
+				
+		if connection:
 			# The player was previously logged in on another connection.
 			
 			logging.info("connection %s superceded by connection %s",
-				oldconnection, connection)
+				connection, newconnection)
 			
 			# Tidy up and close the old connection.
 				
-			if (oldconnection in DBPlayer.connections):
-				del DBPlayer.connections[oldconnection]
-			oldconnection.setPlayer(None)
-			oldconnection.close()
+			if (connection in DBPlayer.connections):
+				del DBPlayer.connections[connection]
+			connection.setPlayer(None)
+			connection.close()
+		else:
+			loggedin = True
+			
+		DBPlayer.connections[oid] = newconnection
+		DBPlayer.connections[newconnection] = self
 
+		if loggedin:
 			# Announce that the player has logged in.
-						
+					
 			logging.info("player %s logged in", self.name)
 			
-		DBPlayer.connections[oid] = connection
-		DBPlayer.connections[connection] = self
-		
+			self.tell(
+				{
+					"event": "loggedin",
+					"user": self.name,
+					"uid": self.getOid()
+				}
+			)
+			
+			self.onLook()
+			self.onRealms()
+				
 	# The player has just logged out.
 	
-	def onLogOut(self):
-		oldconnection = self.connection()
+	def onLogout(self):
 		oid = self.getOid()
-		logging.info("oldconnection=%s oid=%s", oldconnection, oid)
-		if (oldconnection in DBPlayer.connections):
-			del DBPlayer.connections[oldconnection]
+		connection = self.connection
+		
+		if connection:
+			del DBPlayer.connections[connection]
 			del DBPlayer.connections[oid]			
 			logging.info("player %s logged out", self.name)
+		
+	# Announce the current room to the client.
+	
+	def onLook(self):
+		instance = self.instance
+		realm = instance.realm
+		room = self.room
+		
+		self.tell(
+			{
+				"event": "look",
+				"instance": instance.getOid(),
+				"realm":
+					{
+						"id": realm.getOid(),
+						"name": realm.name,
+						"user": realm.owner.name,
+						"uid": realm.owner.getOid()
+					},
+				"room": room.getOid(),
+				"name": room.name,
+				"title": room.title,
+				"description": room.description,
+				"contents": [], # contents,
+				"actions": [], #this.location:actions(),
+				"editable": False # editable
+			}
+		)
+		
+	# Announce what realms the player currently owns.
+	
+	def onRealms(self):
+		self.tell(
+			{
+				"event": "realms",
+				"specialrealms":
+					{
+					},
+				"realms": {}
+			}
+		)
 		
 def findPlayerFromConnection(connection):
 	try:

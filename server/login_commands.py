@@ -37,7 +37,7 @@ def cmd_connect(connection, message):
 		return
 
 	connection.setPlayer(player)
-	player.onLogIn(connection)
+	player.onLogin(connection)
 	
 def cmd_guest(connection, message):
 	pass

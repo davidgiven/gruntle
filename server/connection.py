@@ -21,15 +21,26 @@ class Connection(WebSocket):
 
 	def __getstate__(self):
 		raise pickle.PicklingError()
+
+	# Changes the player currently associated with this connection.
+	
+	def setPlayer(self, player):
+		self.player = player
+	
+	# A new connection has been opened.
 		
 	def opened(self):
 		logging.info("connection %s opened", self)
 		
+	# The websocket has closed.
+	
 	def closed(self, code, reason=None):
 		logging.info("connection %s closed", self)
 		if self.player:
-			self.player.onLogOut()
+			self.player.onLogout()
 		
+	# A raw message has arrived on the websocket.
+	
 	def received_message(self, message):
 		try:
 			packet = json.deserialize(message.data)
@@ -39,6 +50,14 @@ class Connection(WebSocket):
 
 		self.onRecvMsg(packet)
 
+	# Sends a JSON reply to the client.
+	
+	def sendMsg(self, packet):
+		logging.debug("> ", packet)
+		self.send(json.serialize(packet), False)
+
+	# A processed message has arrived.
+	
 	def onRecvMsg(self, packet):
 		commandmap = login_commands
 		if self.player:
@@ -54,6 +73,8 @@ class Connection(WebSocket):
 
 		cmdmethod(self, packet)
 
+	# Reports invalid input.
+	
 	def onInvalidInput(self):
 		self.sendMsg(
 			{
@@ -61,10 +82,3 @@ class Connection(WebSocket):
 			}
 		)
 
-	def sendMsg(self, packet):
-		self.debug("> ", packet)
-		self.send(json.serialize(packet), False)
-
-	def setPlayer(self, player):
-		self.player = player
-		
