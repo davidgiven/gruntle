@@ -61,7 +61,68 @@ class DBPlayer(DBObject):
 	def tell(self, message):
 		if self.connection:
 			self.connection.sendMsg(message)
-			
+	
+	# Return markup which describes the player.
+	
+	def markup(self):
+		return {
+			"type": "player",
+			"name": self.name,
+			"oid": self.id
+		}
+		
+	# Moves the player from the current room to another one in the same
+	# instance.
+	
+	def moveTo(self, newroom):
+		instance = self.instance
+		realm = instance.realm
+		oldroom = self.room
+
+		if (oldroom == newroom):
+			# If not going anywhere, do nothing.
+			return
+		
+		instance.tell(oldroom, self,
+			{
+				"event": "departed",
+				"user": self.name,
+				"uid": self.id,
+				"markup":
+				[
+					self.markup(),
+					" leaves for ",
+					newroom.markup(),
+					"."
+				]
+			}
+		);
+		
+		instance.tell(newroom, self,
+			{
+				"event": "arrived",
+				"user": self.name,
+				"uid": self.id,
+				"markup":
+				[
+					self.markup(),
+					" arrives from ",
+					oldroom.markup(),
+					"."
+				]
+			}
+		);
+		
+		self.room = newroom
+		
+		self.tell(
+			{
+				"event": "moved"
+			}
+		)
+		
+		self.onLook()
+		
 	# The player has just logged in.
 	
 	def onLogin(self, newconnection):
@@ -147,21 +208,6 @@ class DBPlayer(DBObject):
 						
 		self.tell(msg)
 		
-	# Determine the actions that are currently valid for the player.
-	
-	def validActionsForRoom(self):
-		room = self.room
-		
-		actions = {}
-		for id, action in room.actions.iteritems():
-			 actions[id] = {
-			 	"description": action["description"],
-				"type": action["type"],
-				"target": action["target"]
-			}
-		 
-		return actions
-	
 	# Announce what realms the player currently owns.
 	
 	def onRealms(self):
@@ -199,6 +245,47 @@ class DBPlayer(DBObject):
 			}
 		)
 		
+	# Determine the actions that are currently valid for the player.
+	
+	def validActionsForRoom(self):
+		room = self.room
+		
+		actions = {}
+		for id, action in room.actions.iteritems():
+			 actions[id] = {
+			 	"description": action["description"],
+				"type": action["type"],
+				"target": action["target"]
+			}
+		 
+		return actions
+	
+	# Execute a player action.
+	
+	def onAction(self, actionid):
+		room = self.room
+		
+		try:
+			action = room.actions[int(actionid)]
+			type = action["type"]
+			target = action["target"]
+		except KeyError:
+			self.connection.onMalformed()
+			return
+			
+		if (type == "room"):
+			targetroom = self.instance.realm.findRoom(target)
+			self.moveTo(targetroom)
+		elif (type == "message"):
+			self.tell(
+				{
+					"command": "activity",
+					"message": target 
+				}
+			)
+		else:
+			pass
+
 def findPlayerFromConnection(connection):
 	try:
 		return DBPlayer.connections[connection]

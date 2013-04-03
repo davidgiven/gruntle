@@ -84,6 +84,7 @@ if not db.isset("root"):
 		}
 	}
 	
+	defaultinstance.players = frozenset({thoth})
 	thoth.instance = defaultinstance
 	thoth.room = e
 	db.set(("root", "defaultinstance"), defaultinstance)

@@ -10,6 +10,9 @@
 import logging
 import db
 
+# Functions of the form cmd_FNORD are executed when a *non-authenticated*
+# player tries to execute command 'FNORD'.
+
 def cmd_connect(connection, message):
 	try:
 		username = message["username"]

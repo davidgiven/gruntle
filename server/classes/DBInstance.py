@@ -19,7 +19,16 @@ class DBInstance(DBObject):
 	def create(self, realm):
 		super(DBInstance, self).create()
 		self.realm = realm
+		self.players = frozenset()
 
+	# Broadcast a message to all players in this instance who are in a
+	# specific room and who are not the specified player.
+	
+	def tell(self, room, eplayer, message):
+		for player in self.players:
+			if (player != eplayer) and (player.room == room):
+				player.tell(message)
+				
 # Return the default instance for the server.
 
 def getDefaultInstance():

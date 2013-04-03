@@ -21,3 +21,14 @@ class DBRoom(DBObject):
 			realm, name, title, description
 		self.immutable = False
 		self.actions = {}
+		
+	# Return markup which describes the room.
+	
+	def markup(self):
+		return {
+			"type": "room",
+			"name": self.name,
+			"title": self.title,
+			"oid": self.id
+		}
+		
