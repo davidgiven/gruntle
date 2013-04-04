@@ -12,6 +12,7 @@ import logging
 from DBObject import DBObject
 from DBRealm import DBRealm
 from DBInstance import getDefaultInstance
+from appexceptions import *
 import db
 
 # Represents a play.
@@ -77,13 +78,13 @@ class DBPlayer(DBObject):
 	def moveTo(self, newroom):
 		instance = self.instance
 		realm = instance.realm
-		oldroom = self.room
+		room = self.room
 
-		if (oldroom == newroom):
+		if (room == newroom):
 			# If not going anywhere, do nothing.
 			return
 		
-		instance.tell(oldroom, self,
+		instance.tell(room, self,
 			{
 				"event": "departed",
 				"user": self.name,
@@ -107,12 +108,63 @@ class DBPlayer(DBObject):
 				[
 					self.markup(),
 					" arrives from ",
-					oldroom.markup(),
+					room.markup(),
 					"."
 				]
 			}
 		);
 		
+		self.room = newroom
+		
+		self.tell(
+			{
+				"event": "moved"
+			}
+		)
+		
+		self.onLook()
+		
+	# Moves the player from the current room to another one in a different
+	# instance.
+	
+	def warpTo(self, newinstance, newroom):
+		instance = self.instance
+		realm = instance.realm
+		newrealm = newinstance.realm
+		room = self.room
+
+		if (instance == newinstance) and (room == newroom):
+			# If not going anywhere, do nothing.
+			return
+		
+		instance.tell(room, self,
+			{
+				"event": "departed",
+				"user": self.name,
+				"uid": self.id,
+				"markup":
+				[
+					self.markup(),
+					" warps out."
+				]
+			}
+		);
+		
+		instance.tell(newroom, self,
+			{
+				"event": "arrived",
+				"user": self.name,
+				"uid": self.id,
+				"markup":
+				[
+					self.markup(),
+					" warps in."
+				]
+			}
+		);
+		
+		instance.players = instance.players - {self}
+		newinstance.players = newinstance.players | {self}
 		self.room = newroom
 		
 		self.tell(
@@ -286,6 +338,22 @@ class DBPlayer(DBObject):
 		else:
 			pass
 
+	# The player has asked to warp to a new room.
+	
+	def onWarp(self, instance, roomname):
+		realm = instance.realm
+		room = realm.findRoom(roomname)
+		if not room:
+			raise AppError("room '%s' does not exist", roomname)
+		
+		# If the player doesn't own the realm, only allow warping to the
+		# entrypoint.
+		
+		if (realm.owner != self) and (roomname != "entrypoint"):
+			raise AppError("permission denied")
+		
+		self.warpTo(instance, room)
+		
 def findPlayerFromConnection(connection):
 	try:
 		return DBPlayer.connections[connection]

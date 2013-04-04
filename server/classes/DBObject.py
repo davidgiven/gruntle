@@ -8,6 +8,7 @@
 # the full text.
 
 import db
+from exceptions import *
 
 # Base class for a database-backed object.
 
@@ -17,6 +18,8 @@ class DBObject(object):
 	def __init__(self, id):
 		if id:
 			assert(type(id) == int)
+			if (db.get(("object", id, "type")) != self.__class__.__name__):
+				raise InvalidObjectReference
 			self.id = id
 
 	def __getstate__(self):

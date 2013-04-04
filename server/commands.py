@@ -7,6 +7,9 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
+from classes.DBInstance import *
+from appexceptions import InvalidObjectReference
+
 # Functions of the form cmd_FNORD are executed when an *authenticated*
 # player tries to execute command 'FNORD'.
 
@@ -19,3 +22,14 @@ def cmd_action(connection, message):
 		
 	connection.player.onAction(actionid)
 	
+# The player has asked to be warped to another room and instance.
+
+def cmd_warp(connection, message):
+	try:
+		instance = DBInstance(int(message["instance"]))
+		roomname = message["roomname"]
+	except (KeyError, InvalidObjectReference):
+		connection.onMalformed()
+		return
+			
+	connection.player.onWarp(instance, roomname)
