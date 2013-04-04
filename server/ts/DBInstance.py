@@ -7,8 +7,8 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
-from DBObject import DBObject
-import db
+from ts.DBObject import DBObject
+import ts.db as db
 
 # An instance of a realm.
 

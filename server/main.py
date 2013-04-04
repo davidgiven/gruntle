@@ -20,10 +20,10 @@ import cPickle as pickle
 
 # Internal modules
 
-import db
-from connection import Connection
-from classes.DBRealm import DBRealm
-from classes.DBPlayer import DBPlayer
+import ts.db as db
+from ts.connection import Connection
+from ts.DBRealm import DBRealm
+from ts.DBPlayer import DBPlayer
 
 # Basic setup
 

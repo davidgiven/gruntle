@@ -7,8 +7,8 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
-from classes.DBInstance import *
-from appexceptions import InvalidObjectReference
+from ts.DBInstance import *
+from ts.exceptions import InvalidObjectReference
 
 # Functions of the form cmd_FNORD are executed when an *authenticated*
 # player tries to execute command 'FNORD'.

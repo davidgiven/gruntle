@@ -7,7 +7,7 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
-from DBObject import DBObject
+from ts.DBObject import DBObject
 
 # Represents a room template.
 

@@ -7,8 +7,8 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
-import db
-from exceptions import *
+import ts.db as db
+from ts.exceptions import *
 
 # Base class for a database-backed object.
 

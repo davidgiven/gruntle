@@ -13,8 +13,8 @@ import anyjson as json
 import cPickle as pickle
 import logging
 
-import commands
-import login_commands
+import ts.commands as commands
+import ts.login_commands as login_commands
 
 class Connection(WebSocket):
 	player = None

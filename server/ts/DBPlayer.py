@@ -9,11 +9,11 @@
 
 import logging
 
-from DBObject import DBObject
-from DBRealm import DBRealm
-from DBInstance import getDefaultInstance
-from appexceptions import *
-import db
+from ts.DBObject import DBObject
+from ts.DBRealm import DBRealm
+from ts.DBInstance import getDefaultInstance
+from ts.exceptions import *
+import ts.db as db
 
 # Represents a play.
 

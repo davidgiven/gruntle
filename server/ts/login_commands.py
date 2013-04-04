@@ -8,7 +8,8 @@
 # the full text.
 
 import logging
-import db
+
+import ts.db as db
 
 # Functions of the form cmd_FNORD are executed when a *non-authenticated*
 # player tries to execute command 'FNORD'.

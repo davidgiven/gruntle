@@ -7,9 +7,9 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
-from DBObject import DBObject
-from DBRoom import DBRoom
-from DBInstance import DBInstance
+from ts.DBObject import DBObject
+from ts.DBRoom import DBRoom
+from ts.DBInstance import DBInstance
 
 # Base class for a realm.
 
