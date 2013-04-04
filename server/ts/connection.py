@@ -37,7 +37,7 @@ class Connection(WebSocket):
 	def closed(self, code, reason=None):
 		logging.info("connection %s closed", self)
 		if self.player:
-			self.player.onLogout()
+			self.player.onConnectionClosed()
 		
 	# A raw message has arrived on the websocket.
 	

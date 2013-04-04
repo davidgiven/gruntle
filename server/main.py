@@ -88,6 +88,8 @@ if not db.isset("root"):
 	thoth.instance = defaultinstance
 	thoth.room = e
 	db.set(("root", "defaultinstance"), defaultinstance)
+	
+	db.set(("root", "guests"), frozenset())
 
 # Create and start the server.
 

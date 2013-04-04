@@ -9,6 +9,7 @@
 
 from ts.DBObject import DBObject
 import ts.db as db
+import logging
 
 # An instance of a realm.
 

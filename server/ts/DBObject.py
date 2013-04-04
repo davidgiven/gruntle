@@ -22,6 +22,9 @@ class DBObject(object):
 				raise InvalidObjectReference
 			self.id = id
 
+	def __hash__(self):
+		return self.id
+		
 	def __getstate__(self):
 		id = self.id
 		assert(id)

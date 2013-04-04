@@ -15,7 +15,7 @@ from ts.DBInstance import getDefaultInstance
 from ts.exceptions import *
 import ts.db as db
 
-# Represents a play.
+# Represents a player.
 
 class DBPlayer(DBObject):
 	def __init__(self, id=None):
@@ -175,9 +175,10 @@ class DBPlayer(DBObject):
 		
 		self.onLook()
 		
-	# The player has just logged in.
+	# A connection has just opened to this player. (This does not necessarily
+	# mean that the player has logged in; they might be reconnecting.)
 	
-	def onLogin(self, newconnection):
+	def onConnectionOpened(self, newconnection):
 		id = self.id
 		loggedin = False
 		connection = self.connection
@@ -201,32 +202,70 @@ class DBPlayer(DBObject):
 		DBPlayer.connections[newconnection] = self
 
 		if loggedin:
-			# Announce that the player has logged in.
-					
-			logging.info("player %s logged in", self.name)
+			self.onLogin()
 			
-			self.tell(
-				{
-					"event": "loggedin",
-					"user": self.name,
-					"uid": self.id
-				}
-			)
-			
-			self.onLook()
-			self.onRealms()
-				
 	# The player has just logged out.
 	
-	def onLogout(self):
+	def onConnectionClosed(self):
 		id = self.id
 		connection = self.connection
 		
 		if connection:
 			del DBPlayer.connections[connection]
-			del DBPlayer.connections[id]			
-			logging.info("player %s logged out", self.name)
+			del DBPlayer.connections[id]
+			self.onLogout()			
 		
+	# The player has just logged in.
+	
+	def onLogin(self):
+		# Announce that the player has logged in.
+				
+		logging.info("player %s logged in", self.name)
+		
+		self.tell(
+			{
+				"event": "loggedin",
+				"user": self.name,
+				"uid": self.id
+			}
+		)
+		
+		instance = self.instance
+		instance.players = instance.players | {self}
+		
+		instance.tell(self.room, self,
+			{
+				"event": "arrived",
+				"markup":
+				[
+					self.markup(),
+					" has connected."
+				]
+			}
+		)
+
+		self.onLook()
+		self.onRealms()
+
+	# The player has just logged out.
+	
+	def onLogout(self):
+		logging.info("player %s logged out", self.name)
+		
+		instance = self.instance
+		instance.players = instance.players - {self}
+		
+		instance.tell(self.room, self,
+			{
+				"event": "departed",
+				"markup":
+				[
+					self.markup(),
+					" has disconnected."
+				]
+			}
+		)
+							
 	# Announce the current room to the client.
 	
 	def onLook(self):

@@ -10,6 +10,7 @@
 import logging
 
 import ts.db as db
+from ts.DBGuest import *
 
 # Functions of the form cmd_FNORD are executed when a *non-authenticated*
 # player tries to execute command 'FNORD'.
@@ -41,8 +42,13 @@ def cmd_connect(connection, message):
 		return
 
 	connection.setPlayer(player)
-	player.onLogin(connection)
-	
+	player.onConnectionOpened(connection)
+
+# Someone is logging in as a guest.
+
 def cmd_guest(connection, message):
-	pass
+	player = findGuest()
+	connection.setPlayer(player)
+	player.onConnectionOpened(connection)
+	
 
