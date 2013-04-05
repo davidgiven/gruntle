@@ -32,7 +32,7 @@
 							{
 								command: "warp",
 								instance: W.CurrentInstance,
-								roomname: room.name
+								room: id
 							}
 						);
 						return false;
@@ -42,6 +42,7 @@
 					if (!room.immutable)
 					{
 						$("<a href='#' class='iconbutton dangerous tableiconleft'>✖</a>")
+						.click(
 							function()
 							{
         						W.Socket.Send(
@@ -53,6 +54,11 @@
 								return false;
 							}
 						).appendTo(roomdiv);
+					}
+					else
+					{
+						$("<span class='iconbutton dangerous tableiconleft'/>")
+							.appendTo(roomdiv);
 					}
 					
 					$("<a href='#'/>")

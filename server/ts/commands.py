@@ -29,12 +29,15 @@ def cmd_action(connection, message):
 def cmd_warp(connection, message):
 	try:
 		instance = DBInstance(int(message["instance"]))
-		roomname = str(message["roomname"])
+		if ("room" in message):
+			room = DBRoom(int(message["room"]))
+		else:
+			room = "entrypoint"
 	except (KeyError, InvalidObjectReference):
 		connection.onInvalidInput()
 		return
 			
-	connection.player.onWarp(instance, roomname)
+	connection.player.onWarp(instance, room)
 	
 # The player is saying something.
 
