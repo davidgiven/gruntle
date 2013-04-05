@@ -438,6 +438,16 @@ class DBPlayer(DBObject):
 		realm.destroyRoom(room)
 		self.onRealms()
 	
+	# The player wants to edit a room.
+	
+	def onEditRoom(self, room, name, title, description, actions):
+		room.name = name
+		room.title = title
+		room.description = description
+		room.actions = actions
+		room.fireChangeNotification()
+		self.onRealms()
+		
 	# The player wants to rename a realm.
 	
 	def onRenameRealm(self, realm, newname):

@@ -17,7 +17,7 @@ from ts.exceptions import InvalidObjectReference
 
 def cmd_action(connection, message):
 	try:
-		actionid = message["actionid"]
+		actionid = int(message["actionid"])
 	except KeyError:
 		connection.onInvalidInput()
 		return
@@ -29,7 +29,7 @@ def cmd_action(connection, message):
 def cmd_warp(connection, message):
 	try:
 		instance = DBInstance(int(message["instance"]))
-		roomname = message["roomname"]
+		roomname = str(message["roomname"])
 	except (KeyError, InvalidObjectReference):
 		connection.onInvalidInput()
 		return
@@ -40,7 +40,7 @@ def cmd_warp(connection, message):
 
 def cmd_say(connection, message):
 	try:
-		text = message["text"]
+		text = str(message["text"])
 	except KeyError:
 		connection.onInvalidInput()
 		return
@@ -52,8 +52,8 @@ def cmd_say(connection, message):
 def cmd_createroom(connection, message):
 	try:
 		instance = DBInstance(int(message["instance"]))
-		name = message["name"]
-		title = message["title"]
+		name = str(message["name"])
+		title = str(message["title"])
 	except (KeyError, InvalidObjectReference):
 		connection.onInvalidInput()
 		return
@@ -78,7 +78,7 @@ def cmd_delroom(connection, message):
 def cmd_renamerealm(connection, message):
 	try:
 		realm = DBRealm(int(message["realmid"]))
-		newname = message["newname"]
+		newname = str(message["newname"])
 	except (KeyError, InvalidObjectReference):
 		connection.onInvalidInput()
 		return
@@ -86,3 +86,27 @@ def cmd_renamerealm(connection, message):
 	realm.checkOwner(connection.player)			
 	connection.player.onRenameRealm(realm, newname)
 	
+# The player wants to edit a room.
+
+def cmd_editroom(connection, message):
+	try:
+		room = DBRoom(int(message["room"]))
+		name = str(message["name"])
+		title = str(message["title"])
+		description = str(message["description"])
+		actions = {}
+		
+		# Sanity check the list of actions.
+		
+		for k, v in message["actions"].iteritems():
+			actions[int(k)] = {
+				"type": str(v["type"]),
+				"description": str(v["description"]),
+				"target": str(v["target"])
+			}	
+	except (KeyError, InvalidObjectReference):
+		connection.onInvalidInput()
+		return
+
+	room.checkOwner(connection.player)			
+	connection.player.onEditRoom(room, name, title, description, actions)
