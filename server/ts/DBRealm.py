@@ -23,6 +23,12 @@ class DBRealm(DBObject):
 		self.rooms = frozenset()
 		self.instances = frozenset()
 		
+	# Verifies that this object is owned by the specified player.
+	
+	def checkOwner(self, player):
+		if (self.owner != player):
+			raise PermissionDenied
+		
 	# Room management
 	
 	def addRoom(self, name, title, description):
@@ -59,6 +65,12 @@ class DBRealm(DBObject):
 	 	self.rooms = self.rooms - {room}
 	 	room.destroy()
 
+	# Something in this realm has changed.
+	
+	def fireChangeNotification(self):
+		for instance in self.instances:
+			instance.fireChangeNotification()
+			
 	# Instance management
 	
 	def addInstance(self):

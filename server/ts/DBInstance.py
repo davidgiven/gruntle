@@ -28,7 +28,13 @@ class DBInstance(DBObject):
 	def checkOwner(self, player):
 		if (self.realm.owner != player):
 			raise PermissionDenied
-		
+			
+	# Something in this instance has changed.
+	
+	def fireChangeNotification(self):
+		for player in self.players:
+			player.onLook()
+			
 	# Broadcast a message to all players in this instance who are in a
 	# specific room and who are not the specified player.
 	

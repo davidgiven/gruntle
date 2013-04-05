@@ -37,4 +37,12 @@ class DBRoom(DBObject):
 	def checkOwner(self, player):
 		if (self.realm.owner != player):
 			raise PermissionDenied
+
+	# Something in this room has changed.
 	
+	def fireChangeNotification(self):
+		realm = self.realm
+		for instance in realm.instances:
+			for player in instance.players:
+				if (player.room == self):
+					player.onLook()

@@ -437,7 +437,14 @@ class DBPlayer(DBObject):
 		
 		realm.destroyRoom(room)
 		self.onRealms()
-				
+	
+	# The player wants to rename a realm.
+	
+	def onRenameRealm(self, realm, newname):
+		realm.name = newname
+		realm.fireChangeNotification()
+		self.onRealms()
+		
 	 	
 def findPlayerFromConnection(connection):
 	try:

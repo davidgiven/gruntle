@@ -9,6 +9,7 @@
 
 from ts.DBInstance import *
 from ts.DBRoom import *
+from ts.DBRealm import *
 from ts.exceptions import InvalidObjectReference
 
 # Functions of the form cmd_FNORD are executed when an *authenticated*
@@ -18,7 +19,7 @@ def cmd_action(connection, message):
 	try:
 		actionid = message["actionid"]
 	except KeyError:
-		connection.onMalformed()
+		connection.onInvalidInput()
 		return
 		
 	connection.player.onAction(actionid)
@@ -30,7 +31,7 @@ def cmd_warp(connection, message):
 		instance = DBInstance(int(message["instance"]))
 		roomname = message["roomname"]
 	except (KeyError, InvalidObjectReference):
-		connection.onMalformed()
+		connection.onInvalidInput()
 		return
 			
 	connection.player.onWarp(instance, roomname)
@@ -41,7 +42,7 @@ def cmd_say(connection, message):
 	try:
 		text = message["text"]
 	except KeyError:
-		connection.onMalformed()
+		connection.onInvalidInput()
 		return
 			
 	connection.player.onSay(text)
@@ -54,7 +55,7 @@ def cmd_createroom(connection, message):
 		name = message["name"]
 		title = message["title"]
 	except (KeyError, InvalidObjectReference):
-		connection.onMalformed()
+		connection.onInvalidInput()
 		return
 
 	instance.checkOwner(connection.player)			
@@ -66,8 +67,22 @@ def cmd_delroom(connection, message):
 	try:
 		room = DBRoom(int(message["room"]))
 	except (KeyError, InvalidObjectReference):
-		connection.onMalformed()
+		connection.onInvalidInput()
 		return
 
 	room.checkOwner(connection.player)			
 	connection.player.onDestroyRoom(room)
+
+# The player wants to rename a realm.
+
+def cmd_renamerealm(connection, message):
+	try:
+		realm = DBRealm(int(message["realmid"]))
+		newname = message["newname"]
+	except (KeyError, InvalidObjectReference):
+		connection.onInvalidInput()
+		return
+
+	realm.checkOwner(connection.player)			
+	connection.player.onRenameRealm(realm, newname)
+	
