@@ -7,7 +7,6 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
-from gevent import monkey; monkey.patch_all()
 import gevent
 
 from ws4py.server.geventserver import WebSocketServer
