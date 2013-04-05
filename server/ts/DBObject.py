@@ -50,6 +50,8 @@ class DBObject(object):
 		db.set((self.__class__.__name__, id, k), v)
 	
 	def __cmp__(self, other):
+		if not other:
+			return -1
 		return self.id.__cmp__(other.id)
 		
 	def create(self):
