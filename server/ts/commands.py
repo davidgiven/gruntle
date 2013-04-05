@@ -33,3 +33,15 @@ def cmd_warp(connection, message):
 		return
 			
 	connection.player.onWarp(instance, roomname)
+	
+# The player is saying something.
+
+def cmd_say(connection, message):
+	try:
+		text = message["text"]
+	except KeyError:
+		connection.onMalformed()
+		return
+			
+	connection.player.onSay(text)
+		

@@ -398,6 +398,18 @@ class DBPlayer(DBObject):
 		
 		self.warpTo(instance, room)
 		
+	# The player has asked to say something.
+	
+	def onSay(self, text):
+		self.instance.tell(self.room, None,
+			{
+				"event": "speech",
+				"user": self.name,
+				"uid": self.id,
+				"text": text
+			}
+		)
+		 
 def findPlayerFromConnection(connection):
 	try:
 		return DBPlayer.connections[connection]
