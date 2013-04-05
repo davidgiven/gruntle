@@ -8,7 +8,7 @@
 # the full text.
 
 import logging
-import dbm
+import dbhash as dbm
 import cPickle as pickle
 
 __database = None
