@@ -9,6 +9,7 @@
 
 from ts.DBObject import DBObject
 import ts.db as db
+from ts.exceptions import *
 import logging
 
 # An instance of a realm.
@@ -22,6 +23,12 @@ class DBInstance(DBObject):
 		self.realm = realm
 		self.players = frozenset()
 
+	# Verifies that this object is owned by the specified player.
+	
+	def checkOwner(self, player):
+		if (self.realm.owner != player):
+			raise PermissionDenied
+		
 	# Broadcast a message to all players in this instance who are in a
 	# specific room and who are not the specified player.
 	

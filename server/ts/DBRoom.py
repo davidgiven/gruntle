@@ -32,3 +32,9 @@ class DBRoom(DBObject):
 			"oid": self.id
 		}
 		
+	# Verifies that this object is owned by the specified player.
+	
+	def checkOwner(self, player):
+		if (self.realm.owner != player):
+			raise PermissionDenied
+	

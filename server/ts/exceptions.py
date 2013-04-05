@@ -10,7 +10,11 @@
 class InvalidObjectReference(RuntimeError):
 	def __init__(self, arg=None):
 		self.arg = arg
-				
+		
+class PermissionDenied(RuntimeError):
+	def __init__(self, arg=None):
+		self.arg = arg
+		
 class AppError(RuntimeError):
 	def __init__(self, message, *args):
 		self.arg = message % args

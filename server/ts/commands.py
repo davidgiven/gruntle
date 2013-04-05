@@ -8,6 +8,7 @@
 # the full text.
 
 from ts.DBInstance import *
+from ts.DBRoom import *
 from ts.exceptions import InvalidObjectReference
 
 # Functions of the form cmd_FNORD are executed when an *authenticated*
@@ -45,3 +46,28 @@ def cmd_say(connection, message):
 			
 	connection.player.onSay(text)
 		
+# The player wants to create a room.
+
+def cmd_createroom(connection, message):
+	try:
+		instance = DBInstance(int(message["instance"]))
+		name = message["name"]
+		title = message["title"]
+	except (KeyError, InvalidObjectReference):
+		connection.onMalformed()
+		return
+
+	instance.checkOwner(connection.player)			
+	connection.player.onCreateRoom(instance, name, title)
+		
+# The player wants to delete a room.
+
+def cmd_delroom(connection, message):
+	try:
+		room = DBRoom(int(message["room"]))
+	except (KeyError, InvalidObjectReference):
+		connection.onMalformed()
+		return
+
+	room.checkOwner(connection.player)			
+	connection.player.onDestroyRoom(room)

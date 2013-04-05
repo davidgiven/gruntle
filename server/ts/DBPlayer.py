@@ -384,11 +384,12 @@ class DBPlayer(DBObject):
 
 	# The player has asked to warp to a new room.
 	
-	def onWarp(self, instance, roomname):
+	def onWarp(self, instance, room):
 		realm = instance.realm
-		room = realm.findRoom(roomname)
-		if not room:
-			raise AppError("room '%s' does not exist", roomname)
+		if isinstance(room, basestring):
+			room = realm.findRoom(room)
+			if not room:
+				raise AppError("room '%s' does not exist", roomname)
 		
 		# If the player doesn't own the realm, only allow warping to the
 		# entrypoint.
@@ -396,6 +397,7 @@ class DBPlayer(DBObject):
 		if (realm.owner != self) and (roomname != "entrypoint"):
 			raise AppError("permission denied")
 		
+		self.onRealms()
 		self.warpTo(instance, room)
 		
 	# The player has asked to say something.
@@ -409,7 +411,34 @@ class DBPlayer(DBObject):
 				"text": text
 			}
 		)
-		 
+	
+	# The player wants to create a room.
+
+	def onCreateRoom(self, instance, name, title):
+		realm = instance.realm
+		room = realm.addRoom(name, title,
+			"Unshaped nothingness stretches as far as you can see, " +
+			"tempting you to start shaping it."
+		)
+		room.immutable = False
+		
+		self.onWarp(instance, room)
+		self.onRealms()
+	 
+	# The player wants to destroy a room.
+	 
+	def onDestroyRoom(self, room):
+		realm = room.realm
+	 	
+		# Don't allow destroying immutable rooms (i.e., the entrypoint).
+		
+		if room.immutable:
+			raise PermissionDenied()
+		
+		realm.destroyRoom(room)
+		self.onRealms()
+				
+	 	
 def findPlayerFromConnection(connection):
 	try:
 		return DBPlayer.connections[connection]

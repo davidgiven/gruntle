@@ -38,6 +38,27 @@ class DBRealm(DBObject):
 				return r
 		return None
 		
+	def destroyRoom(self, room):
+		# Eject any players currently in the room.
+	 	
+ 		entrypoint = self.findRoom("entrypoint")
+	 	for instance in self.instances:
+	 		for player in instance.players:
+	 			if (player.room == room):
+	 				player.tell(
+						{
+							"event": "activity",
+							"message": "Space-time abruptly shreds and tears "+
+								"around you. You find yourself elsewhere."
+	 					}
+	 				)
+	 				player.warpTo(instance, entrypoint)
+	 	
+	 	# Now we can destroy the room itself.
+	 	
+	 	self.rooms = self.rooms - {room}
+	 	room.destroy()
+
 	# Instance management
 	
 	def addInstance(self):

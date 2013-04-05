@@ -33,6 +33,10 @@ def isset(k):
 	mk = __makekey(k)
 	return mk in __database
 
+def unset(k):
+	mk = __makekey(k)
+	del __database[mk]
+	
 # Allocates a new unused object ID.
 
 def createObject():

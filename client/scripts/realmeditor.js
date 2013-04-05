@@ -39,8 +39,9 @@
 					};
 					
 					var roomdiv = $("<div class='clear'/>");
-					$("<a href='#' class='iconbutton dangerous tableiconleft'>✖</a>")
-						.click(
+					if (!room.immutable)
+					{
+						$("<a href='#' class='iconbutton dangerous tableiconleft'>✖</a>")
 							function()
 							{
         						W.Socket.Send(
@@ -52,6 +53,8 @@
 								return false;
 							}
 						).appendTo(roomdiv);
+					}
+					
 					$("<a href='#'/>")
 						.text(room.name)
 						.click(warp_cb)

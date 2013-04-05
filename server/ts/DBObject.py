@@ -53,6 +53,8 @@ class DBObject(object):
 		if not other:
 			return -1
 		return self.id.__cmp__(other.id)
+	
+	# Creates a new instance of this class in the database.
 		
 	def create(self):
 		assert(self.id == None)
@@ -60,4 +62,11 @@ class DBObject(object):
 		self.id = id
 		
 		db.set(("object", id, "type"), self.__class__.__name__)
+	
+	# Destroys this object in the database. Strictly we should remove all
+	# instance variables, but we don't track these yet, so we just leak them.
 		
+	def destroy(self):
+		assert(self.id != None)
+		db.unset(("object", self.id, "type"))
+			
