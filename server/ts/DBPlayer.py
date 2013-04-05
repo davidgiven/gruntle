@@ -273,6 +273,11 @@ class DBPlayer(DBObject):
 		realm = instance.realm
 		room = self.room
 		
+		contents = {}
+		for player in instance.players:
+			if (player.room == room) and (player != self):
+				contents[player.name] = player.id
+				
 		editable = (realm.owner == self)
 		
 		msg = {
@@ -289,7 +294,7 @@ class DBPlayer(DBObject):
 			"name": room.name,
 			"title": room.title,
 			"description": room.description,
-			"contents": [], # contents,
+			"contents": contents,
 			"actions": self.validActionsForRoom(),
 			"editable": editable
 		}
