@@ -38,7 +38,7 @@ class DBPlayer(DBObject):
 	def addRealm(self, name):
 		realm = DBRealm()
 		realm.create(self, name)
-		room = realm.addRoom("entrypoint", "Featureless void",
+		room = realm.addRoom("entrypoint", "Featureless Void",
 			"Unshaped nothingness stretches as far as you can see, " +
 			"tempting you to start shaping it."
 		)

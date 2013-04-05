@@ -28,7 +28,6 @@ from ts.DBPlayer import DBPlayer
 # Basic setup
 
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
-logging.info("fnord")
 
 parser = argparse.ArgumentParser(
 	description = "thickishstring prototype Python server"
