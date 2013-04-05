@@ -76,6 +76,17 @@ def cmd_delroom(connection, message):
 	room.checkOwner(connection.player)			
 	connection.player.onDestroyRoom(room)
 
+# The player wants to create a realm.
+
+def cmd_createrealm(connection, message):
+	try:
+		name = str(message["name"])
+	except KeyError:
+		connection.onInvalidInput()
+		return
+
+	connection.player.onCreateRealm(name)
+		
 # The player wants to rename a realm.
 
 def cmd_renamerealm(connection, message):

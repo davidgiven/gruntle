@@ -150,7 +150,7 @@ class DBPlayer(DBObject):
 			}
 		);
 		
-		instance.tell(newroom, self,
+		newinstance.tell(newroom, self,
 			{
 				"event": "arrived",
 				"user": self.name,
@@ -165,6 +165,7 @@ class DBPlayer(DBObject):
 		
 		instance.players = instance.players - {self}
 		newinstance.players = newinstance.players | {self}
+		self.instance = newinstance
 		self.room = newroom
 		
 		self.tell(
@@ -375,7 +376,7 @@ class DBPlayer(DBObject):
 		elif (type == "message"):
 			self.tell(
 				{
-					"command": "activity",
+					"event": "activity",
 					"message": target 
 				}
 			)
@@ -397,8 +398,8 @@ class DBPlayer(DBObject):
 		if (realm.owner != self) and (roomname != "entrypoint"):
 			raise AppError("permission denied")
 		
-		self.onRealms()
 		self.warpTo(instance, room)
+		self.onRealms()
 		
 	# The player has asked to say something.
 	
@@ -446,6 +447,14 @@ class DBPlayer(DBObject):
 		room.description = description
 		room.actions = actions
 		room.fireChangeNotification()
+		self.onRealms()
+		
+	# The player wants to create a realm.
+	
+	def onCreateRealm(self, name):
+		realm = self.addRealm(name)
+		instance = realm.addInstance()
+		self.warpTo(instance, realm.findRoom("entrypoint"))
 		self.onRealms()
 		
 	# The player wants to rename a realm.
