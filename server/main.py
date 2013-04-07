@@ -16,10 +16,10 @@ import sys
 import argparse
 import logging
 import cPickle as pickle
+import sqlite3
 
 # Internal modules
 
-import ts.db as db
 from ts.connection import Connection
 from ts.DBRealm import DBRealm
 from ts.DBPlayer import DBPlayer
@@ -49,7 +49,20 @@ args = parser.parse_args()
 
 # Open and initialise the database.
 
-db.open(args.filename)
+sql = sqlite3.connect(args.filename)
+with sql:
+	c = sql.cursor()
+	c.execute("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='variables'")
+	(count,) = c.fetchone()
+	if (count == 0):
+		initscript = open("server/dbinit.sql").read()
+		logging.info("initialising new database")
+		c.executescript(initscript)
+	logging.info("logging out all players")
+	c.execute("UPDATE players SET connected = 0")
+
+exit(0)
+
 if not db.isset("root"):
 	logging.info("initialising new database")
 	db.set("root", True)
