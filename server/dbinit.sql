@@ -4,7 +4,9 @@ PRAGMA synchronous = OFF;
 PRAGMA foreign_keys = ON;
 PRAGMA temp_store = MEMORY;
 
--- Create the database schema.
+BEGIN;
+
+-- Global settings.
 
 CREATE TABLE variables
 (
@@ -12,18 +14,18 @@ CREATE TABLE variables
 	value TEXT
 );
 
+-- Players, and player-related stuff.
+
 CREATE TABLE players
 (
-	id INTEGER PRIMARY KEY,
-	username TEXT UNIQUE COLLATE NOCASE,
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	name TEXT UNIQUE COLLATE NOCASE,
 	email TEXT,
 	password TEXT,
 	connected INTEGER,
-	instance INTEGER REFERENCES instances(id),
 	room INTEGER REFERENCES rooms(id)
 );
-CREATE INDEX players_byusername ON players(username);
-CREATE INDEX players_byinstance ON players(instance);
+CREATE INDEX players_byname ON players(name);
 CREATE INDEX players_byroom ON players(room);
 
 CREATE TABLE guests
@@ -31,62 +33,74 @@ CREATE TABLE guests
 	player INTEGER REFERENCES player(id)
 );
 
+-- Realms and instances.
+
 CREATE TABLE realms
 (
-	id INTEGER PRIMARY KEY,
-	owner INTEGER REFERENCES players(id),
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	name TEXT
 );
-CREATE INDEX realms_byowner ON realms(owner);
 
 CREATE TABLE instances
 (
-	id INTEGER PRIMARY KEY,
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	realm INTEGER REFERENCES realms(id)
 );
 CREATE INDEX instances_byrealm ON instances(realm);
 
+CREATE TABLE players_in_instance
+(
+	player INTEGER REFERENCES players(id) ON DELETE CASCADE,
+	instance INTEGER REFERENCES instances(id) ON DELETE CASCADE
+);
+CREATE INDEX players_in_instance_byplayer ON players_in_instance(player);
+CREATE INDEX players_in_instance_byinstance ON players_in_instance(instance);
+
+CREATE TABLE realms_in_player
+(
+	player INTEGER REFERENCES players(id) ON DELETE CASCADE,
+	realm INTEGER REFERENCES realms(id) ON DELETE CASCADE
+);
+CREATE INDEX realms_in_player_byplayer ON realms_in_player(player);
+CREATE INDEX realms_in_player_byinstance ON realms_in_player(realm);
+
+-- Rooms.
+ 
 CREATE TABLE rooms
 (
-	id INTEGER PRIMARY KEY,
-	realm INTEGER REFERENCES realms(id),
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	name TEXT,
 	title TEXT,
 	description TEXT,
 	actions BLOB,
 	immutable INTEGER
 );
-CREATE INDEX rooms_byrealm ON rooms(realm);
-CREATE INDEX rooms_byrealmname ON rooms(realm, name);
+CREATE INDEX rooms_bymname ON rooms(name);
 
-fnord;
+CREATE TABLE rooms_in_realm
+(
+	realm INTEGER REFERENCES realms(id) ON DELETE CASCADE,
+	room INTEGER REFERENCES rooms(id) ON DELETE CASCADE
+);
+CREATE INDEX rooms_in_realm_byrealm ON rooms_in_realm(realm);
+CREATE INDEX rooms_in_realm_byroom ON rooms_in_realm(room);
 
--- Create Thoth and the default realm and instance.
+-- Actions.
 
-INSERT INTO players (username, email, password, connected)
-	VALUES ("Thoth", "<invalid>", "testpassword", 0);
+CREATE TABLE actions
+(
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	description TEXT,
+	type TEXT,
+	target TEXT
+);
 
-INSERT INTO realms (owner, name)
-	VALUES (
-		(SELECT id FROM players WHERE username='Thoth'),
-		"The Hub"
-	);
-
-INSERT INTO rooms (realm, name, title, description, immutable)
-	VALUES (
-		(SELECT id FROM realms WHERE name='The Hub'),
-		'entrypoint',
-		'Boring Nothingness',
-		"It's very dull here.",
-		1
-	);
-
-INSERT INTO instances (realm)
-	VALUES (
-		(SELECT id FROM realms LIMIT 1)
-	);
-
-UPDATE players SET
-	instance = (SELECT id FROM instances LIMIT 1),
-	room = (SELECT id FROM rooms LIMIT 1);
-
+CREATE TABLE actions_in_room
+(
+	action INTEGER REFERENCES actions(id) ON DELETE CASCADE,
+	room INTEGER REFERENCES rooms(id) ON DELETE CASCADE
+);
+CREATE INDEX action_in_room_byaction ON actions_in_room(action);
+CREATE INDEX action_in_room_byroom ON actions_in_room(room);
+	
+COMMIT;

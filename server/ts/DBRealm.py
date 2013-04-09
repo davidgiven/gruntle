@@ -10,6 +10,7 @@
 from ts.DBObject import DBObject
 from ts.DBRoom import DBRoom
 from ts.DBInstance import DBInstance
+import ts.db as db
 
 # Base class for a realm.
 
@@ -17,11 +18,20 @@ class DBRealm(DBObject):
 	def __init__(self, id=None):
 		super(DBRealm, self).__init__(id)
 		
-	def create(self, owner, name):
+	# Return this realm's owner.
+	
+	@property
+	def owner(self):
+		(player,) = db.sql.cursor().execute(
+				"SELECT player FROM realms_in_player WHERE realm = ?",
+				(self.id,)
+			).next()
+		from ts.DBPlayer import DBPlayer
+		return DBPlayer(player)
+	
+	def create(self, name):
 		super(DBRealm, self).create()
-		(self.owner, self.name) = owner, name
-		self.rooms = frozenset()
-		self.instances = frozenset()
+		self.name = name
 		
 	# Verifies that this object is owned by the specified player.
 	
@@ -33,9 +43,8 @@ class DBRealm(DBObject):
 	
 	def addRoom(self, name, title, description):
 		room = DBRoom()
-		room.create(self, name, title, description)
-
-		self.rooms = self.rooms | {room}
+		room.create(name, title, description)
+		self.rooms |= {room}
 		return room
 
 	def findRoom(self, name):
@@ -62,7 +71,7 @@ class DBRealm(DBObject):
 	 	
 	 	# Now we can destroy the room itself.
 	 	
-	 	self.rooms = self.rooms - {room}
+	 	self.rooms -= {room}
 	 	room.destroy()
 
 	# Something in this realm has changed.
@@ -77,6 +86,6 @@ class DBRealm(DBObject):
 		instance = DBInstance()
 		instance.create(self)
 
-		self.instances = self.instances | {instance}
+		self.instances |= {instance}
 		return instance	
 		

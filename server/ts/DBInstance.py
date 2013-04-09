@@ -8,20 +8,23 @@
 # the full text.
 
 from ts.DBObject import DBObject
-import ts.db as db
 from ts.exceptions import *
+import ts.db as db
 import logging
 
 # An instance of a realm.
 
 class DBInstance(DBObject):
+	@classmethod
+	def table(cls):
+		return "instances"
+			
 	def __init__(self, id=None):
 		super(DBInstance, self).__init__(id)
 		
 	def create(self, realm):
 		super(DBInstance, self).create()
 		self.realm = realm
-		self.players = frozenset()
 
 	# Verifies that this object is owned by the specified player.
 	
@@ -42,9 +45,9 @@ class DBInstance(DBObject):
 		for player in self.players:
 			if (player != eplayer) and (player.room == room):
 				player.tell(message)
-				
-# Return the default instance for the server.
+	
+def setDefaultInstance(instance):
+	db.setvar("defaultinstance", int(instance.id))
 
 def getDefaultInstance():
-	return db.get(("root", "defaultinstance"))
-	
+	return DBInstance(int(db.getvar("defaultinstance")))

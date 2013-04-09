@@ -22,24 +22,21 @@ def cmd_connect(connection, message):
 	except KeyError:
 		connection.onInvalidInput()
 		return
-		
-	key = ("player", username.lower())
-	if not db.isset(key):
+	
+	r = db.sql.cursor().execute(
+		"SELECT id FROM players WHERE name=? AND password=?",
+		(username, password)
+	)
+	if not r:
 		connection.sendMsg(
 			{
 				"event": "authfailed"
 			}
 		)
 		return
-		
-	player = db.get(key)
-	if (player.password != password):
-		connection.sendMsg(
-			{
-				"event": "authfailed"
-			}
-		)
-		return
+
+	(id,) = r.next()
+	player = DBPlayer(id)
 
 	connection.setPlayer(player)
 	player.onConnectionOpened(connection)

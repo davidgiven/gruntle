@@ -9,18 +9,31 @@
 
 import logging
 
-from ts.DBObject import DBObject
+from ts.DBObject import *
 from ts.DBRealm import DBRealm
-from ts.DBInstance import getDefaultInstance
+from ts.DBInstance import DBInstance
+from ts.DBRoom import DBRoom
 from ts.exceptions import *
 import ts.db as db
 
 # Represents a player.
 
 class DBPlayer(DBObject):
+	connections = {}
+	
 	def __init__(self, id=None):
 		super(DBPlayer, self).__init__(id)
 		
+	# Return the instance the player is currently in.
+	
+	@property
+	def instance(self):
+		(instance,) = db.sql.cursor().execute(
+				"SELECT instance FROM players_in_instance WHERE player = ?",
+				(self.id,)
+			).next()
+		return DBInstance(instance)
+	
 	def create(self, name, email, password):
 		super(DBPlayer, self).create()
 
@@ -29,22 +42,18 @@ class DBPlayer(DBObject):
 		
 		# Game data.
 		self.realms = frozenset()                # realms the player owns
-		self.instance = None                     # current instance the player is in
 		self.room = None                         # current room id player is in
-		
-		# Add the player to the lookup index.
-		db.set(("player", unicode(name.lower())), self)
 		
 	def addRealm(self, name):
 		realm = DBRealm()
-		realm.create(self, name)
+		realm.create(name)
 		room = realm.addRoom("entrypoint", "Featureless Void",
 			"Unshaped nothingness stretches as far as you can see, " +
 			"tempting you to start shaping it."
 		)
 		room.immutable = True
 
-		self.realms = self.realms | {realm}		
+		self.realms |= {realm}		
 		return realm
 	
 	# Return the player's current connection, or None if the player is
@@ -163,9 +172,8 @@ class DBPlayer(DBObject):
 			}
 		);
 		
-		instance.players = instance.players - {self}
-		newinstance.players = newinstance.players | {self}
-		self.instance = newinstance
+		instance.players -= {self}
+		newinstance.players |= {self}
 		self.room = newroom
 		
 		self.tell(
@@ -232,7 +240,7 @@ class DBPlayer(DBObject):
 		)
 		
 		instance = self.instance
-		instance.players = instance.players | {self}
+		instance.players |= {self}
 		
 		instance.tell(self.room, self,
 			{
@@ -254,7 +262,7 @@ class DBPlayer(DBObject):
 		logging.info("player %s logged out", self.name)
 		
 		instance = self.instance
-		instance.players = instance.players - {self}
+		instance.players -= {self}
 		
 		instance.tell(self.room, self,
 			{
@@ -301,7 +309,7 @@ class DBPlayer(DBObject):
 		}
 
 		if editable:
-			msg["allactions"] = room.actions
+			msg["allactions"] = room.getActions()
 						
 		self.tell(msg)
 		
@@ -324,6 +332,7 @@ class DBPlayer(DBObject):
 			 		"instances": [ i.id for i in realm.instances ]
 			 	}
 			 
+		from ts.DBInstance import getDefaultInstance
 		defaultinstance = getDefaultInstance()
 		defaultrealm = defaultinstance.realm
 			 
@@ -348,11 +357,11 @@ class DBPlayer(DBObject):
 		room = self.room
 		
 		actions = {}
-		for id, action in room.actions.iteritems():
-			 actions[id] = {
-			 	"description": action["description"],
-				"type": action["type"],
-				"target": action["target"]
+		for action in room.actions:
+			 actions[action.id] = {
+			 	"description": action.description,
+				"type": action.type,
+				"target": action.target
 			}
 		 
 		return actions
@@ -363,9 +372,9 @@ class DBPlayer(DBObject):
 		room = self.room
 		
 		try:
-			action = room.actions[int(actionid)]
-			type = action["type"]
-			target = action["target"]
+			action = room.findAction(int(actionid))
+			type = action.type
+			target = action.target
 		except KeyError:
 			self.connection.onMalformed()
 			return
@@ -445,7 +454,7 @@ class DBPlayer(DBObject):
 		room.name = name
 		room.title = title
 		room.description = description
-		room.actions = actions
+		room.setActions(actions)
 		room.fireChangeNotification()
 		self.onRealms()
 		
@@ -470,5 +479,3 @@ def findPlayerFromConnection(connection):
 		return DBPlayer.connections[connection]
 	except KeyError:
 		return None
-		
-DBPlayer.connections = {}

@@ -16,13 +16,15 @@ import sys
 import argparse
 import logging
 import cPickle as pickle
-import sqlite3
+import apsw
 
 # Internal modules
 
+import ts.db as db
 from ts.connection import Connection
 from ts.DBRealm import DBRealm
 from ts.DBPlayer import DBPlayer
+from ts.DBInstance import *
 
 # Basic setup
 
@@ -49,58 +51,50 @@ args = parser.parse_args()
 
 # Open and initialise the database.
 
-sql = sqlite3.connect(args.filename)
-with sql:
-	c = sql.cursor()
-	c.execute("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='variables'")
-	(count,) = c.fetchone()
-	if (count == 0):
-		initscript = open("server/dbinit.sql").read()
-		logging.info("initialising new database")
-		c.executescript(initscript)
-	logging.info("logging out all players")
-	c.execute("UPDATE players SET connected = 0")
-
-exit(0)
-
-if not db.isset("root"):
+if not db.connect(args.filename, "server/dbinit.sql"):
+	s = open("server/dbinit.sql").read()
 	logging.info("initialising new database")
-	db.set("root", True)
-	db.set(("root", "nextobj"), 1)
-	
-	thoth = DBPlayer()
-	thoth.create("Thoth", "<no email address>", "testpassword")
-	
-	defaultrealm = thoth.addRealm("The Hub")
-	defaultinstance = defaultrealm.addInstance()
-	
-	e = defaultrealm.findRoom("entrypoint")
-	r = defaultrealm.addRoom("closet", "Broom Closet", "It's full of junk.")
-	
-	e.actions = {
-		0:
-		{
-			"description": "Head downstairs to the broom closet?",
-			"type": "room",
-			"target": "closet"
-		}
-	}
-	
-	r.actions = {
-		0:
-		{
-			"description": "It's boring here; head back upstairs.",
-			"type": "room",
-			"target": "entrypoint"
-		}
-	}
-	
-	defaultinstance.players = frozenset({thoth})
-	thoth.instance = defaultinstance
-	thoth.room = e
-	db.set(("root", "defaultinstance"), defaultinstance)
-	
-	db.set(("root", "guests"), frozenset())
+	c = db.sql.cursor()
+	c.execute(s)
+
+	with db.sql:		
+		thoth = DBPlayer()
+		thoth.create("Thoth", "<no email address>", "testpassword")
+		
+		defaultrealm = thoth.addRealm("The Hub")
+		defaultinstance = defaultrealm.addInstance()
+		setDefaultInstance(defaultinstance)
+		
+		e = defaultrealm.findRoom("entrypoint")
+		r = defaultrealm.addRoom("closet", "Broom Closet", "It's full of junk.")
+		
+		e.setActions(
+			{
+				0:
+				{
+					"description": "Head downstairs to the broom closet?",
+					"type": "room",
+					"target": "closet"
+				}
+			}
+		)
+		
+		r.setActions(
+			{
+				0:
+				{
+					"description": "It's boring here; head back upstairs.",
+					"type": "room",
+					"target": "entrypoint"
+				}
+			}
+		)
+		
+		defaultinstance.players |= {thoth}
+		thoth.room = e
+
+logging.info("logging out all players")
+db.sql.cursor().execute("UPDATE players SET connected = 0")
 
 # Create and start the server.
 
