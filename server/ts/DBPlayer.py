@@ -239,10 +239,7 @@ class DBPlayer(DBObject):
 			}
 		)
 		
-		instance = self.instance
-		instance.players |= {self}
-		
-		instance.tell(self.room, self,
+		self.instance.tell(self.room, self,
 			{
 				"event": "arrived",
 				"markup":
@@ -261,10 +258,7 @@ class DBPlayer(DBObject):
 	def onLogout(self):
 		logging.info("player %s logged out", self.name)
 		
-		instance = self.instance
-		instance.players -= {self}
-		
-		instance.tell(self.room, self,
+		self.instance.tell(self.room, self,
 			{
 				"event": "departed",
 				"markup":
@@ -282,10 +276,21 @@ class DBPlayer(DBObject):
 		realm = instance.realm
 		room = self.room
 		
-		contents = {}
-		for player in instance.players:
-			if (player.room == room) and (player != self):
-				contents[player.name] = player.id
+		players = [ DBPlayer(id) for (id,) in
+			db.cursor.execute(
+				"SELECT players.name, players.id FROM players "
+					"INNER JOIN players_in_instance "
+						"ON (players.id = players_in_instance.player) AND "
+							"(players_in_instance.player = ?) AND "
+							"(players.room = ?) "
+					"WHERE "
+						"(players.connected = 1)",
+				(instance.id, room.id)
+			) ]
+	
+		contents = {} 
+		for player in players:
+			contents[player.name] = player.id
 				
 		editable = (realm.owner == self)
 		

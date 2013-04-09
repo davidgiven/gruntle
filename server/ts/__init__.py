@@ -28,7 +28,6 @@ databaseSetSetter(DBRealm, "instances", "instances", "realm", "id", DBInstance)
 
 linkToTable(DBRoom, "rooms")
 simpleSettersGetters(DBRoom, ("name", "title", "description", "immutable"))
-objrefSettersGetters(DBRoom, DBRealm, ("realm",))
 databaseSetSetter(DBRoom, "actions", "actions_in_room", "room",
     "action", DBAction)
 

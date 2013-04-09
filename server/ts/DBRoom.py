@@ -25,6 +25,9 @@ class DBRoom(DBObject):
 				"SELECT realm FROM rooms_in_realm WHERE room = ?",
 				(self.id,)
 			).next()
+			
+		# avoid circular dependency
+		from ts.DBRealm import DBRealm
 		return DBRealm(realm)
 	
 	def create(self, name, title, description):
