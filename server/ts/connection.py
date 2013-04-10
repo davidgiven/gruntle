@@ -47,19 +47,28 @@ class Connection(WebSocket):
 		# transaction: commands which throw an exception don't change the
 		# database.
 		
-		with db.sql:
-			try:
-				p = "(none)"
-				if self.player:
-					p = self.player.name
-				logging.debug("%s< %s", p, message.data)
-			
-				packet = json.deserialize(message.data)
-			except TypeError:
-				self.onInvalidInput()
-				return
-	
-			self.onRecvMsg(packet)
+		oldplayer = self.player
+		try:
+			with db.sql:
+				try:
+					p = "(none)"
+					if self.player:
+						p = self.player.name
+					logging.debug("%s< %s", p, message.data)
+				
+					packet = json.deserialize(message.data)
+				except TypeError:
+					self.onInvalidInput()
+					return
+		
+				self.onRecvMsg(packet)
+		except:
+			# If an exception occurred while a player was logging in,
+			# roll back the state of the connection so the player is no
+			# longer logged in. (Required because self.player may not longer
+			# be valid if, for example, the player was being created.)
+			self.player = oldplayer
+			raise
 
 	# Sends a JSON reply to the client.
 	

@@ -125,7 +125,7 @@ class DBObject(object):
 	def __cmp__(self, other):
 		if not other:
 			return -1
-		return self.id.__cmp__(other.id)
+		return self.id.__cmp__(int(other.id))
 	
 	@classmethod
 	def table(cls):

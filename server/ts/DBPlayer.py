@@ -11,7 +11,7 @@ import logging
 
 from ts.DBObject import *
 from ts.DBRealm import DBRealm
-from ts.DBInstance import DBInstance
+from ts.DBInstance import *
 from ts.DBRoom import DBRoom
 from ts.exceptions import *
 import ts.db as db
@@ -33,7 +33,7 @@ class DBPlayer(DBObject):
 				(self.id,)
 			).next()
 		return DBInstance(instance)
-	
+			
 	def create(self, name, email, password):
 		super(DBPlayer, self).create()
 
@@ -41,14 +41,14 @@ class DBPlayer(DBObject):
 		(self.name, self.email, self.password) = name, email, password
 		
 		# Game data.
-		self.realms = frozenset()                # realms the player owns
-		self.room = None                         # current room id player is in
+		self.guest = 0
+		self.connected = 0
 		
 	def addRealm(self, name):
 		realm = DBRealm()
 		realm.create(name)
 		room = realm.addRoom("entrypoint", "Featureless Void",
-			"Unshaped nothingness stretches as far as you can see, " +
+			"Unshaped nothingness stretches as far as you can see, "
 			"tempting you to start shaping it."
 		)
 		room.immutable = True

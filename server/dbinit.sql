@@ -23,15 +23,12 @@ CREATE TABLE players
 	email TEXT,
 	password TEXT,
 	connected INTEGER,
+	guest INTEGER,
 	room INTEGER REFERENCES rooms(id)
 );
 CREATE INDEX players_byname ON players(name);
 CREATE INDEX players_byroom ON players(room);
-
-CREATE TABLE guests
-(
-	player INTEGER REFERENCES player(id)
-);
+CREATE INDEX players_byguest ON players(guest);
 
 -- Realms and instances.
 

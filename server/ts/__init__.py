@@ -17,6 +17,7 @@ from ts.DBAction import *
         
 linkToTable(DBPlayer, "players")
 simpleSettersGetters(DBPlayer, ("name", "email", "password"))
+simpleSettersGetters(DBPlayer, ("connected", "guest"))
 objrefSettersGetters(DBPlayer, DBRoom, ("room",))
 databaseSetSetter(DBPlayer, "realms", "realms_in_player", "player",
     "realm", DBRealm)
