@@ -24,7 +24,6 @@ objrefSettersGetters(DBPlayer, DBInstance, ("instance",))
 linkToTable(DBRealm, "realms")
 simpleSettersGetters(DBRealm, ("name",))
 objrefSettersGetters(DBRealm, DBPlayer, ("owner",))
-databaseSetSetter(DBRealm, "instances", "instances", "realm", "id", DBInstance)
 
 linkToTable(DBRoom, "rooms")
 simpleSettersGetters(DBRoom, ("name", "title", "description", "immutable"))

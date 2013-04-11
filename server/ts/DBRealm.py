@@ -29,6 +29,17 @@ class DBRealm(DBObject):
 			)
 		]
 	
+	# Return this realm's instances.
+	
+	@property
+	def instances(self):
+		return [ DBInstance(id) for (id,) in
+			db.sql.cursor().execute(
+				"SELECT id FROM instances WHERE realm=?",
+				(self.id,)
+			)
+		]
+	
 	def create(self, name, owner):
 		super(DBRealm, self).create()
 		(self.name, self.owner) = name, owner
@@ -83,7 +94,5 @@ class DBRealm(DBObject):
 	def addInstance(self):
 		instance = DBInstance()
 		instance.create(self)
-
-		self.instances |= {instance}
 		return instance	
 		

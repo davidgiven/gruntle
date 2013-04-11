@@ -9,7 +9,6 @@
 
 from ts.exceptions import *
 import ts.db as db
-from ts.DatabaseSet import *
 import cPickle as pickle
 
 # Connects the specified class to a particular table.
@@ -91,18 +90,7 @@ def pickledSettersGetters(cls, fields):
 			)
 			
 		setattr(cls, f, property(get, set))
-	
-# Creates a getter for a database set.
-
-def databaseSetSetter(cls, field, table, leftfield, rightfield, rightclass):
-	def get(self):
-		return DatabaseSet(self, table, leftfield, rightfield, rightclass)
-
-	def set(self, other):
-		pass
 		
-	setattr(cls, field, property(get, set))
-	
 # Base class for a database-backed object.
 
 class DBObject(object):
