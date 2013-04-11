@@ -21,6 +21,17 @@ import ts.db as db
 class DBPlayer(DBObject):
 	connections = {}
 	
+	# Return the relmas owned by this player.
+	
+	@property
+	def realms(self):
+		return [ DBRealm(id) for (id,) in
+			db.sql.cursor().execute(
+				"SELECT id FROM realms WHERE owner=?",
+				(self.id,)
+			)
+		]
+	
 	def __init__(self, id=None):
 		super(DBPlayer, self).__init__(id)
 			
@@ -36,14 +47,13 @@ class DBPlayer(DBObject):
 		
 	def addRealm(self, name):
 		realm = DBRealm()
-		realm.create(name)
+		realm.create(name, self)
 		room = realm.addRoom("entrypoint", "Featureless Void",
 			"Unshaped nothingness stretches as far as you can see, "
 			"tempting you to start shaping it."
 		)
 		room.immutable = True
 
-		self.realms |= {realm}		
 		return realm
 	
 	# Return the player's current connection, or None if the player is

@@ -18,20 +18,9 @@ class DBRealm(DBObject):
 	def __init__(self, id=None):
 		super(DBRealm, self).__init__(id)
 		
-	# Return this realm's owner.
-	
-	@property
-	def owner(self):
-		(player,) = db.sql.cursor().execute(
-				"SELECT player FROM realms_in_player WHERE realm = ?",
-				(self.id,)
-			).next()
-		from ts.DBPlayer import DBPlayer
-		return DBPlayer(player)
-	
-	def create(self, name):
+	def create(self, name, owner):
 		super(DBRealm, self).create()
-		self.name = name
+		(self.name, self.owner) = name, owner
 		
 	# Verifies that this object is owned by the specified player.
 	

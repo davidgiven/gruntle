@@ -37,8 +37,10 @@ CREATE INDEX players_byguest ON players(guest);
 CREATE TABLE realms
 (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	name TEXT
+	name TEXT,
+	owner INTEGER REFERENCES players(id)
 );
+CREATE INDEX realms_byowner ON realms(owner);
 
 CREATE TABLE instances
 (
@@ -46,14 +48,6 @@ CREATE TABLE instances
 	realm INTEGER REFERENCES realms(id)
 );
 CREATE INDEX instances_byrealm ON instances(realm);
-
-CREATE TABLE realms_in_player
-(
-	player INTEGER REFERENCES players(id) ON DELETE CASCADE,
-	realm INTEGER REFERENCES realms(id) ON DELETE CASCADE
-);
-CREATE INDEX realms_in_player_byplayer ON realms_in_player(player);
-CREATE INDEX realms_in_player_byinstance ON realms_in_player(realm);
 
 -- Rooms.
  

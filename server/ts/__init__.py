@@ -20,11 +20,10 @@ simpleSettersGetters(DBPlayer, ("name", "email", "password"))
 simpleSettersGetters(DBPlayer, ("connected", "guest"))
 objrefSettersGetters(DBPlayer, DBRoom, ("room",))
 objrefSettersGetters(DBPlayer, DBInstance, ("instance",))
-databaseSetSetter(DBPlayer, "realms", "realms_in_player", "player",
-    "realm", DBRealm)
 
 linkToTable(DBRealm, "realms")
 simpleSettersGetters(DBRealm, ("name",))
+objrefSettersGetters(DBRealm, DBPlayer, ("owner",))
 databaseSetSetter(DBRealm, "rooms", "rooms_in_realm", "realm", "room", DBRoom)
 databaseSetSetter(DBRealm, "instances", "instances", "realm", "id", DBInstance)
 
