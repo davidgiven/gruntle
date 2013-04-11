@@ -8,20 +8,51 @@
 # the full text.
 
 from ts.DBObject import DBObject
-import ts.db as db
 from ts.exceptions import *
+import ts.db as db
 import logging
 
 # An instance of a realm.
 
 class DBInstance(DBObject):
+	@classmethod
+	def table(cls):
+		return "instances"
+			
+	# Return the players currently in this instance.
+	
+	@property
+	def players(self):
+		# Prevent import dependency loop
+		from ts.DBPlayer import DBPlayer
+		
+		return [ DBPlayer(id) for (id,) in
+			db.sql.cursor().execute(
+				"SELECT id FROM players WHERE instance = ?",
+				(self.id,)
+			)
+		]
+	
+	# Return connected players currently in this instance.
+	
+	@property
+	def connectedPlayers(self):
+		# Prevent import dependency loop
+		from ts.DBPlayer import DBPlayer
+		
+		return [ DBPlayer(id) for (id,) in
+			db.sql.cursor().execute(
+				"SELECT id FROM players WHERE instance = ? AND connected = 1",
+				(self.id,)
+			)
+		]
+	
 	def __init__(self, id=None):
 		super(DBInstance, self).__init__(id)
 		
 	def create(self, realm):
 		super(DBInstance, self).create()
 		self.realm = realm
-		self.players = frozenset()
 
 	# Verifies that this object is owned by the specified player.
 	
@@ -39,12 +70,12 @@ class DBInstance(DBObject):
 	# specific room and who are not the specified player.
 	
 	def tell(self, room, eplayer, message):
-		for player in self.players:
+		for player in self.connectedPlayers:
 			if (player != eplayer) and (player.room == room):
 				player.tell(message)
-				
-# Return the default instance for the server.
+	
+def setDefaultInstance(instance):
+	db.setvar("defaultinstance", int(instance.id))
 
 def getDefaultInstance():
-	return db.get(("root", "defaultinstance"))
-	
+	return DBInstance(int(db.getvar("defaultinstance")))

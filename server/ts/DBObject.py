@@ -7,20 +7,74 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
-import ts.db as db
 from ts.exceptions import *
+import ts.db as db
+
+# Connects the specified class to a particular table.
+
+def linkToTable(cls, table):
+	@classmethod
+	def gettable(cls):
+		return table
+	setattr(cls, "table", gettable)
+
+# Creates setters and getters for some string fields.
+
+def simpleSettersGetters(cls, fields):
+	table = cls.table()
+	
+	for f in fields:
+		def get(self, f=f):
+			(value,) = db.sql.cursor().execute(
+				"SELECT "+f+" FROM "+self.table()+" WHERE id = ?",
+				(self.id,)
+			).next()
+			return value
+		
+		def set(self, value, f=f):
+			db.sql.cursor().execute(
+				"UPDATE "+self.table()+" SET "+f+" = ? WHERE id = ?",
+				(value, self.id)
+			)
+			
+		setattr(cls, f, property(get, set))
+
+# Creates setters and getters for object references.
+
+def objrefSettersGetters(cls, destclass, fields):
+	table = cls.table()
+	
+	for f in fields:
+		def get(self, f=f):
+			(value,) = db.sql.cursor().execute(
+				"SELECT "+f+" FROM "+self.table()+" WHERE id = ?",
+				(self.id,)
+			).next()
+			if value:
+				return destclass(value)
+			return None
+		
+		def set(self, value, f=f):
+			if value:
+				db.sql.cursor().execute(
+					"UPDATE "+self.table()+" SET "+f+" = ? WHERE id = ?",
+					(value.id, self.id)
+				)
+			else:
+				db.sql.cursor().execute(
+					"UPDATE "+self.table()+" SET "+f+" = NULL WHERE id = ?",
+					(self.id,)
+				)
+			
+		setattr(cls, f, property(get, set))
 
 # Base class for a database-backed object.
 
 class DBObject(object):
-	id = None
-	
 	def __init__(self, id):
+		self.id = id
 		if id:
 			assert(type(id) == int)
-			if (db.get(("object", id, "type")) != self.__class__.__name__):
-				raise InvalidObjectReference
-			self.id = id
 
 	def __hash__(self):
 		return self.id
@@ -33,35 +87,25 @@ class DBObject(object):
 	def __setstate__(self, p):
 		self.id = p
 
-	def __getattr__(self, k):
-		if (k == "id"):
-			return object.__getattr__(self, k)
-			
-		id = self.id
-		assert(id != None)
-		return db.get((self.__class__.__name__, id, k))
-		
-	def __setattr__(self, k, v):
-		if (k == "id"):
-			return object.__setattr__(self, k, v)
-			
-		id = self.id
-		assert(id != None)
-		db.set((self.__class__.__name__, id, k), v)
-	
 	def __cmp__(self, other):
 		if not other:
 			return -1
-		return self.id.__cmp__(other.id)
+		return self.id.__cmp__(int(other.id))
 	
+	@classmethod
+	def table(cls):
+		assert(False)
+
 	# Creates a new instance of this class in the database.
 		
 	def create(self):
 		assert(self.id == None)
-		id = db.createObject()
-		self.id = id
 		
-		db.set(("object", id, "type"), self.__class__.__name__)
+		db.sql.cursor().execute(
+				"INSERT INTO "+self.table()+" (id) VALUES (NULL)"
+			)
+			
+		self.id = db.sql.last_insert_rowid()
 	
 	# Destroys this object in the database. Strictly we should remove all
 	# instance variables, but we don't track these yet, so we just leak them.

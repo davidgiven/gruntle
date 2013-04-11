@@ -24,21 +24,17 @@ class DBGuest(DBPlayer):
 	def create(self):
 		super(DBGuest, self).create("Guest", "", "")
 		self.name = "Guest " + str(self.id)
-
-		# Add the guest to the lookup index.
-		
-		guests = db.get(("root", "guests")) | {self}
-		db.set(("root", "guests"), guests)
+		self.guest = 1
 				
 	# The player has just logged in. Move the guest to the entrypoint of the
 	# default instance.
 	
 	def onLogin(self):
 		instance = getDefaultInstance()
+		self.instance = instance
 		realm = instance.realm
 		room = realm.findRoom("entrypoint")
 		
-		self.instance = instance
 		self.room = room
 		
 		super(DBGuest, self).onLogin()
@@ -46,13 +42,25 @@ class DBGuest(DBPlayer):
 # Finds an unused guest object, or creates a new one.
 
 def findGuest():
-	guests = db.get(("root", "guests"))
-	for g in guests:
-		if not g.connection:
-			return g
+	# Find a guest player who is currently disconnected.
+
+	try:
+		(id,) = db.cursor.execute(
+			"SELECT id FROM players WHERE guest=1 AND connected=0 LIMIT 1"
+			).next()
+
+		# Found one.
+
+		logging.info("recycling old guest player %d", id)
+		return DBGuest(id)
+	except StopIteration:
+		# No unused guest objects, so create one.
 		
-	# No unused guest objects, so create one.
-	
-	g = DBGuest()
-	g.create()
-	return g
+		logging.info("creating new guest player")
+		g = DBGuest()
+		g.create()
+		instance = getDefaultInstance()
+		g.instance = instance
+		g.room = instance.realm.findRoom("entrypoint")
+		return g
+		

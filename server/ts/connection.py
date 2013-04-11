@@ -10,17 +10,14 @@
 from ws4py.websocket import WebSocket
 import anyjson as json
 
-import cPickle as pickle
 import logging
 
 import ts.commands as commands
 import ts.login_commands as login_commands
+import ts.db as db
 
 class Connection(WebSocket):
 	player = None
-
-	def __getstate__(self):
-		raise pickle.PicklingError()
 
 	# Changes the player currently associated with this connection.
 	
@@ -42,18 +39,32 @@ class Connection(WebSocket):
 	# A raw message has arrived on the websocket.
 	
 	def received_message(self, message):
-		try:
-			p = "(none)"
-			if self.player:
-				p = self.player.name
-			logging.debug("%s< %s", p, message.data)
+		# The entire message processing code gets executed inside a
+		# transaction: commands which throw an exception don't change the
+		# database.
 		
-			packet = json.deserialize(message.data)
-		except TypeError:
-			self.onInvalidInput()
-			return
-
-		self.onRecvMsg(packet)
+		oldplayer = self.player
+		try:
+			with db.sql:
+				try:
+					p = "(none)"
+					if self.player:
+						p = self.player.name
+					logging.debug("%s< %s", p, message.data)
+				
+					packet = json.deserialize(message.data)
+				except TypeError:
+					self.onInvalidInput()
+					return
+		
+				self.onRecvMsg(packet)
+		except:
+			# If an exception occurred while a player was logging in,
+			# roll back the state of the connection so the player is no
+			# longer logged in. (Required because self.player may not longer
+			# be valid if, for example, the player was being created.)
+			self.player = oldplayer
+			raise
 
 	# Sends a JSON reply to the client.
 	
@@ -79,7 +90,7 @@ class Connection(WebSocket):
 			print("unknown client command:",packet)
 			self.onInvalidInput()
 			return
-
+		
 		cmdmethod(self, packet)
 
 	# Reports invalid input.

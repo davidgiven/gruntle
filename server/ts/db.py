@@ -8,45 +8,31 @@
 # the full text.
 
 import logging
-import dbhash as dbm
-import cPickle as pickle
+import apsw
 
-__database = None
+sql = None
+cursor = None
 
-def __makekey(k):
-	return str(k)
-	
-def open(filename):
+def connect(filename, initscript):
 	logging.info("using "+filename+" as database")
-	global __database
-	__database = dbm.open(filename, "c")
+	global sql
+	global cursor
+	sql = apsw.Connection(filename, statementcachesize=1000)
+	cursor = sql.cursor()
+	(count,) = cursor.execute(
+			"SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='variables'"
+		).next()
+	return (count != 0)
 	
-def get(k):
-	mk = __makekey(k)
-	return pickle.loads(__database[mk])
+def getvar(name):
+	(value,) = cursor.execute(
+			"SELECT value FROM variables WHERE key = ?",
+			(name,)
+		).next()
+	return value
 
-def set(k, v):
-	mk = __makekey(k)
-	__database[mk] = pickle.dumps(v)
-
-def isset(k):
-	mk = __makekey(k)
-	return mk in __database
-
-def unset(k):
-	mk = __makekey(k)
-	del __database[mk]
-	
-# Allocates a new unused object ID.
-
-def createObject():
-	nextobj = get(("root", "nextobj"))
-	
-	# Ensure that this object really does not exist.
-	
-	while isset(("object", nextobj)):
-		nextobj = nextobj + 1
-		
-	set(("root", "nextobj"), nextobj+1)
-	return nextobj
-		
+def setvar(name, value):
+	cursor.execute(
+			"INSERT OR REPLACE INTO variables VALUES (?, ?)",
+			(name, value)
+		)
