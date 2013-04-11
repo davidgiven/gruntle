@@ -21,7 +21,7 @@ import ts.db as db
 class DBPlayer(DBObject):
 	connections = {}
 	
-	# Return the relmas owned by this player.
+	# Return the realms owned by this player.
 	
 	@property
 	def realms(self):
@@ -173,7 +173,6 @@ class DBPlayer(DBObject):
 		);
 		
 		self.instance = instance
-		newinstance.players |= {self}
 		self.room = newroom
 		
 		self.tell(

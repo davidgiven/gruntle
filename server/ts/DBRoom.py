@@ -30,10 +30,10 @@ class DBRoom(DBObject):
 		from ts.DBRealm import DBRealm
 		return DBRealm(realm)
 	
-	def create(self, name, title, description):
+	def create(self, realm, name, title, description):
 		super(DBRoom, self).create()
-		(self.name, self.title, self.description) = \
-			name, title, description
+		(self.realm, self.name, self.title, self.description) = \
+			realm, name, title, description
 		self.immutable = False
 		self.actions = {}
 		

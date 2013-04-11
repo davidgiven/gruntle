@@ -58,17 +58,11 @@ CREATE TABLE rooms
 	title TEXT,
 	description TEXT,
 	actions BLOB,
-	immutable INTEGER
+	immutable INTEGER,
+	realm INTEGER REFERENCES realms(id)
 );
-CREATE INDEX rooms_bymname ON rooms(name);
-
-CREATE TABLE rooms_in_realm
-(
-	realm INTEGER REFERENCES realms(id) ON DELETE CASCADE,
-	room INTEGER REFERENCES rooms(id) ON DELETE CASCADE
-);
-CREATE INDEX rooms_in_realm_byrealm ON rooms_in_realm(realm);
-CREATE INDEX rooms_in_realm_byroom ON rooms_in_realm(room);
+CREATE INDEX rooms_byname ON rooms(name);
+CREATE INDEX rooms_byrealm ON rooms(realm);
 
 -- Actions.
 

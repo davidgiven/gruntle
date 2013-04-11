@@ -18,6 +18,17 @@ class DBRealm(DBObject):
 	def __init__(self, id=None):
 		super(DBRealm, self).__init__(id)
 		
+	# Return the rooms contained in this realm.
+	
+	@property
+	def rooms(self):
+		return [ DBRoom(id) for (id,) in
+			db.sql.cursor().execute(
+				"SELECT id FROM rooms WHERE realm=?",
+				(self.id,)
+			)
+		]
+	
 	def create(self, name, owner):
 		super(DBRealm, self).create()
 		(self.name, self.owner) = name, owner
@@ -32,8 +43,7 @@ class DBRealm(DBObject):
 	
 	def addRoom(self, name, title, description):
 		room = DBRoom()
-		room.create(name, title, description)
-		self.rooms |= {room}
+		room.create(self, name, title, description)
 		return room
 
 	def findRoom(self, name):
@@ -60,7 +70,6 @@ class DBRealm(DBObject):
 	 	
 	 	# Now we can destroy the room itself.
 	 	
-	 	self.rooms -= {room}
 	 	room.destroy()
 
 	# Something in this realm has changed.
