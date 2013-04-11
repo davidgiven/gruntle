@@ -9,7 +9,6 @@
 
 from ts.exceptions import *
 import ts.db as db
-import cPickle as pickle
 
 # Connects the specified class to a particular table.
 
@@ -69,28 +68,6 @@ def objrefSettersGetters(cls, destclass, fields):
 			
 		setattr(cls, f, property(get, set))
 
-# Creates setters and getters for pickled fields.
-
-def pickledSettersGetters(cls, fields):
-	table = cls.table()
-	
-	for f in fields:
-		def get(self, f=f):
-			(value,) = db.sql.cursor().execute(
-				"SELECT "+f+" FROM "+self.table()+" WHERE id = ?",
-				(self.id,)
-			).next()
-			return pickle.loads(value)
-		
-		def set(self, value, f=f):
-			print("UPDATE "+self.table()+" SET "+f+" = ? WHERE id = ?")
-			db.sql.cursor().execute(
-				"UPDATE "+self.table()+" SET "+f+" = ? WHERE id = ?",
-				(pickle.dumps(value), self.id)
-			)
-			
-		setattr(cls, f, property(get, set))
-		
 # Base class for a database-backed object.
 
 class DBObject(object):
@@ -118,20 +95,6 @@ class DBObject(object):
 	@classmethod
 	def table(cls):
 		assert(False)
-
-	def setfield(self, key, value):
-		db.sql.cursor().execute(
-			"UPDATE "+self.table()+" SET "+key+" = ? WHERE id = ?",
-			(pickle.dumps(value), self.id)
-		)
-		
-	def getfield(self, key):
-		(value,) = db.sql.cursor().execute(
-			"SELECT "+key+" FROM "+self.table()+" WHERE id = ?",
-			(self.id,)
-		)
-		return pickle.loads(value)
-		 
 
 	# Creates a new instance of this class in the database.
 		

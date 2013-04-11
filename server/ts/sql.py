@@ -9,7 +9,6 @@
 
 import logging
 import sqlite3 as sql
-import cPickle as pickle
 
 db = None
 

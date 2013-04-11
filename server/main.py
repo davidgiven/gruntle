@@ -15,7 +15,6 @@ from ws4py.websocket import EchoWebSocket
 import sys
 import argparse
 import logging
-import cPickle as pickle
 import apsw
 
 # Internal modules

@@ -9,7 +9,6 @@
 
 import logging
 import apsw
-import cPickle as pickle
 
 sql = None
 cursor = None

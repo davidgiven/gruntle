@@ -75,5 +75,5 @@ CREATE TABLE actions
 	room INTEGER REFERENCES rooms(id)
 );
 CREATE INDEX actions_byroom ON actions(room);
-	
+
 COMMIT;

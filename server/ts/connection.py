@@ -10,7 +10,6 @@
 from ws4py.websocket import WebSocket
 import anyjson as json
 
-import cPickle as pickle
 import logging
 
 import ts.commands as commands
@@ -19,9 +18,6 @@ import ts.db as db
 
 class Connection(WebSocket):
 	player = None
-
-	def __getstate__(self):
-		raise pickle.PicklingError()
 
 	# Changes the player currently associated with this connection.
 	
