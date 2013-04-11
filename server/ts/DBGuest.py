@@ -30,15 +30,11 @@ class DBGuest(DBPlayer):
 	# default instance.
 	
 	def onLogin(self):
-		print(self.instance)
-		print(self.instance.players)
-		self.instance.players -= {self}
-
 		instance = getDefaultInstance()
+		self.instance = instance
 		realm = instance.realm
 		room = realm.findRoom("entrypoint")
 		
-		instance.players |= {self}
 		self.room = room
 		
 		super(DBGuest, self).onLogin()
@@ -64,7 +60,7 @@ def findGuest():
 		g = DBGuest()
 		g.create()
 		instance = getDefaultInstance()
-		instance.players |= {g}
+		g.instance = instance
 		g.room = instance.realm.findRoom("entrypoint")
 		return g
 		

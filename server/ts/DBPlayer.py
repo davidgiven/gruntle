@@ -23,16 +23,6 @@ class DBPlayer(DBObject):
 	
 	def __init__(self, id=None):
 		super(DBPlayer, self).__init__(id)
-		
-	# Return the instance the player is currently in.
-	
-	@property
-	def instance(self):
-		(instance,) = db.sql.cursor().execute(
-				"SELECT instance FROM players_in_instance WHERE player = ?",
-				(self.id,)
-			).next()
-		return DBInstance(instance)
 			
 	def create(self, name, email, password):
 		super(DBPlayer, self).create()
@@ -172,7 +162,7 @@ class DBPlayer(DBObject):
 			}
 		);
 		
-		instance.players -= {self}
+		self.instance = instance
 		newinstance.players |= {self}
 		self.room = newroom
 		
@@ -230,6 +220,7 @@ class DBPlayer(DBObject):
 		# Announce that the player has logged in.
 				
 		logging.info("player %s logged in", self.name)
+		self.connected = 1
 		
 		self.tell(
 			{
@@ -257,6 +248,7 @@ class DBPlayer(DBObject):
 	
 	def onLogout(self):
 		logging.info("player %s logged out", self.name)
+		self.connected = 0
 		
 		self.instance.tell(self.room, self,
 			{
@@ -278,13 +270,11 @@ class DBPlayer(DBObject):
 		
 		players = [ DBPlayer(id) for (id,) in
 			db.cursor.execute(
-				"SELECT players.name, players.id FROM players "
-					"INNER JOIN players_in_instance "
-						"ON (players.id = players_in_instance.player) AND "
-							"(players_in_instance.player = ?) AND "
-							"(players.room = ?) "
+				"SELECT id FROM players "
 					"WHERE "
-						"(players.connected = 1)",
+						"(instance = ?) AND "
+						"(room = ?) AND "
+						"(connected = 1)",
 				(instance.id, room.id)
 			) ]
 	

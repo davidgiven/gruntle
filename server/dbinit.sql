@@ -24,10 +24,12 @@ CREATE TABLE players
 	password TEXT,
 	connected INTEGER,
 	guest INTEGER,
+	instance INTEGER REFERENCES instances(id),
 	room INTEGER REFERENCES rooms(id)
 );
 CREATE INDEX players_byname ON players(name);
 CREATE INDEX players_byroom ON players(room);
+CREATE INDEX players_byinstance ON players(instance);
 CREATE INDEX players_byguest ON players(guest);
 
 -- Realms and instances.
@@ -44,14 +46,6 @@ CREATE TABLE instances
 	realm INTEGER REFERENCES realms(id)
 );
 CREATE INDEX instances_byrealm ON instances(realm);
-
-CREATE TABLE players_in_instance
-(
-	player INTEGER REFERENCES players(id) ON DELETE CASCADE,
-	instance INTEGER REFERENCES instances(id) ON DELETE CASCADE
-);
-CREATE INDEX players_in_instance_byplayer ON players_in_instance(player);
-CREATE INDEX players_in_instance_byinstance ON players_in_instance(instance);
 
 CREATE TABLE realms_in_player
 (

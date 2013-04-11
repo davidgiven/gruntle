@@ -90,7 +90,7 @@ if not db.connect(args.filename, "server/dbinit.sql"):
 			}
 		)
 		
-		defaultinstance.players |= {thoth}
+		thoth.instance = defaultinstance
 		thoth.room = e
 
 logging.info("logging out all players")
