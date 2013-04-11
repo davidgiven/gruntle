@@ -30,12 +30,24 @@ class DBRoom(DBObject):
 		from ts.DBRealm import DBRealm
 		return DBRealm(realm)
 	
+	# Return any actions attached to this room.
+	
+	# Return the players currently in this instance.
+	
+	@property
+	def actions(self):
+		return [ DBAction(id) for (id,) in
+			db.sql.cursor().execute(
+				"SELECT id FROM actions WHERE room=?",
+				(self.id,)
+			)
+		]
+		
 	def create(self, realm, name, title, description):
 		super(DBRoom, self).create()
 		(self.realm, self.name, self.title, self.description) = \
 			realm, name, title, description
-		self.immutable = False
-		self.actions = {}
+		self.immutable = 0
 		
 	# Return markup which describes the room.
 	
@@ -102,8 +114,7 @@ class DBRoom(DBObject):
 				# We are creating a new action.
 				
 				newaction = DBAction()
-				newaction.create(description, type, target)
-				self.actions |= {newaction}
+				newaction.create(self, description, type, target)
 			
 		# Any left-over actions are being deleted.
 		
@@ -116,7 +127,7 @@ class DBRoom(DBObject):
 		# Verify that this action actually exists for this room.
 		
 		(exists,) = db.cursor.execute(
-				"SELECT EXISTS (SELECT * FROM actions_in_room WHERE action=? AND room=?)",
+				"SELECT EXISTS (SELECT * FROM actions WHERE id=? AND room=?)",
 				(actionid, self.id)
 			).next()
 		if (exists == 0):

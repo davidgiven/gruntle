@@ -16,20 +16,10 @@ class DBAction(DBObject):
 	def __init__(self, id=None):
 		super(DBAction, self).__init__(id)
 		
-	# Return the room this action is attached to.
-	
-	@property
-	def room(self):
-		(room,) = db.sql.cursor().execute(
-				"SELECT room FROM actions_in_room WHERE action = ?",
-				(self.id,)
-			).next()
-		return DBRoom(room)
-	
-	def create(self, description, type, target):
+	def create(self, room, description, type, target):
 		super(DBAction, self).create()
-		(self.description, self.type, self.target) = \
-			description, type, target
+		(self.room, self.description, self.type, self.target) = \
+			room, description, type, target
 		
 	# Return markup which describes the action.
 	

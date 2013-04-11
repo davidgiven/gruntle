@@ -52,7 +52,7 @@ class DBPlayer(DBObject):
 			"Unshaped nothingness stretches as far as you can see, "
 			"tempting you to start shaping it."
 		)
-		room.immutable = True
+		room.immutable = 1
 
 		return realm
 	

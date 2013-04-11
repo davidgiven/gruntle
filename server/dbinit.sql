@@ -71,15 +71,9 @@ CREATE TABLE actions
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	description TEXT,
 	type TEXT,
-	target TEXT
+	target TEXT,
+	room INTEGER REFERENCES rooms(id)
 );
-
-CREATE TABLE actions_in_room
-(
-	action INTEGER REFERENCES actions(id) ON DELETE CASCADE,
-	room INTEGER REFERENCES rooms(id) ON DELETE CASCADE
-);
-CREATE INDEX action_in_room_byaction ON actions_in_room(action);
-CREATE INDEX action_in_room_byroom ON actions_in_room(room);
+CREATE INDEX actions_byroom ON actions(room);
 	
 COMMIT;
