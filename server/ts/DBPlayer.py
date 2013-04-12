@@ -172,7 +172,7 @@ class DBPlayer(DBObject):
 			}
 		);
 		
-		self.instance = instance
+		self.instance = newinstance
 		self.room = newroom
 		
 		self.tell(
