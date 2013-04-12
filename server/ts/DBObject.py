@@ -112,5 +112,8 @@ class DBObject(object):
 		
 	def destroy(self):
 		assert(self.id != None)
-		db.unset(("object", self.id, "type"))
-			
+		
+		db.sql.cursor().execute(
+				"DELETE FROM "+self.table()+" WHERE id=?",
+				(self.id,)
+			)

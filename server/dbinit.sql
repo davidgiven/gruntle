@@ -1,6 +1,5 @@
 PRAGMA auto_vacuum = FULL;
 PRAGMA encoding = "UTF-8";
-PRAGMA synchronous = OFF;
 PRAGMA foreign_keys = ON;
 PRAGMA temp_store = MEMORY;
 

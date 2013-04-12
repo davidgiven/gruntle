@@ -19,6 +19,7 @@ def connect(filename, initscript):
 	global cursor
 	sql = apsw.Connection(filename, statementcachesize=1000)
 	cursor = sql.cursor()
+	cursor.execute('PRAGMA synchronous = OFF')
 	(count,) = cursor.execute(
 			"SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='variables'"
 		).next()

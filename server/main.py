@@ -16,6 +16,7 @@ import sys
 import argparse
 import logging
 import apsw
+import hashlib
 
 # Internal modules
 
@@ -58,7 +59,8 @@ if not db.connect(args.filename, "server/dbinit.sql"):
 
 	with db.sql:		
 		thoth = DBPlayer()
-		thoth.create("Thoth", "<no email address>", "testpassword")
+		thoth.create("Thoth", "<no email address>",
+			hashlib.sha256("testpassword").hexdigest())
 		
 		defaultrealm = thoth.addRealm("The Hub")
 		defaultinstance = defaultrealm.addInstance()

@@ -38,7 +38,8 @@
                     	{
                     		command: "createplayer",
                     		username: username,
-                    		password: password
+                    		password: password,
+                    		email: email
                     	}
                     );
         		}
