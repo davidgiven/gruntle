@@ -69,7 +69,7 @@
 	
 	var update_realm_map = function()
 	{
-		if (W.CurrentRealm.uid === W.Userid)
+		if (W.CurrentRealm.uid == W.Userid)
 		{
 			var realm = null;
 			if (realms)
@@ -378,7 +378,7 @@
         SpeechEvent: function(message)
         {
         	var s;
-        	if (message.uid === W.Userid)
+        	if (message.uid == W.Userid)
         		s = 'You say, “';
         	else
         		s = message.user + ' says, “';

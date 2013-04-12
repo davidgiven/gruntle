@@ -66,7 +66,7 @@
 						.click(warp_cb)
 						.appendTo(roomdiv);
 					
-					if (W.CurrentRoom === id)
+					if (W.CurrentRoom == id)
 						roomdiv.addClass("currentRoom");
 
 					roomdiv
