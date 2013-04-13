@@ -206,6 +206,7 @@
             	var paras = message.description.split("\n");
             	for (var i = 0; i < paras.length; i++)
             		body.append($("<p/>").text(paras[i]));
+            	jsprettify.prettifyHtml(body[0]);
             	
             	current_text_div.empty();
             	
@@ -347,6 +348,7 @@
             	
             	if (count == 0)
             		list.append("<li>(There's nothing to do here.)</li>");
+            	jsprettify.prettifyHtml(list[0]);
         	};
 
         	var show_actions = function()
