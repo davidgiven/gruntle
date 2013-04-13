@@ -1,4 +1,4 @@
-                            thickishstring v0.1
+                            thickishstring v0.2
                             ===================
 
                         Copyright © 2013 David Given
@@ -13,10 +13,9 @@ client.
 
 The client uses Javascript/HTML with a WebSockets connection to the server
 so it's fast and responsive --- if you're used to accessing AJAX websites
-you'll be astounded at how fast it is. The server is based on the tried-and-
-tested Stunt application engine, based on old LambdaMOO technology, with its
-robust object model, the ability to safely run arbitrary player scripts, and
-incredibly small server footprint.
+you'll be astounded at how fast it is. The server is written in Python using
+SQLite as the database backend; it's fast, lightweight, and should be very
+portable. 
 
 Right now it's in an incredibly rough prototype stage, but there's enough here
 to let you log in, move around, talk to other players, create your own realms
@@ -36,69 +35,25 @@ You will need:
       python-greenlet
       python-anyjson
       
- - a copy of the Stunt application server. You'll have to build this
-   yourself, but it's easy. Get it from here:
-
-      http://stunt.io/io/compiling-the-server
-
- - a copy of the WebSockify WebSockets proxy. The C version doesn't work,
-   unfortunately, so you'll need the Python one. This is available from here:
-
-      https://github.com/kanaka/websockify
 
 
-Step 1. Bootstrapping the database
-----------------------------------
+Step 1. Running the server
+--------------------------
 
-Now run 'make new'. This should, hopefully, download the required core database
-from the Stunt server and then bootstrap the thickishstring server from it.
-The new database file will be written to db/minimal.db.
+Currently there's no installation phase; the server is run directly from the
+distribution.
 
-Copy this to the location you want to run the server at (right now I
-recommend current.db). Now do this:
+    python server/main.py
 
-  moo -e current.db current.db
+This will launch the server. By default, it will listen on port 8086 and use
+the file 'test.db' as the database. These can be changed using command line
+options; try --help for the list.
 
-This will start up Stunt in Emergency Wizard Mode. This allows you to run
-arbitrary MOO commands at the prompt. The reason we're doing this is that there
-is one very important thing we need to do before going live, which is to
-change the admin password. Type this:
+If the database file does not exist, it will be created and initialised with
+a very basic realm and one instance. The realm is owned by the user Thoth,
+with default password 'testpassword'. You will want to change this.
 
-  ;$god:change_password("new password for the god user here")
-  ;$thoth:change_password("new password for the Thoth user here")
-
-Now do:
-
-  quit
-
-That will write the changed database back out to disk again. We can now
-bring the app server live with:
-
-  moo current.db current.db
-
-You can cleanly shut down the server by CTRL+Cing it, or issuing the
-shutdown command below. The database will be synced to disk hourly.
-
-
-Step 2. Running the WebSocket proxy
------------------------------------
-
-By default the app server listens on ports 7777 (for the text client) and 7778
-(for the web client). Unfortunately it doesn't speak native WebSockets itself,
-so we're using WebSockify to translate between WebSockets and a normal TCP
-stream.
-
-Assuming that you're running WebSockify on the same host as the app server, do
-this in the WebSockify directory:
-
-  ./run 0.0.0.0:8086 localhost:7778
-
-This will listen for WebSocket connections on port 8086 and proxy them to the
-app server on port 7778.
-
-You may need to configure your firewall to allow connections to port 8086, if
-appropriate. Note that you *don't* need to allow external connections to ports
-7777 or 7778, unless you want to expose the text client.
+The server can be safely shut down by ^C-ing it.
 
 
 Step 2. Configuring the web client
@@ -110,7 +65,8 @@ your web server, then edit:
   client/scripts/main.js
 
 Near the top of the file W.URL will be set to a websocket URL. Change this to
-point at the machine you're running WebSockify on.
+point at the machine you're running WebSockify on. The default setting is
+ws://localhost:8086.
 
 Now if you load the web client in a browser, a connection should be set up and
 you'll be presented with the thickishstring login screen. That means it's
@@ -122,67 +78,31 @@ ADMINISTRATION
 ==============
 
 Okay, er... there is no admin interface. In order to do things like change
-passwords, delete users, adjust server settings etc, you'll need to connect as
-the God user via the text client (or restart the server in Emergency Wizard
-Mode) and use commands in MOOcode. This is unsatisfactory. Sorry.
+passwords, delete users, adjust server settings etc, you'll need to 
+directly manipulate the database using the sqlite3 command line tool.
+This is unsatisfactory. Sorry.
 
-There are two users who are important. God, who owns everything and can do
-anything. Try not to use god to create scenery; it's a security risk.
+There is one special user, Thoth, who owns the default instance and
+The Hub. In all other respects Thoth is just an ordinary user. To
+change the default instance, modify the 'defaultinstance' entry of
+the 'variables' table to contain the id of the instance you want.
+This is where new players will appear and where players go when they're
+kicked out of an instance. For example:
 
-Instead, the Thoth user owns the core realm. Thoth is just an ordinary user
-and it's safe to log in as Thoth as a character. Thoth owns The Hub.
+    update variable set value=1234 where key='defaultinstance';
 
-Important commands:
+To change a user's password, modify the 'password' field in the
+'players' table. The value is the hex SHA256 hash of the password.
+This can be calculated with the following Python code:
 
-  ;<player object id>:change_password("<new password>")
-  ;<player object id>:name = "<new player name>"
-  ;shutdown()
+    import hashlib
+    print hashlib.sha256('new password').hexdigest()
 
-For more, see the Stunt documentation, and particularly the programmer's
-manual, here:
+The field can then be changed with:
 
-  http://stunt.io/io
+    update players set password='hex digest here' where user='username';
 
-
-
-TEXT CLIENT
-===========
-
-The Stunt application server is still a MUD, and you can connect to it on port
-7777 for the traditional interface. The user interface is appallingly crude
-but it suffices for basic administration.
-
-Telnet to port 7777. Now you can do:
-
-  connect <username> <password>
-
-...or:
-
-  create <username> <password>
-
-To log in. The admin user name is god; you set the password further up when
-you configured the database. (You did, didn't you?)
-
-Commands for interacting with the world are:
-
-  'look' (abbr. 'l')
-    to see the current room description
-  'action <x>' (abbr. 'a <x>')
-    to invoke action <x>, where <x> is an action ID
-  'say <some text>' (abbr '"<some text>' --- yes, a leading double quote)
-    say something to other players in the same room
-
-Admin-related commands include:
-
-  @passwd <new password>
-    change your password. No confirmation is done!
-  @players
-    show players on the system
-
-There's also a bunch of commands for manipulating realms, but I wouldn't
-recommend using them for now.
-
-To log out, close your telnet session. There isn't a @quit yet. Sorry.
+It is safe to modify the database while the server is running.
 
 
 
