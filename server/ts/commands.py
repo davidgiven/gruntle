@@ -43,7 +43,7 @@ def cmd_warp(connection, message):
 
 def cmd_say(connection, message):
 	try:
-		text = str(message["text"])
+		text = unicode(message["text"])
 	except KeyError:
 		connection.onInvalidInput()
 		return
@@ -55,8 +55,8 @@ def cmd_say(connection, message):
 def cmd_createroom(connection, message):
 	try:
 		instance = DBInstance(int(message["instance"]))
-		name = str(message["name"])
-		title = str(message["title"])
+		name = unicode(message["name"])
+		title = unicode(message["title"])
 	except (KeyError, InvalidObjectReference):
 		connection.onInvalidInput()
 		return
@@ -80,7 +80,7 @@ def cmd_delroom(connection, message):
 
 def cmd_createrealm(connection, message):
 	try:
-		name = str(message["name"])
+		name = unicode(message["name"])
 	except KeyError:
 		connection.onInvalidInput()
 		return
@@ -92,7 +92,7 @@ def cmd_createrealm(connection, message):
 def cmd_renamerealm(connection, message):
 	try:
 		realm = DBRealm(int(message["realmid"]))
-		newname = str(message["newname"])
+		newname = unicode(message["newname"])
 	except (KeyError, InvalidObjectReference):
 		connection.onInvalidInput()
 		return
@@ -105,18 +105,18 @@ def cmd_renamerealm(connection, message):
 def cmd_editroom(connection, message):
 	try:
 		room = DBRoom(int(message["room"]))
-		name = str(message["name"])
-		title = str(message["title"])
-		description = str(message["description"])
+		name = unicode(message["name"])
+		title = unicode(message["title"])
+		description = unicode(message["description"])
 		actions = {}
 		
 		# Sanity check the list of actions.
 		
 		for k, v in message["actions"].iteritems():
 			actions[int(k)] = {
-				"type": str(v["type"]),
-				"description": str(v["description"]),
-				"target": str(v["target"])
+				"type": unicode(v["type"]),
+				"description": unicode(v["description"]),
+				"target": unicode(v["target"])
 			}	
 	except (KeyError, InvalidObjectReference):
 		connection.onInvalidInput()
