@@ -6,7 +6,9 @@
     {
     	player: function (markup)
     	{
-    		return $("<span/>").text(markup.name);
+   			var s = $("<span/>").text(markup.name);
+    		s.css('color', W.Markup.PlayerColour(markup.name));
+    		return s;
     	},
     	
     	room: function (markup)
@@ -50,6 +52,12 @@
     			console.log("unknown markup: " + $.toJSON(markup));
     			return "";
     		}
+    	},
+    	
+    	PlayerColour: function(playername)
+    	{
+   			var c = playername.hashCode() % 360;
+			return "hsl("+c+", 50%, 20%)";
     	}
     };
 }
