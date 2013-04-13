@@ -400,16 +400,21 @@ class DBPlayer(DBObject):
 	
 	def onWarp(self, instance, room):
 		realm = instance.realm
+		
+		# If the parameter is a string, look up a room with that name.
+		# Otherwise it's a room instance.
+		
 		if isinstance(room, basestring):
-			room = realm.findRoom(room)
+			# If the player doesn't own the realm, only allow warping to the
+			# entrypoint.
+			
+			roomname = room
+			if (realm.owner != self) and (roomname != "entrypoint"):
+				raise AppError("permission denied")
+			
+			room = realm.findRoom(roomname)
 			if not room:
 				raise AppError("room '%s' does not exist", roomname)
-		
-		# If the player doesn't own the realm, only allow warping to the
-		# entrypoint.
-		
-		if (realm.owner != self) and (roomname != "entrypoint"):
-			raise AppError("permission denied")
 		
 		self.warpTo(instance, room)
 		self.onRealms()
