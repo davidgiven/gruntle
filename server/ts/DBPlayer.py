@@ -377,12 +377,20 @@ class DBPlayer(DBObject):
 		
 		try:
 			action = room.findAction(int(actionid))
+			description = action.description
 			type = action.type
 			target = action.target
 		except KeyError:
 			self.connection.onMalformed()
 			return
 			
+		self.tell(
+			{
+				"event": "activity",
+				"message": ("> " + description)
+			}
+		)
+		
 		if (type == "room"):
 			targetroom = self.instance.realm.findRoom(target)
 			self.moveTo(targetroom)
