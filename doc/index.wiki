@@ -36,10 +36,10 @@ Alternatively, you can download a snapshot of the current development version
 (there is, right now, no stable version):
 
 <blockquote class='link'>
-<a href='../../../tarball/thickishstring-tip.tar.gz?uuid=tip'>
+<a href='../../../tarball/thickishstring-trunk.tar.gz?uuid=tip'>
   <img class='link-img' height='22' width='20' alt='[BIN]' src='//cowlark.com/binary.png'>
 </a>
-<a href='../../../tarball/thickishstring-tip.tar.gz?uuid=tip'>thickishstring-tip.tar.gz</a>
+<a href='../../../tarball/thickishstring-trunk.tar.gz?uuid=tip'>thickishstring-trunk.tar.gz</a>
 <p>The current development version of thickishstring.</p>
 </blockquote>
 
