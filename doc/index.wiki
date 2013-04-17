@@ -7,10 +7,9 @@ client.
 
 The client uses Javascript/HTML with a WebSockets connection to the server
 so it's fast and responsive --- if you're used to accessing AJAX websites
-you'll be astounded at how fast it is. The server is based on the tried-and-
-tested Stunt application engine, based on old LambdaMOO technology, with its
-robust object model, the ability to safely run arbitrary player scripts, and
-incredibly small server footprint.
+you'll be astounded at how fast it is. The server is written in Python using
+SQLite as the database backend; it's fast, lightweight, and should be very
+portable. 
 
 Right now it's in an incredibly rough prototype stage, but there's enough here
 to let you log in, move around, talk to other players, create your own realms
@@ -19,7 +18,7 @@ and let other players play them.
 This is where the source code and what we shall try to laughingly call 'the
 documentation' is stored. If you want to actually <i>try</i> it, you probably
 want <a href="http://cowlark.com/~dg/thickishstring">the test server</a>
-instead. It may even be up.
+instead. It may even be running.
 
 <h3>Where can I get it?</h3>
 
@@ -33,6 +32,17 @@ fossil clone http://cowlark.com/thickishstring thickishstring.fossil
 fossil open thickishstring.fossil
 </verbatim>
 
+Alternatively, you can download a snapshot of the current development version
+(there is, right now, no stable version):
+
+<blockquote class='link'>
+<a href='../../../tarball/thickishstring-tip.tar.gz?uuid=tip'>
+  <img class='link-img' height='22' width='20' alt='[BIN]' src='//cowlark.com/binary.png'>
+</a>
+<a href='../../../tarball/thickishstring-tip.tar.gz?uuid=tip'>thickishstring-tip.tar.gz</a>
+<p>The current development version of thickishstring.</p>
+</blockquote>
+
 More installation instructions are in the README.
 
 <h3>Who wrote it?</h3>
@@ -41,6 +51,13 @@ I, <a href="http://cowlark.com">David Given</a>, wrote it. Got any comments,
 criticism, cake? Send it to <a href="mailto:dg@cowlark.com">dg@cowlark.com</a>.
 If there's interest, I'll set up a mailing list.
 
+<h3>More information?</h3>
+
+Here is a very rough-and-ready list of links to other documentation pages
+that may be of interest:
+
+  *  <a href="lambdamoo.wiki">The LambdaMOO prototype server</a>
+  
 <h3>What's the license?</h3>
 
 thickishstring is distributable under the terms of the
