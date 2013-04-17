@@ -393,6 +393,8 @@ class DBPlayer(DBObject):
 		
 		if (type == "room"):
 			targetroom = self.instance.realm.findRoom(target)
+			if not targetroom:
+				raise AppError("room '"+target+"' does not exist in realm")
 			self.moveTo(targetroom)
 		elif (type == "message"):
 			self.tell(

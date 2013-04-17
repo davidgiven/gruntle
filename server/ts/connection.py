@@ -11,10 +11,13 @@ from ws4py.websocket import WebSocket
 import anyjson as json
 
 import logging
+import sys
+import traceback
 
 import ts.commands as commands
 import ts.login_commands as login_commands
 import ts.db as db
+from ts.exceptions import *
 
 class Connection(WebSocket):
 	player = None
@@ -43,28 +46,48 @@ class Connection(WebSocket):
 		# transaction: commands which throw an exception don't change the
 		# database.
 		
-		oldplayer = self.player
 		try:
-			with db.sql:
-				try:
-					p = "(none)"
-					if self.player:
-						p = self.player.name
-					logging.debug("%s< %s", p, message.data)
-				
-					packet = json.deserialize(message.data)
-				except TypeError:
-					self.onInvalidInput()
-					return
-		
-				self.onRecvMsg(packet)
-		except:
-			# If an exception occurred while a player was logging in,
-			# roll back the state of the connection so the player is no
-			# longer logged in. (Required because self.player may not longer
-			# be valid if, for example, the player was being created.)
-			self.player = oldplayer
-			raise
+			oldplayer = self.player
+			try:
+				with db.sql:
+					try:
+						p = "(none)"
+						if self.player:
+							p = self.player.name
+						logging.debug("%s< %s", p, message.data)
+					
+						packet = json.deserialize(message.data)
+					except TypeError:
+						self.onInvalidInput()
+						return
+			
+					self.onRecvMsg(packet)
+			except:
+				# If an exception occurred while a player was logging in,
+				# roll back the state of the connection so the player is no
+				# longer logged in. (Required because self.player may not longer
+				# be valid if, for example, the player was being created.)
+				self.player = oldplayer
+				raise
+		except ServerUserError as e:
+			logging.exception("user error: %s", e)
+			self.sendMsg(
+				{
+					"event": "error",
+					"message": "Error in realm (please contact the realm author):",
+					"details": [unicode(e)]
+				}
+			)
+		except Exception as e:
+			logging.exception("server error: %s", e)
+			(type, value, tb) = sys.exc_info()
+			self.sendMsg(
+				{
+					"event": "error",
+					"message": "Server error (please contact the server administrator):",
+					"details": traceback.format_tb(tb)
+				}
+			)
 
 	# Sends a JSON reply to the client.
 	

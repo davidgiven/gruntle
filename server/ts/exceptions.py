@@ -7,15 +7,18 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
-class InvalidObjectReference(RuntimeError):
+class ServerUserError(RuntimeError):
+	pass
+	
+class InvalidObjectReference(ServerUserError):
 	def __init__(self, arg=None):
-		self.arg = arg
+		self.args = (arg,)
 		
-class PermissionDenied(RuntimeError):
+class PermissionDenied(ServerUserError):
 	def __init__(self, arg=None):
-		self.arg = arg
+		self.args = (arg,)
 		
-class AppError(RuntimeError):
+class AppError(ServerUserError):
 	def __init__(self, message, *args):
-		self.arg = message % args
+		self.args = (message % args,)
 		

@@ -59,6 +59,11 @@
     	"creationfailed": function(message)
     	{
     		W.RegisterPage.CreationFailedEvent(message);
+    	},
+    	
+    	"error": function(message)
+    	{
+    		W.GamePage.ErrorEvent(message);
     	}
     };
     

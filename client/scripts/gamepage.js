@@ -397,16 +397,17 @@
         {
         	var s;
         	if (message.uid == W.Userid)
-        		s = 'You say, “';
+        		s = 'You say, "';
         	else
         		s = message.user + ' says, “';
         	s += message.text;
-        	s += '”';
+        	s += '"';
         	
         	var m = $("<p/>");
         	m.text(s);
     		m.css('color', W.Markup.PlayerColour(message.user));
         	m.hide();
+        	jsprettify.prettifyHtml(m[0]);
         	current_status_div.append(m);
         	W.Effects.NewText(m);
         	adjustScrolling(false);
@@ -417,11 +418,31 @@
         	var m = $("<div/>");
         	m.textWithBreaks(message.message);
         	m.hide();
+        	jsprettify.prettifyHtml(m[0]);
         	current_status_div.append(m);
         	W.Effects.NewText(m);
         	adjustScrolling(false);
         },
         
+        ErrorEvent: function(message)
+        {
+        	var m = $("<p class='realmerror'/>")
+        		.text(message.message);
+        	var bq = $("<blockquote/>")
+        	$.each(message.details,
+        		function (_, s)
+        		{
+        			$("<div/>").text(s).appendTo(bq)
+        		}
+        	);
+        	m.append(bq);
+        	m.hide();
+        	jsprettify.prettifyHtml(m[0]);
+        	current_status_div.append(m);
+        	W.Effects.NewText(m);
+        	adjustScrolling(false);
+        },
+        	
         RealmsEvent: function(message)
         {
        		realms = message;
