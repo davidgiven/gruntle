@@ -32,14 +32,16 @@
 							{
 								command: "warp",
 								instance: W.CurrentInstance,
-								roomname: room.name
+								room: id
 							}
 						);
 						return false;
 					};
 					
 					var roomdiv = $("<div class='clear'/>");
-					$("<a href='#' class='iconbutton dangerous tableiconleft'>✖</a>")
+					if (!room.immutable)
+					{
+						$("<a href='#' class='iconbutton dangerous tableiconleft'>✖</a>")
 						.click(
 							function()
 							{
@@ -52,12 +54,19 @@
 								return false;
 							}
 						).appendTo(roomdiv);
+					}
+					else
+					{
+						$("<span class='iconbutton dangerous tableiconleft'/>")
+							.appendTo(roomdiv);
+					}
+					
 					$("<a href='#'/>")
 						.text(room.name)
 						.click(warp_cb)
 						.appendTo(roomdiv);
 					
-					if (W.CurrentRoom === id)
+					if (W.CurrentRoom == id)
 						roomdiv.addClass("currentRoom");
 
 					roomdiv

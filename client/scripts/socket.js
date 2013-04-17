@@ -94,25 +94,38 @@
         	
         	W.WS.onmessage = function(event)
             {
-        		var incoming = new Uint8Array(event.data);
-        		
-        		/* Append all the data in the packet to the buffer. Note
-        		 * whether we saw a newline. */
-        		
-        		var newline = false;
-        		for (var i=0; i<incoming.length; i++)
+        		if (typeof(event.data) == "string")
         		{
-        			var b = incoming[i];
-        			if (b === 10)
-        				newline = true;
-        			buffer += String.fromCharCode(b);
+        			/* The server seems to be running in string mode. This
+        			 * means we're getting complete packets from the server,
+        			 * which won't be fragmented, which in turns mean we can
+        			 * bypass all the horrible stream decoding stuff that we
+        			 * had to do with the websockify-wrapped server. */ 
+        			
+        			W.OnMessageReceived($.evalJSON(event.data));
         		}
-
-        		/* If we saw a newline, then there might be a complete line
-        		 * of input from the server. */
-        		
-        		if (newline)
-        			check_buffer();
+        		else
+        		{
+            		var incoming = new Uint8Array(event.data);
+            		
+            		/* Append all the data in the packet to the buffer. Note
+            		 * whether we saw a newline. */
+            		
+            		var newline = false;
+            		for (var i=0; i<incoming.length; i++)
+            		{
+            			var b = incoming[i];
+            			if (b === 10)
+            				newline = true;
+            			buffer += String.fromCharCode(b);
+            		}
+    
+            		/* If we saw a newline, then there might be a complete line
+            		 * of input from the server. */
+            		
+            		if (newline)
+            			check_buffer();
+        		}
             };
             
             W.WS.onerror = function(event)

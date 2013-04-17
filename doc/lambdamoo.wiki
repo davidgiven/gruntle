@@ -1,0 +1,24 @@
+<title>The LambdaMOO prototype server</title>
+
+The Python version of the server is actually the second version. The
+original prototype was written as a LambdaMOO application server, using
+<a href="http://stunt.io/">Stunt</a> as the server. It worked really well,
+but design changes meant that it no longer fitted the design of thickishstring
+and so it got rewritten.
+
+Thanks to the magic of version control systems, the source is still available;
+it makes an interesting example of using LambdaMOO/Stunt as a pure app
+server, rather than as a traditional MUD.
+
+Look at the <a href='../../../dir?ci=moo'><code>moo</code></a> branch of the
+VCS, or else download a snapshot as follows:
+
+<blockquote class='link'>
+<a href='../../../tarball/thickishstring-moo.tar.gz?uuid=moo'>
+  <img class='link-img' height='22' width='20' alt='[BIN]' src='//cowlark.com/binary.png'>
+</a>
+<a href='../../../tarball/thickishstring-moo.tar.gz?uuid=moo'>thickishstring-moo.tar.gz</a>
+<p>The LambdaMOO version of thickishstring.</p>
+</blockquote>
+  
+Installation instructions are in the README.

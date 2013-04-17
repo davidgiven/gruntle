@@ -69,7 +69,7 @@
 	
 	var update_realm_map = function()
 	{
-		if (W.CurrentRealm.uid === W.Userid)
+		if (W.CurrentRealm.uid == W.Userid)
 		{
 			var realm = null;
 			if (realms)
@@ -206,6 +206,7 @@
             	var paras = message.description.split("\n");
             	for (var i = 0; i < paras.length; i++)
             		body.append($("<p/>").text(paras[i]));
+            	jsprettify.prettifyHtml(body[0]);
             	
             	current_text_div.empty();
             	
@@ -237,7 +238,13 @@
             			function(name, uid)
             			{
             				if (uid != W.Userid)
-            					players.push(name);
+            					players.push(
+            						{
+            							type: "player",
+            							name: name,
+            							oid: uid
+            						}
+            					);
             			}
             		);
             		
@@ -245,21 +252,31 @@
             		
             		if (players.length > 0)
             		{
-                		var s = "";
+            			var m = [];
+                		
                 		for (var i=0; i<(players.length-1); i++)
-				{
-                			s += players[i];
-					if (i < (players.length-1))
-						s += ",";
-					s += " ";
-				}
-                		
-				if (players.length == 1)
-					s = players[0] + " is here.";
+        				{
+                			m.push(players[i]);
+        					if (i < (players.length-1))
+        						m.push(",");
+        					m.push(" ");
+        				}
+                        		
+        				if (players.length == 1)
+        				{
+        					m.push(players[i]);
+                			m.push(' is here.');
+        				}
                 		else if (players.length > 1)
-                			s += " and " + players[players.length-1] + " are here.";
-                		
-           				$("<p/>").text(s).appendTo(current_status_div);
+                		{
+                			m.push(" and ");
+                			m.push(players[players.length-1]);
+                			m.push(" are here.");
+                		}
+
+        				var s = $("<p/>")
+        				W.Markup.ToDOM(m).appendTo(s);
+        				s.appendTo(current_status_div);
             		}
             		
             		shown_user_list = true;
@@ -347,6 +364,7 @@
             	
             	if (count == 0)
             		list.append("<li>(There's nothing to do here.)</li>");
+            	jsprettify.prettifyHtml(list[0]);
         	};
 
         	var show_actions = function()
@@ -378,16 +396,18 @@
         SpeechEvent: function(message)
         {
         	var s;
-        	if (message.uid === W.Userid)
-        		s = 'You say, “';
+        	if (message.uid == W.Userid)
+        		s = 'You say, "';
         	else
         		s = message.user + ' says, “';
         	s += message.text;
-        	s += '”';
+        	s += '"';
         	
         	var m = $("<p/>");
         	m.text(s);
+    		m.css('color', W.Markup.PlayerColour(message.user));
         	m.hide();
+        	jsprettify.prettifyHtml(m[0]);
         	current_status_div.append(m);
         	W.Effects.NewText(m);
         	adjustScrolling(false);
@@ -398,11 +418,31 @@
         	var m = $("<div/>");
         	m.textWithBreaks(message.message);
         	m.hide();
+        	jsprettify.prettifyHtml(m[0]);
         	current_status_div.append(m);
         	W.Effects.NewText(m);
         	adjustScrolling(false);
         },
         
+        ErrorEvent: function(message)
+        {
+        	var m = $("<p class='realmerror'/>")
+        		.text(message.message);
+        	var bq = $("<blockquote/>")
+        	$.each(message.details,
+        		function (_, s)
+        		{
+        			$("<div/>").text(s).appendTo(bq)
+        		}
+        	);
+        	m.append(bq);
+        	m.hide();
+        	jsprettify.prettifyHtml(m[0]);
+        	current_status_div.append(m);
+        	W.Effects.NewText(m);
+        	adjustScrolling(false);
+        },
+        	
         RealmsEvent: function(message)
         {
        		realms = message;
