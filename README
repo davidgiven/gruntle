@@ -51,7 +51,8 @@ options; try --help for the list.
 
 If the database file does not exist, it will be created and initialised with
 a very basic realm and one instance. The realm is owned by the user Thoth,
-with default password 'testpassword'. You will want to change this.
+with default password 'testpassword'. You will want to change this. (The
+option's in the 'Account' menu at the top right of the client screen.)
 
 The server can be safely shut down by ^C-ing it.
 
@@ -78,8 +79,8 @@ ADMINISTRATION
 ==============
 
 Okay, er... there is no admin interface. In order to do things like change
-passwords, delete users, adjust server settings etc, you'll need to 
-directly manipulate the database using the sqlite3 command line tool.
+other people's passwords, delete users, adjust server settings etc, you'll
+need to directly manipulate the database using the sqlite3 command line tool.
 This is unsatisfactory. Sorry.
 
 There is one special user, Thoth, who owns the default instance and
