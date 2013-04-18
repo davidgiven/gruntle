@@ -23,6 +23,7 @@
 					<a href="#">Account</a>
 					<span>▾</span>
 					<ul>
+						<li><a href="#" id="menuchangepassword">Change password</a></li>
 						<li><a href="#" id="menulogout">Log out</a></li>
 					</ul>
 				</li>
@@ -133,25 +134,60 @@
 </div>
 
 <div id="warptoinstance" class="dialogue">
-	<h3 class="dialogue-title">Warp to instance</h3>
+    <h3 class="dialogue-title">Warp to instance</h3>
+    <div class="nonscrollcontainer">
+        <table>
+            <tr>
+                <td colspan="2">
+                    <p>To warp directly to someone else's instance, enter the
+                        instance ID below. (You'll have to get them to tell it to
+                        you.)</p>
+                </td>
+            </tr>
+            <tr>
+                <th>Instance ID:</th>
+                <td><div contenteditable="true" id="warptoinstanceid"><br/></div></td>
+            </tr>
+            <tr>
+                <th/>
+                <td class='containsbuttons'>
+                    <input type="button" id="warptoinstancecancelbutton" value="Cancel"/>
+                    <input type="button" id="warptoinstanceokbutton" value="Warp"/>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div id="changepassword" class="dialogue">
+	<h3 class="dialogue-title">Change Password</h3>
 	<div class="nonscrollcontainer">
 		<table>
 			<tr>
 				<td colspan="2">
-					<p>To warp directly to someone else's instance, enter the
-					instance ID below. (You'll have to get them to tell it to
-					you.)</p>
+					<p>To change your account password, enter your old password
+					for verification and your desired new password into the
+					boxes below.
+					</p>
 				</td>
 			</tr>
 			<tr>
-				<th>Instance ID:</th>
-				<td><div contenteditable="true" id="warptoinstanceid"><br/></div></td>
+				<th>Old password:</th>
+				<td><input id="changepasswordold" type="password"/></td>
+			</tr>
+			<tr>
+				<th>New password:</th>
+				<td><input id="changepasswordnew" type="password"/></td>
+			</tr>
+			<tr>
+				<th>Verify new password:</th>
+				<td><input id="changepasswordverify" type="password"/></td>
 			</tr>
 			<tr>
 				<th/>
 				<td class='containsbuttons'>
-					<input type="button" id="warptoinstancecancelbutton" value="Cancel"/>
-					<input type="button" id="warptoinstanceokbutton" value="Warp"/>
+					<input type="button" id="changepasswordcancelbutton" value="Cancel"/>
+					<input type="button" id="changepasswordokbutton" value="OK"/>
 				</td>
 			</tr>
 		</table>

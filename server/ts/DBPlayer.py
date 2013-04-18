@@ -269,7 +269,29 @@ class DBPlayer(DBObject):
 				]
 			}
 		)
-							
+
+	# Change the player's password to the specified hash.
+
+	def onChangePassword(self, oldhash, newhash):
+		if (oldhash == self.password):
+			self.password = newhash
+
+			self.tell(
+				{
+					"event": "changepasswordresult",
+					"success": True,
+					"message": "Your password was changed."
+				}
+			)
+		else:
+			self.tell(
+				{
+					"event": "changepasswordresult",
+					"success": False,
+					"message": "Incorrect password."
+				}
+			)
+
 	# Announce the current room to the client.
 	
 	def onLook(self):

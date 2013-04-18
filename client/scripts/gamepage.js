@@ -153,6 +153,10 @@
                     $("#actionsarea").hide();
                     $("#editbutton").hide();
                     
+                    $("#menuchangepassword")
+                    	.unbind()
+                    	.click(W.GamePage.ChangePasswordEvent);
+
                     $("#menulogout")
                     	.unbind()
                     	.click(W.GamePage.LogoutEvent);
@@ -543,6 +547,92 @@
         		.done(W.Socket.Disconnect);
         },
         
+        ChangePasswordEvent: function()
+        {
+        	$("#changepasswordcancelbutton")
+        		.unbind()
+        		.click(
+        			function()
+        			{
+        				W.Effects.HideDialogue($("#changepassword"));
+        			}
+        		);
+
+        	var changepassword_cb = function()
+        	{
+				var oldpassword = $("#changepasswordold").prop("value");
+				var newpassword = $("#changepasswordnew").prop("value");
+				var verifypassword = $("#changepasswordverify").prop("value");
+
+				if (newpassword !== verifypassword)
+				{
+					W.Dialogue(
+						{
+							message: "The two copies of the new password " +
+								"don't match.",
+							positive: "OK"
+						}
+					);
+				}
+				else
+				{
+	        		W.Socket.Send(
+	        			{
+	        			 	command: "changepassword",
+	        			 	oldpassword: oldpassword,
+	        			 	newpassword: newpassword
+	        			}
+	        		);
+				}
+				return false;
+        	};
+
+        	$("#changepasswordokbutton")
+        		.unbind()
+        		.click(changepassword_cb);
+
+			$("#changepasswordold")
+				.unbind()
+				.singleLineEditor(
+					function()
+					{
+						$("#changepasswordnew").focus()
+					}
+				).html("<br/>");
+
+			$("#changepasswordnew")
+				.unbind()
+				.singleLineEditor(
+					function()
+					{
+						$("#changepasswordverify").focus()
+					}
+				).html("<br/>");
+
+			$("#changepasswordverify")
+				.unbind()
+				.singleLineEditor(changepassword_cb)
+				.html("<br/>");
+
+        	return W.Effects.ShowDialogue($("#changepassword"));
+        },
+
+		ChangePasswordResultEvent: function(message)
+		{
+			W.Dialogue(
+				{
+					message: message.message,
+					positive: "OK",
+					positivecb:
+						function()
+						{
+							if (message.success)
+								W.Effects.HideDialogue($("#changepassword"));
+						}
+				}
+			);
+		},
+
         WarpToInstanceEvent: function()
         {
         	$("#warptoinstancecancelbutton")

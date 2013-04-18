@@ -63,8 +63,13 @@
     	
     	"error": function(message)
     	{
-    		W.GamePage.ErrorEvent(message);
-    	}
+			W.GamePage.ErrorEvent(message);
+    	},
+
+    	"changepasswordresult": function(message)
+    	{
+			W.GamePage.ChangePasswordResultEvent(message);
+    	},
     };
     
     W.OnMessageReceived = function(s)

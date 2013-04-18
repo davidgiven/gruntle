@@ -7,6 +7,8 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
+import hashlib
+
 from ts.DBInstance import *
 from ts.DBRoom import *
 from ts.DBRealm import *
@@ -14,6 +16,23 @@ from ts.exceptions import InvalidObjectReference
 
 # Functions of the form cmd_FNORD are executed when an *authenticated*
 # player tries to execute command 'FNORD'.
+
+# The player wants to change their password.
+
+def cmd_changepassword(connection, message):
+	try:
+		oldpassword = unicode(message["oldpassword"])
+		newpassword = unicode(message["newpassword"])
+	except KeyError:
+		connection.onInvalidInput()
+		return
+
+	oldhash = hashlib.sha256(oldpassword).hexdigest()
+	newhash = hashlib.sha256(newpassword).hexdigest()
+
+	connection.player.onChangePassword(oldhash, newhash)
+
+# The player wants to perform an action on the current room.
 
 def cmd_action(connection, message):
 	try:
@@ -124,3 +143,4 @@ def cmd_editroom(connection, message):
 
 	room.checkOwner(connection.player)			
 	connection.player.onEditRoom(room, name, title, description, actions)
+
