@@ -120,7 +120,7 @@
                             if (event.keyCode === 13)
                             {
                             	var msg = $("#chatinput").text();
-                            	$("#chatinput").html("<br/>");
+                            	$("#chatinput").html("");
                             	msg = msg.trim();
                             	if (msg != "")
                             	{
