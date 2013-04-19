@@ -66,7 +66,7 @@
 			};
 
 			this.contents().each(append);
-			var s = st.join("").replace(/\n+/, "\n");
+			var s = st.join("").replace(/\n+/, "\n").replace(/\n+$/, "");
 			return s;
     		}
     	};
