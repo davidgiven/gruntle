@@ -32,7 +32,10 @@ def cmd_connect(connection, message):
 		"SELECT id FROM players WHERE name=? AND password=?",
 		(username, hashlib.sha256(password).hexdigest())
 	)
-	if not r:
+
+	try:
+		(id,) = r.next()
+	except StopIteration:
 		connection.sendMsg(
 			{
 				"event": "authfailed"
@@ -40,7 +43,6 @@ def cmd_connect(connection, message):
 		)
 		return
 
-	(id,) = r.next()
 	player = DBPlayer(id)
 
 	connection.setPlayer(player)
