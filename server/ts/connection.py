@@ -85,7 +85,8 @@ class Connection(WebSocket):
 				{
 					"event": "error",
 					"message": "Server error (please contact the server administrator):",
-					"details": traceback.format_tb(tb)
+					"details": [e.__class__.__name__ + " " + unicode(e)] +
+						traceback.format_tb(tb)
 				}
 			)
 
