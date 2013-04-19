@@ -86,16 +86,18 @@
     		W.RealmEditor.Hide();
 	};
 
-	var show_simple_markup = function(markup)
+	var show_simple_markup = function(markup, style)
 	{
-    	if (!current_status_div)
+			if (!current_status_div)
     		return;
     	
 		var m = $("<p/>").append(W.Markup.ToDOM(markup));
+		if (style)
+			m.addClass(style);
 		
 		current_status_div.append(m);
 		W.Effects.NewText(m);
-    	adjustScrolling(false);
+		adjustScrolling(false);
 	};
 	
     W.GamePage =
@@ -346,6 +348,14 @@
                 		e.click(
                 			function()
                     		{
+					show_simple_markup(
+						[
+							"> ",
+							action.description
+						],
+						"action"
+					);
+
                     			W.Socket.Send(
                     				{
                     				 	command: "action",
@@ -464,6 +474,14 @@
         			a.click(
         				function()
         				{
+						show_simple_markup(
+							[
+								"> Warp to ",
+								realm.name
+							],
+							"action"
+						);
+
         					W.Socket.Send(
         						{
         						 	command: "warp",
@@ -505,6 +523,14 @@
         			a.click(
         				function()
         				{
+						show_simple_markup(
+							[
+								"> Warp to ",
+								realm.name
+							],
+							"action"
+						);
+
         					W.Socket.Send(
         						{
         						 	command: "warp",

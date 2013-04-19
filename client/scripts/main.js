@@ -3,7 +3,7 @@
     "use strict";
     
     window.W = {};
-    W.URL = "ws://localhost:8086";
+    W.URL = "ws://gate.cowlark.com:8086";
 
     W.OnSocketOpened = function()
     {

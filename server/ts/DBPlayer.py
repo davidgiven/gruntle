@@ -406,13 +406,6 @@ class DBPlayer(DBObject):
 			self.connection.onMalformed()
 			return
 			
-		self.tell(
-			{
-				"event": "activity",
-				"message": ("> " + description)
-			}
-		)
-		
 		if (type == "room"):
 			targetroom = self.instance.realm.findRoom(target)
 			if not targetroom:
