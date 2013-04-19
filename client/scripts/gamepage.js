@@ -403,7 +403,7 @@
         	if (message.uid == W.Userid)
         		s = 'You say, "';
         	else
-        		s = message.user + ' says, “';
+        		s = message.user + ' says, "';
         	s += message.text;
         	s += '"';
         	
