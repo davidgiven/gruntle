@@ -67,7 +67,8 @@ your web server, then edit:
 
 Near the top of the file W.URL will be set to a websocket URL. Change this to
 point at the machine you're running WebSockify on. The default setting is
-ws://gate.cowlark.com:8086.
+port 8086 of the same machine the client is served from (the host is
+autodetected).
 
 Now if you load the web client in a browser, a connection should be set up and
 you'll be presented with the thickishstring login screen. That means it's
