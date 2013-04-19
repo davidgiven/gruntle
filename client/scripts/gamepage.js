@@ -568,6 +568,7 @@
         
         LogoutEvent: function()
         {
+            W.LoginPage.RemoveLoginCookie();
         	W.Effects.HidePage($("#page"))
         		.promise()
         		.done(W.Socket.Disconnect);
