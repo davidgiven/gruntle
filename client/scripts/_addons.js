@@ -50,20 +50,24 @@
     			
         		var st = [];
         		
-        		var c = this.children();
-        		if (c.length == 0)
-        			return this.text();
-        		
-        		c.each(
-        			function(i, e)
-        			{
-        				var s = $(e).text().trim();
-        				if (s !== "")
-        					st.push(s);
-        			}
-        		);
-        		
-        		return st.join("\n");
+			var append = function()
+			{
+				switch (this.nodeType)
+				{
+					case Node.ELEMENT_NODE:
+						$(this).contents().each(append);
+						st.push("\n");
+						break;
+
+					default:
+						st.push($(this).text());
+						break;
+				}
+			};
+
+			this.contents().each(append);
+			var s = st.join("").replace(/\n+/, "\n");
+			return s;
     		}
     	};
     	
