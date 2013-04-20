@@ -30,12 +30,12 @@ class Connection(WebSocket):
 	# A new connection has been opened.
 		
 	def opened(self):
-		logging.info("connection %s opened", self)
+		logging.info("connection %s opened", id(self))
 		
 	# The websocket has closed.
 	
 	def closed(self, code, reason=None):
-		logging.info("connection %s closed", self)
+		logging.info("connection %s closed", id(self))
 		if self.player:
 			self.player.onConnectionClosed()
 		
@@ -54,7 +54,7 @@ class Connection(WebSocket):
 						p = "(none)"
 						if self.player:
 							p = self.player.name
-						logging.debug("%s< %s", p, message.data)
+						logging.debug("%d,%s< %s", id(self), p, message.data)
 					
 						packet = json.deserialize(message.data)
 					except TypeError:
@@ -97,7 +97,7 @@ class Connection(WebSocket):
 		p = "(none)"
 		if self.player:
 			p = self.player.name
-		logging.debug("%s> %s", p, j)
+		logging.debug("%d,%s> %s", id(self), p, j)
 		self.send(j, False)
 
 	# A processed message has arrived.

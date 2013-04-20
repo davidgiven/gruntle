@@ -211,6 +211,17 @@ class DBPlayer(DBObject):
 
 		if loggedin:
 			self.onLogin()
+		else:
+			self.tell(
+				{
+					"event": "loggedin",
+					"user": self.name,
+					"uid": self.id
+				}
+			)
+
+			self.onLook()
+			self.onRealms()
 			
 	# The player has just logged out.
 	
