@@ -34,7 +34,8 @@ You will need:
       python-gevent
       python-greenlet
       python-anyjson
-      
+      python-ply
+
 
 
 Step 1. Running the server
@@ -139,3 +140,9 @@ The Javascript client embeds copies of:
 - LESS; Apache 2 licensed, see http://lesscss.org/
 - Yahoo's reset-min; BSD licensed, see http://developer.yahoo.com/yui/license.html
 - jsprettify; Apache 2 licensed, see https://code.google.com/p/jsprettify.
+
+The Python server embeds copies of:
+
+- a modified version of unparse, which is one of the standard Python demo
+  scripts; Python Software Foundation License 2, I assume.
+  http://svn.python.org/projects/python/trunk/Demo/parser/unparse.py
