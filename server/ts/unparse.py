@@ -422,7 +422,7 @@ class Unparser:
     unop = {"Invert":"~", "Not": "not", "UAdd":"+", "USub":"-"}
     def _UnaryOp(self, t):
         self.write("(")
-        self.write(self.unop[t.op.__class__.__name__])
+        self.write(self.unop[t.op.__name__])
         self.write(" ")
         # If we're applying unary minus to a number, parenthesize the number.
         # This is necessary: -2147483648 is different from -(2147483648) on
@@ -457,10 +457,10 @@ class Unparser:
             self.dispatch(e)
         self.write(")")
 
-    boolops = {ast.And: 'and', ast.Or: 'or'}
+    boolops = {"And": 'and', "Or": 'or'}
     def _BoolOp(self, t):
         self.write("(")
-        s = " %s " % self.boolops[t.op.__class__]
+        s = " %s " % self.boolops[t.op.__name__]
         interleave(lambda: self.write(s), self.dispatch, t.values)
         self.write(")")
 

@@ -17,6 +17,9 @@ import ast
 keywords = {
 	'true': 'TRUE',
 	'false': 'FALSE',
+	'not': 'NOT',
+	'and': 'AND',
+	'or': 'OR',
 	'if': 'IF',
 	'then': 'THEN',
 	'else': 'ELSE',
@@ -102,6 +105,8 @@ cmp_infix_operator_map = {
 }
 
 precedence = (
+	('left', 'OR'),
+	('left', 'AND'),
 	('left', 'ASSIGN', 'EQ', 'NE', 'LT', 'LE', 'GT', 'GE'),
 	('left', '+', '-'),
 	('left', '*', '/', '%')
@@ -118,7 +123,7 @@ def call_runtime(name, *args):
         kwargs=[],
         starargs=[])
 
-def p_expression_alu_infix(p):
+def p_expression_infix(p):
 	r'''
 		expression : expression '+' expression
 		           | expression '-' expression
@@ -142,6 +147,14 @@ def p_expression_alu_infix(p):
 	else:
 		op = cmp_infix_operator_map[opname]
 		p[0] = ast.Compare(left=p[1], ops=[op], comparators=[right])
+
+def p_expression_and(p):
+	r"expression : expression AND expression"
+	p[0] = ast.BoolOp(op=ast.And, values=[p[1], p[3]])
+
+def p_expression_or(p):
+	r"expression : expression OR expression"
+	p[0] = ast.BoolOp(op=ast.Or, values=[p[1], p[3]])
 
 def p_expression_leaf(p):
 	r"expression : leaf"
@@ -170,6 +183,10 @@ def p_leaf_true(p):
 def p_leaf_false(p):
 	r"leaf : FALSE"
 	p[0] = ast.Name("False", ast.Load)
+
+def p_leaf_not(p):
+	r"leaf : NOT leaf"
+	p[0] = ast.UnaryOp(op=ast.Not, operand=p[2])
 
 # Substatements
 
@@ -238,7 +255,7 @@ parser = yacc.yacc(start='statements', debug=True, debuglog=logging)
 
 if __name__=="__main__":
 	script = '''
-		if x+1 = y+1 then
+		if not x then
 			x = y
 		endif
 	'''
