@@ -188,76 +188,70 @@ def p_leaf_not(p):
 	r"leaf : NOT leaf"
 	p[0] = ast.UnaryOp(op=ast.Not, operand=p[2])
 
-# Substatements
+# Statements
 
-def p_substatement_assign_var(p):
-	r"substatement : ID ASSIGN expression"
+def p_statement_assign_var(p):
+	r"statement : ID ASSIGN expression"
 	p[0] = ast.Assign([ast.Name("var_"+p[1], ast.Store)], p[3])
 
-def p_substatement_assign_global(p):
-	r"substatement : '$' ID ASSIGN expression"
+def p_statement_assign_global(p):
+	r"statement : '$' ID ASSIGN expression"
 	p[0] = ast.Expr(call_runtime("SetGlobal", ast.Str(p[2]), p[4]))
 
-def p_substatement_if(p):
-	r"substatement : IF expression THEN substatements"
+def p_statement_singleline_if(p):
+	r"statement : IF expression THEN singlelinestatements"
 	p[0] = ast.If(test=p[2], body=p[4], orelse=[])
 
-def p_substatement_if_else(p):
-	r"substatement : IF expression THEN substatements ELSE substatements"
+def p_statement_singleline_if_else(p):
+	r"statement : IF expression THEN singlelinestatements ELSE singlelinestatements"
 	p[0] = ast.If(test=p[2], body=p[4], orelse=p[6])
 
-def p_substatements_single(p):
-	r"substatements : substatement"
-	p[0] = [p[1]]
+def p_statement_multiline_if_else(p):
+	r"statement : IF expression THEN NL statements else"
+	p[0] = [ast.If(test=p[2], body=p[5], orelse=p[6])]
 
-def p_substatements_multiple(p):
-	r"substatements : substatement ':' substatements"
-	p[0] = [p[1]] + p[3]
+def p_else_empty(p):
+	r"else : ENDIF"
+	p[0] = []
 
-# Statements
+def p_else_else(p):
+	r"else : ELSE statements ENDIF"
+	p[0] = p[2]
+
+def p_else_elseif(p):
+	r"else : ELSEIF expression THEN NL statements else"
+	p[0] = [ast.If(test=p[2], body=p[5], orelse=p[6])]
 
 def p_statement_empty(p):
 	r"statement :"
 	p[0] = []
 
-def p_statement_if_else(p):
-	r"statement : IF expression THEN NL statements structuredelse"
-	p[0] = [ast.If(test=p[2], body=p[5], orelse=p[6])]
+def p_singlelinestatements_single(p):
+	r"singlelinestatements : statement"
+	p[0] = [p[1]]
 
-def p_statement_structuredelse_empty(p):
-	r"structuredelse : ENDIF NL"
-	p[0] = []
-
-def p_statement_structuredelse_else(p):
-	r"structuredelse : ELSE NL statements ENDIF NL"
-	p[0] = p[2]
-
-def p_statement_structuredelse_elsef(p):
-	r"structuredelse : ELSEIF expression THEN NL statements structuredelse"
-	p[0] = [ast.If(test=p[2], body=p[5], orelse=p[6])]
-
-def p_statement_substatements(p):
-	r"statement : substatements"
-	p[0] = p[1]
+def p_singlelinestatements_multiple(p):
+	r"singlelinestatements : statement ':' singlelinestatements"
+	p[0] = [p[1]] + p[3]
 
 def p_statements_single(p):
-	r"statements : statement"
+	r"statements : singlelinestatements"
 	p[0] = p[1]
 
 def p_statements_multiple(p):
-	r"statements : statement NL statements"
+	r"statements : singlelinestatements NL statements"
 	p[0] = p[1] + p[3]
 
 def p_error(p):
     logging.error("Syntax error %s" % p)
 
-parser = yacc.yacc(start='statements', debug=True, debuglog=logging)
+parser = yacc.yacc(start='statements')
 
 if __name__=="__main__":
 	script = '''
-		if not x then
-			x = y
-		endif
+		if not x then x = y: y=0: if z then
+			x=y: y=0
+		endif: z=0
 	'''
 	node = parser.parse(script)
 	from unparse import Unparser
