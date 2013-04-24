@@ -27,6 +27,8 @@ keywords = {
 	'endif': 'ENDIF',
 	'for': 'FOR',
 	'next': 'NEXT',
+	'step': 'STEP',
+	'to': 'TO',
 	'break': 'BREAK',
 	'continue': 'CONTINUE'
 }
@@ -120,8 +122,8 @@ def call_runtime(name, *args):
         ),
         args=args,
         keywords=[],
-        kwargs=[],
-        starargs=[])
+        kwargs=None,
+        starargs=None)
 
 def p_expression_infix(p):
 	r'''
@@ -210,6 +212,29 @@ def p_statement_multiline_if_else(p):
 	r"statement : IF expression THEN NL statements else"
 	p[0] = [ast.If(test=p[2], body=p[5], orelse=p[6])]
 
+def p_statement_for_next(p):
+	r"statement : FOR ID ASSIGN expression TO expression step statements NEXT"
+	p[0] = ast.For(
+		target=ast.Name("var_"+p[2], ast.Store),
+        iter=ast.Call(
+            func=ast.Name("range", ast.Load),
+            args=[p[4], p[6], p[7]],
+            keywords=[],
+            starargs=None,
+            kwargs=None
+        ),
+        body=p[8],
+        orelse=[]
+    )
+
+def p_statement_step_empty(p):
+	r"step :"
+	p[0] = ast.Num(1)
+
+def p_statement_step_value(p):
+	r"step : STEP expression"
+	p[0] = p[2]
+
 def p_else_empty(p):
 	r"else : ENDIF"
 	p[0] = []
@@ -224,7 +249,7 @@ def p_else_elseif(p):
 
 def p_statement_empty(p):
 	r"statement :"
-	p[0] = []
+	p[0] = [ast.Pass()]
 
 def p_singlelinestatements_single(p):
 	r"singlelinestatements : statement"
@@ -249,9 +274,10 @@ parser = yacc.yacc(start='statements')
 
 if __name__=="__main__":
 	script = '''
-		if not x then x = y: y=0: if z then
-			x=y: y=0
-		endif: z=0
+		for x = 0 to 10: $x = x: next
+		for x=10 to 0 step $x
+			$x = x
+		next
 	'''
 	node = parser.parse(script)
 	from unparse import Unparser
