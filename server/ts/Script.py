@@ -20,6 +20,7 @@ keywords = {
 	'if': 'IF',
 	'then': 'THEN',
 	'else': 'ELSE',
+	'elseif': 'ELSEIF',
 	'endif': 'ENDIF',
 	'for': 'FOR',
 	'next': 'NEXT',
@@ -31,10 +32,17 @@ tokens = keywords.values() + [
 	"ID",
 	"NL",
 	"NUMBER",
+	"EQ",
+	"NE",
+	"LT",
+	"LE",
+	"GT",
+	"GE",
+	"ASSIGN"
 ]
 
 literals = [
-	"(", ")", ":", "+", "-", "*", "/", "%", "$", ".", "="
+	"(", ")", ":", "+", "-", "*", "/", "%", "$", "."
 ]
 
 t_ignore = ' \t'
@@ -58,6 +66,14 @@ def t_NUMBER(t):
 	t.value = int(t.value)
 	return t
 
+t_EQ = r'=='
+t_NE = r'(!=)|(<>)'
+t_LE = r'<='
+t_GE = r'>='
+t_LT = r'<'
+t_GT = r'>'
+t_ASSIGN = r'='
+
 def t_error(t):
 	logging.error("Illegal character '%s'" % t.value[0])
 	t.lexer.skip(1)
@@ -66,15 +82,27 @@ lexer = lex.lex()
 
 # --- Parser/compiler -------------------------------------------------------
 
-infix_operator_map = {
+alu_infix_operator_map = {
 	'+': ast.Add,
 	'-': ast.Sub,
 	'*': ast.Mult,
 	'/': ast.Div,
-	'%': ast.Mod
+	'%': ast.Mod,
+}
+
+cmp_infix_operator_map = {
+	'=': ast.Eq,
+	'==': ast.Eq,
+	'<>': ast.NotEq,
+	'!=': ast.NotEq,
+	'<': ast.Lt,
+	'<=': ast.LtE,
+	'>': ast.Gt,
+	'>=': ast.GtE
 }
 
 precedence = (
+	('left', 'ASSIGN', 'EQ', 'NE', 'LT', 'LE', 'GT', 'GE'),
 	('left', '+', '-'),
 	('left', '*', '/', '%')
 )
@@ -90,16 +118,30 @@ def call_runtime(name, *args):
         kwargs=[],
         starargs=[])
 
-def p_expression_infix(p):
+def p_expression_alu_infix(p):
 	r'''
-		expression : leaf '+' expression
-		           | leaf '-' expression
-		           | leaf '*' expression
-		           | leaf '/' expression
-		           | leaf '%' expression
+		expression : expression '+' expression
+		           | expression '-' expression
+		           | expression '*' expression
+		           | expression '/' expression
+		           | expression '%' expression
+		           | expression ASSIGN expression
+		           | expression EQ expression
+		           | expression NE expression
+		           | expression LT expression
+		           | expression LE expression
+		           | expression GT expression
+		           | expression GE expression
 	'''
-	op = infix_operator_map[p[2]]
-	p[0] = ast.BinOp(left=p[1], op=op, right=p[3])
+	opname = p[2]
+	right = p[3]
+
+	if (p[2] in ('+', '-', '*', '/', '%')):
+		op = alu_infix_operator_map[opname]
+		p[0] = ast.BinOp(left=p[1], op=op, right=p[3])
+	else:
+		op = cmp_infix_operator_map[opname]
+		p[0] = ast.Compare(left=p[1], ops=[op], comparators=[right])
 
 def p_expression_leaf(p):
 	r"expression : leaf"
@@ -132,11 +174,11 @@ def p_leaf_false(p):
 # Substatements
 
 def p_substatement_assign_var(p):
-	r"substatement : ID '=' expression"
+	r"substatement : ID ASSIGN expression"
 	p[0] = ast.Assign([ast.Name("var_"+p[1], ast.Store)], p[3])
 
 def p_substatement_assign_global(p):
-	r"substatement : '$' ID '=' expression"
+	r"substatement : '$' ID ASSIGN expression"
 	p[0] = ast.Expr(call_runtime("SetGlobal", ast.Str(p[2]), p[4]))
 
 def p_substatement_if(p):
@@ -161,13 +203,21 @@ def p_statement_empty(p):
 	r"statement :"
 	p[0] = []
 
-def p_statement_if(p):
-	r"statement : IF expression THEN NL statements ENDIF"
-	p[0] = [ast.If(test=p[2], body=p[5], orelse=[])]
-
 def p_statement_if_else(p):
-	r"statement : IF expression THEN NL statements ELSE statements ENDIF"
-	p[0] = [ast.If(test=p[2], body=p[5], orelse=p[7])]
+	r"statement : IF expression THEN NL statements structuredelse"
+	p[0] = [ast.If(test=p[2], body=p[5], orelse=p[6])]
+
+def p_statement_structuredelse_empty(p):
+	r"structuredelse : ENDIF NL"
+	p[0] = []
+
+def p_statement_structuredelse_else(p):
+	r"structuredelse : ELSE NL statements ENDIF NL"
+	p[0] = p[2]
+
+def p_statement_structuredelse_elsef(p):
+	r"structuredelse : ELSEIF expression THEN NL statements structuredelse"
+	p[0] = [ast.If(test=p[2], body=p[5], orelse=p[6])]
 
 def p_statement_substatements(p):
 	r"statement : substatements"
@@ -188,9 +238,9 @@ parser = yacc.yacc(start='statements', debug=True, debuglog=logging)
 
 if __name__=="__main__":
 	script = '''
-		t = $x
-		$x = $y
-		$y = y
+		if x+1 = y+1 then
+			x = y
+		endif
 	'''
 	node = parser.parse(script)
 	from unparse import Unparser

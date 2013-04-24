@@ -453,7 +453,7 @@ class Unparser:
         self.write("(")
         self.dispatch(t.left)
         for o, e in zip(t.ops, t.comparators):
-            self.write(" " + self.cmpops[o.__class__.__name__] + " ")
+            self.write(" " + self.cmpops[o.__name__] + " ")
             self.dispatch(e)
         self.write(")")
 
