@@ -11,7 +11,10 @@ from numbers import *
 
 from ts.exceptions import *
 
-def __type_mismatch():
+def both_numeric(x, y):
+	return isinstance(x, Number) and isinstance(y, Number)
+
+def type_mismatch():
 	raise ScriptError("type mismatch")
 
 class ScriptRuntime:
@@ -28,6 +31,32 @@ class ScriptRuntime:
 	def Mult(self, x, y): return x * y
 	def Div(self, x, y): return x / y
 	def Mod(self, x, y): return x % y
+
+	def Lt(self, x, y):
+		if both_numeric(x, y):
+			return x < y
+		type_mismatch()
+
+	def LtE(self, x, y):
+		if both_numeric(x, y):
+			return x <= y
+		type_mismatch()
+
+	def Gt(self, x, y):
+		if both_numeric(x, y):
+			return x > y
+		type_mismatch()
+
+	def GtE(self, x, y):
+		if both_numeric(x, y):
+			return x >= y
+		type_mismatch()
+
+	def Eq(self, x, y):
+		return x == y
+
+	def NotEq(self, x, y):
+		return x != y
 
 	def ForIterator(self, start, stop, step):
 		if (step == 0):

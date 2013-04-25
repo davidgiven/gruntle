@@ -460,7 +460,7 @@ class Unparser:
     boolops = {"And": 'and', "Or": 'or'}
     def _BoolOp(self, t):
         self.write("(")
-        s = " %s " % self.boolops[t.op.__name__]
+        s = " %s " % self.boolops[t.op.__class__.__name__]
         interleave(lambda: self.write(s), self.dispatch, t.values)
         self.write(")")
 

@@ -29,6 +29,8 @@ keywords = {
 	'next': 'NEXT',
 	'step': 'STEP',
 	'to': 'TO',
+	'while': 'WHILE',
+	'endwhile': 'ENDWHILE',
 	'break': 'BREAK',
 	'continue': 'CONTINUE',
 	'return': 'RETURN'
@@ -158,11 +160,21 @@ def p_expression_infix(p):
 
 def p_expression_and(p):
 	r"expression : expression AND expression"
-	p[0] = ast.BoolOp(op=ast.And, values=[p[1], p[3]])
+	p[0] = ast.BoolOp(
+		op=ast.And(),
+		values=[p[1], p[3]],
+		lineno=p.lineno(2),
+		col_offset=p.lexpos(2)
+	)
 
 def p_expression_or(p):
 	r"expression : expression OR expression"
-	p[0] = ast.BoolOp(op=ast.Or, values=[p[1], p[3]])
+	p[0] = ast.BoolOp(
+		op=ast.Or(),
+		values=[p[1], p[3]],
+		lineno=p.lineno(2),
+		col_offset=p.lexpos(2)
+	)
 
 def p_expression_leaf(p):
 	r"expression : leaf"
@@ -293,6 +305,26 @@ def p_statement_multiline_if_else(p):
 		col_offset=p.lexpos(1)
 	)
 
+def p_else_empty(p):
+	r"else : ENDIF"
+	p[0] = []
+
+def p_else_else(p):
+	r"else : ELSE statements ENDIF"
+	p[0] = p[2]
+
+def p_else_elseif(p):
+	r"else : ELSEIF expression THEN NL statements else"
+	p[0] = [
+		ast.If(
+			test=p[2],
+			body=p[5],
+			orelse=p[6],
+			lineno=p.lineno(1),
+			col_offset=p.lexpos(1)
+		)
+	]
+
 def p_statement_for_next(p):
 	r"statement : FOR ID ASSIGN expression TO expression step statements NEXT"
 	p[0] = ast.For(
@@ -326,25 +358,15 @@ def p_statement_step_value(p):
 	r"step : STEP expression"
 	p[0] = p[2]
 
-def p_else_empty(p):
-	r"else : ENDIF"
-	p[0] = []
-
-def p_else_else(p):
-	r"else : ELSE statements ENDIF"
-	p[0] = p[2]
-
-def p_else_elseif(p):
-	r"else : ELSEIF expression THEN NL statements else"
-	p[0] = [
-		ast.If(
-			test=p[2],
-			body=p[5],
-			orelse=p[6],
-			lineno=p.lineno(1),
-			col_offset=p.lexpos(1)
-		)
-	]
+def p_statment_while_endwhile(p):
+	r"statement : WHILE expression statements ENDWHILE"
+	p[0] = ast.While(
+		test=p[2],
+		body=p[3],
+		orelse=[],
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
 
 def p_statement_return(p):
 	r"statement : RETURN expression"

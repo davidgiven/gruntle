@@ -185,6 +185,90 @@ scripts = [
 		return y
 	''',
 	55),
+
+	('''
+		y = 0
+		for x = 1 to 10: y = y + x: next
+		return y
+	''',
+	55),
+
+	('''
+		y = 0: x = 0
+		while (x < 10)
+			y = y + x
+			x = x + 1
+		endwhile
+		return y
+	''',
+	45),
+
+	('''
+		y = 0: x = 0
+		while (x < 10): y=y+x: x=x+1: endwhile
+		return y
+	''',
+	45),
+
+	('''
+		x=1: y=2: return x < y
+	''',
+	True),
+
+	('''
+		x=1: y=2: return x <= y
+	''',
+	True),
+
+	('''
+		x=1: y=2: return x > y
+	''',
+	False),
+
+	('''
+		x=1: y=2: return x >= y
+	''',
+	False),
+
+	('''
+		x=1: y=2: return x == y
+	''',
+	False),
+
+	('''
+		x=1: y=2: return x = y
+	''',
+	False),
+
+	('''
+		x=1: y=2: return x != y
+	''',
+	True),
+
+	('''
+		x=1: y=2: return x <> y
+	''',
+	True),
+
+	('''
+		x=1: y=2: return x<y and y==2
+	''',
+	True),
+
+	('''
+		x=1: y=2: return x>y or y==2
+	''',
+	True),
+
+	('''
+		return true and true or false
+	''',
+	True),
+
+	('''
+		return true or true and false
+	''',
+	True),
 ]
 
 for test in scripts:
