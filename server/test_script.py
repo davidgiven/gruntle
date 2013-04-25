@@ -269,6 +269,11 @@ scripts = [
 		return true or true and false
 	''',
 	True),
+
+#	('''
+#		return 1 < false
+#	''',
+#	True),
 ]
 
 for test in scripts:

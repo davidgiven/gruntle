@@ -7,12 +7,13 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
-from numbers import *
-
 from ts.exceptions import *
 
+def is_number(x):
+	return (type(x) is int) or (type(x) is float) or (type(x) is long)
+
 def both_numeric(x, y):
-	return isinstance(x, Number) and isinstance(y, Number)
+	return is_number(x) and is_number(y)
 
 def type_mismatch():
 	raise ScriptError("type mismatch")
