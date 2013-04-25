@@ -30,7 +30,8 @@ keywords = {
 	'step': 'STEP',
 	'to': 'TO',
 	'break': 'BREAK',
-	'continue': 'CONTINUE'
+	'continue': 'CONTINUE',
+	'return': 'RETURN'
 }
 
 tokens = keywords.values() + [
@@ -87,23 +88,24 @@ lexer = lex.lex()
 
 # --- Parser/compiler -------------------------------------------------------
 
-alu_infix_operator_map = {
-	'+': ast.Add,
-	'-': ast.Sub,
-	'*': ast.Mult,
-	'/': ast.Div,
-	'%': ast.Mod,
+infix_operator_map = {
+	'+': 'Add',
+	'-': 'Sub',
+	'*': 'Mult',
+	'/': 'Div',
+	'%': 'Mod',
+	'=': 'Eq',
+	'==': 'Eq',
+	'<>': 'NotEq',
+	'!=': 'NotEq',
+	'<': 'Lt',
+	'<=': 'LtE',
+	'>': 'Gt',
+	'>=': 'GtE'
 }
 
-cmp_infix_operator_map = {
-	'=': ast.Eq,
-	'==': ast.Eq,
-	'<>': ast.NotEq,
-	'!=': ast.NotEq,
-	'<': ast.Lt,
-	'<=': ast.LtE,
-	'>': ast.Gt,
-	'>=': ast.GtE
+prefix_operator_map = {
+	'-': 'Neg'
 }
 
 precedence = (
@@ -114,16 +116,27 @@ precedence = (
 	('left', '*', '/', '%')
 )
 
-def call_runtime(name, *args):
+def call_runtime(name, lineno, col_offset, *args):
 	return ast.Call(
 		func=ast.Attribute(
-			value=ast.Name("rt", ast.Load),
-            attr=name
+			value=ast.Name(
+				id="rt",
+				ctx=ast.Load(),
+				lineno=lineno,
+				col_offset=col_offset
+			),
+            attr=name,
+            ctx=ast.Load(),
+            lineno=lineno,
+            col_offset=col_offset
         ),
-        args=args,
+        args=list(args),
         keywords=[],
         kwargs=None,
-        starargs=None)
+        starargs=None,
+        lineno=lineno,
+        col_offset=col_offset
+    )
 
 def p_expression_infix(p):
 	r'''
@@ -140,15 +153,8 @@ def p_expression_infix(p):
 		           | expression GT expression
 		           | expression GE expression
 	'''
-	opname = p[2]
-	right = p[3]
-
-	if (p[2] in ('+', '-', '*', '/', '%')):
-		op = alu_infix_operator_map[opname]
-		p[0] = ast.BinOp(left=p[1], op=op, right=p[3])
-	else:
-		op = cmp_infix_operator_map[opname]
-		p[0] = ast.Compare(left=p[1], ops=[op], comparators=[right])
+	op = infix_operator_map[p[2]]
+	p[0] = call_runtime(op, p.lineno(2), p.lexpos(2), p[1], p[3])
 
 def p_expression_and(p):
 	r"expression : expression AND expression"
@@ -166,25 +172,58 @@ def p_leaf_parenthesis(p):
 	r"leaf : '(' expression ')'"
 	p[0] = p[2]
 
+def p_leaf_infix(p):
+	r"leaf : '-' leaf"
+	op = prefix_operator_map[p[1]]
+	p[0] = call_runtime(op, p.lineno(2), p.lexpos(2), p[2])
+
 def p_leaf_number(p):
 	r"leaf : NUMBER"
-	p[0] = ast.Num(p[1])
+	p[0] = ast.Num(
+		n=float(p[1]),
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
 
 def p_leaf_id(p):
 	r"leaf : ID"
-	p[0] = ast.Name("var_"+p[1], ast.Load)
+	p[0] = ast.Name(
+		id="var_"+p[1],
+		ctx=ast.Load(),
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
 
 def p_leaf_global(p):
 	r"leaf : '$' ID"
-	p[0] = call_runtime("GetGlobal", ast.Str(p[2]))
+	p[0] = call_runtime(
+		"GetGlobal",
+		p.lineno(2),
+		p.lexpos(2),
+		ast.Str(
+			s=p[2],
+			lineno=p.lineno(2),
+			col_offset=p.lexpos(2)
+		)
+	)
 
 def p_leaf_true(p):
 	r"leaf : TRUE"
-	p[0] = ast.Name("True", ast.Load)
+	p[0] = ast.Name(
+		id="True",
+		ctx=ast.Load(),
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
 
 def p_leaf_false(p):
 	r"leaf : FALSE"
-	p[0] = ast.Name("False", ast.Load)
+	p[0] = ast.Name(
+		id="False",
+		ctx=ast.Load(),
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
 
 def p_leaf_not(p):
 	r"leaf : NOT leaf"
@@ -194,42 +233,94 @@ def p_leaf_not(p):
 
 def p_statement_assign_var(p):
 	r"statement : ID ASSIGN expression"
-	p[0] = ast.Assign([ast.Name("var_"+p[1], ast.Store)], p[3])
+	p[0] = ast.Assign(
+		targets=[
+			ast.Name(
+				id="var_"+p[1],
+				ctx=ast.Store(),
+				lineno=p.lineno(1),
+				col_offset=p.lexpos(1)
+			)
+		],
+		value=p[3],
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
 
 def p_statement_assign_global(p):
 	r"statement : '$' ID ASSIGN expression"
-	p[0] = ast.Expr(call_runtime("SetGlobal", ast.Str(p[2]), p[4]))
+	p[0] = ast.Expr(
+		value=call_runtime(
+			"SetGlobal", p.lineno(3), p.lexpos(3),
+			ast.Str(
+				s=p[2],
+				lineno=p.lineno(2),
+				col_offset=p.lexpos(2)
+			),
+			p[4]
+		),
+		lineno=p.lineno(3),
+		col_offset=p.lexpos(3)
+	)
 
 def p_statement_singleline_if(p):
 	r"statement : IF expression THEN singlelinestatements"
-	p[0] = ast.If(test=p[2], body=p[4], orelse=[])
+	p[0] = ast.If(
+		test=p[2],
+		body=p[4],
+		orelse=[],
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
 
 def p_statement_singleline_if_else(p):
 	r"statement : IF expression THEN singlelinestatements ELSE singlelinestatements"
-	p[0] = ast.If(test=p[2], body=p[4], orelse=p[6])
+	p[0] = ast.If(
+		test=p[2],
+		body=p[4],
+		orelse=p[6],
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
 
 def p_statement_multiline_if_else(p):
 	r"statement : IF expression THEN NL statements else"
-	p[0] = [ast.If(test=p[2], body=p[5], orelse=p[6])]
+	p[0] = ast.If(
+		test=p[2],
+		body=p[5],
+		orelse=p[6],
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
 
 def p_statement_for_next(p):
 	r"statement : FOR ID ASSIGN expression TO expression step statements NEXT"
 	p[0] = ast.For(
-		target=ast.Name("var_"+p[2], ast.Store),
-        iter=ast.Call(
-            func=ast.Name("range", ast.Load),
-            args=[p[4], p[6], p[7]],
-            keywords=[],
-            starargs=None,
-            kwargs=None
+		target=ast.Name(
+			id="var_"+p[2],
+			ctx=ast.Store(),
+			lineno=p.lineno(2),
+			col_offset=p.lexpos(2)
+		),
+        iter=call_runtime(
+            "ForIterator",
+            p.lineno(4),
+            p.lexpos(4),
+            p[4], p[6], p[7]
         ),
         body=p[8],
-        orelse=[]
+        orelse=[],
+        lineno=p.lineno(1),
+        col_offset=p.lexpos(1)
     )
 
 def p_statement_step_empty(p):
 	r"step :"
-	p[0] = ast.Num(1)
+	p[0] = ast.Num(
+		n=1.0,
+		lineno=p.lineno(0),
+		col_offset=p.lexpos(0)
+	)
 
 def p_statement_step_value(p):
 	r"step : STEP expression"
@@ -245,11 +336,30 @@ def p_else_else(p):
 
 def p_else_elseif(p):
 	r"else : ELSEIF expression THEN NL statements else"
-	p[0] = [ast.If(test=p[2], body=p[5], orelse=p[6])]
+	p[0] = [
+		ast.If(
+			test=p[2],
+			body=p[5],
+			orelse=p[6],
+			lineno=p.lineno(1),
+			col_offset=p.lexpos(1)
+		)
+	]
+
+def p_statement_return(p):
+	r"statement : RETURN expression"
+	p[0] = ast.Return(
+		value=p[2],
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
 
 def p_statement_empty(p):
 	r"statement :"
-	p[0] = [ast.Pass()]
+	p[0] = ast.Pass(
+			lineno=p.lineno(0),
+			col_offset=p.lexpos(0)
+			)
 
 def p_singlelinestatements_single(p):
 	r"singlelinestatements : statement"
@@ -272,15 +382,52 @@ def p_error(p):
 
 parser = yacc.yacc(start='statements')
 
-if __name__=="__main__":
-	script = '''
-		for x = 0 to 10: $x = x: next
-		for x=10 to 0 step $x
-			$x = x
-		next
-	'''
-	node = parser.parse(script)
+def compile_action(script):
+	node = parser.parse(script, tracking=True)
 	from unparse import Unparser
-	print ast.dump(ast.Suite(body=node))
-	Unparser(ast.If(test=ast.Name('True', ast.Load), body=node, orelse=[]))
+
+	module = ast.Module(
+		body=[
+			ast.FunctionDef(
+				name="script",
+				args=ast.arguments(
+					args=[
+						ast.Name(
+							id="rt",
+							ctx=ast.Param(),
+							lineno=0,
+							col_offset=0
+						)
+					],
+					defaults=[],
+					vararg=None,
+					kwarg=None
+				),
+				body=node,
+				decorator_list=[],
+				lineno=0,
+				col_offset=0
+			)
+		],
+	    lineno=0,
+	    col_offset=0
+	)
+	#print ast.dump(module, include_attributes=True)
+	Unparser(module)
+	print
+
+	# Now we've created the AST for the Python module, compile it into a
+	# code object...
+
+	co = compile(module, "script", "exec")
+
+	# ...then run it in a new scope to actually define the function...
+
+	scope = {}
+	exec co in scope
+
+	# ...then return the actual function.
+
+	return scope["script"]
+
 
