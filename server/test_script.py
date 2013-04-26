@@ -17,9 +17,11 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 def run_test(test):
 	(script, desiredresult) = test
+	print "-----"
+	print script
 	module = scriptcompiler.compile(script)
 	rt = ScriptRuntime()
-	result = module["sub_test"](rt)
+	result = module["var_test"](rt)
 	if (result != desiredresult):
 		print "TEST FAILED: ", result, " != ", desiredresult
 		exit(1)
@@ -362,16 +364,19 @@ scripts = [
 		endsub
 
 		sub one(p1)
+			return p1
 		endsub
 
 		sub two(p1, p2)
+			return p1+p2
 		endsub
 
 		sub test
-			return 0
+			zero(): zerop()
+			return one(1) + two(1, 2)
 		endsub
 	''',
-	0),
+	4),
 
 #	('''
 #		return 1 < false

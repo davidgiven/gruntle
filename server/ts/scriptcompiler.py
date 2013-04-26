@@ -19,6 +19,7 @@ import __builtin__
 keywords = {
 	'sub': 'SUB',
 	'endsub': 'ENDSUB',
+	'nil': 'NIL',
 	'true': 'TRUE',
 	'false': 'FALSE',
 	'not': 'NOT',
@@ -119,7 +120,8 @@ precedence = (
 	('left', 'AND'),
 	('left', 'ASSIGN', 'EQ', 'NE', 'LT', 'LE', 'GT', 'GE'),
 	('left', '+', '-'),
-	('left', '*', '/', '%')
+	('left', '*', '/', '%'),
+	('left', '(')
 )
 
 def call_runtime(name, lineno, col_offset, *args):
@@ -180,6 +182,41 @@ def p_expression_or(p):
 		col_offset=p.lexpos(2)
 	)
 
+def p_expression_call(p):
+	r"expression : expression callargs"
+	p[0] = ast.Call(
+		func=p[1],
+        args=p[2],
+        keywords=[],
+        kwargs=None,
+        starargs=None,
+        lineno=p.lineno(2),
+        col_offset=p.lexpos(2)
+    )
+
+def p_callargs(p):
+	r"callargs : '(' arglist ')'"
+	p[0] = [
+		ast.Name(
+			id="rt",
+			ctx=ast.Load(),
+			lineno=p.lineno(1),
+			col_offset=p.lexpos(1)
+		)
+	] + p[2]
+
+def p_arglist_empty(p):
+	r"arglist :"
+	p[0] = []
+
+def p_arglist_single(p):
+	r"arglist : expression"
+	p[0] = [p[1]]
+
+def p_arglist_multiple(p):
+	r"arglist : expression ',' arglist"
+	p[0] = [p[1]] + p[3]
+
 def p_expression_leaf(p):
 	r"expression : leaf"
 	p[0] = p[1]
@@ -223,6 +260,15 @@ def p_leaf_global(p):
 		)
 	)
 
+def p_leaf_nil(p):
+	r"leaf : NIL"
+	p[0] = ast.Name(
+		id="None",
+		ctx=ast.Load(),
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
+
 def p_leaf_true(p):
 	r"leaf : TRUE"
 	p[0] = ast.Name(
@@ -246,6 +292,25 @@ def p_leaf_not(p):
 	p[0] = ast.UnaryOp(op=ast.Not, operand=p[2])
 
 # Statements
+
+# We can't allow bare expressions as statements due to ambiguity between =
+# as assignment and = as comparison. So we have to add explicit call rules.
+
+def p_statement_expression(p):
+	r"statement : leaf callargs"
+	p[0] = ast.Expr(
+		value=ast.Call(
+			func=p[1],
+	        args=p[2],
+	        keywords=[],
+	        kwargs=None,
+	        starargs=None,
+	        lineno=p.lineno(2),
+	        col_offset=p.lexpos(2)
+	    ),
+        lineno=p.lineno(1),
+        col_offset=p.lexpos(1)
+    )
 
 def p_statement_assign_var(p):
 	r"statement : ID ASSIGN expression"
@@ -396,12 +461,15 @@ def p_singlelinestatements_multiple(p):
 	p[0] = [p[1]] + p[3]
 
 def p_statements_single(p):
-	r"statements : singlelinestatements"
-	p[0] = p[1]
+	r"statements : statement"
+	p[0] = [p[1]]
 
 def p_statements_multiple(p):
-	r"statements : singlelinestatements NL statements"
-	p[0] = p[1] + p[3]
+	r'''
+		statements : statement ':' statements
+		           | statement NL statements
+	'''
+	p[0] = [p[1]] + p[3]
 
 # --- Toplevel statements ---------------------------------------------------
 
@@ -433,7 +501,7 @@ def p_toplevel_sub(p):
 	)
 
 	p[0] = ast.FunctionDef(
-		name="sub_"+p[2],
+		name="var_"+p[2],
 		args=args,
 		body=p[4],
 		decorator_list=[],
@@ -505,7 +573,7 @@ def compile(script):
 
 	starttime = time.time()
 
-	node = parser.parse(script, tracking=True)
+	node = parser.parse(script, tracking=True, debug=0)
 	from unparse import Unparser
 
 	module = ast.Module(
