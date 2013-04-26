@@ -11,10 +11,14 @@ import logging
 import ply.lex as lex
 import ply.yacc as yacc
 import ast
+import time
+import __builtin__
 
 # --- Lexer -----------------------------------------------------------------
 
 keywords = {
+	'sub': 'SUB',
+	'endsub': 'ENDSUB',
 	'true': 'TRUE',
 	'false': 'FALSE',
 	'not': 'NOT',
@@ -50,7 +54,7 @@ tokens = keywords.values() + [
 ]
 
 literals = [
-	"(", ")", ":", "+", "-", "*", "/", "%", "$", "."
+	"(", ")", ":", "+", "-", "*", "/", "%", "$", ".", ","
 ]
 
 t_ignore = ' \t'
@@ -399,38 +403,113 @@ def p_statements_multiple(p):
 	r"statements : singlelinestatements NL statements"
 	p[0] = p[1] + p[3]
 
+# --- Toplevel statements ---------------------------------------------------
+
+def p_toplevel_empty(p):
+	r"toplevel :"
+	p[0] = ast.Pass(
+		lineno=p.lineno(0),
+		col_offset=p.lexpos(0)
+	)
+
+def p_toplevel_sub(p):
+	r"toplevel : SUB ID bracketedparameterlist statements ENDSUB"
+
+	args = ast.arguments(
+		args=(
+			[
+				ast.Name(
+					id="rt",
+					ctx=ast.Param(),
+					lineno=0,
+					col_offset=0
+				)
+			]
+			+ p[3]
+		),
+		defaults=[],
+		vararg=None,
+		kwarg=None
+	)
+
+	p[0] = ast.FunctionDef(
+		name="sub_"+p[2],
+		args=args,
+		body=p[4],
+		decorator_list=[],
+		lineno=p.lineno(2),
+		col_offset=p.lexpos(2)
+	)
+
+def p_bracketedparameterlist_empty(p):
+	r"bracketedparameterlist :"
+	p[0] = []
+
+def p_bracketedparameterlist_brackets(p):
+	r"bracketedparameterlist : '(' parameterlist ')'"
+	p[0] = p[2]
+
+def p_parameterlist_empty(p):
+	r'''
+		parameterlist :
+	'''
+	p[0] = []
+
+def p_parameter(p):
+	r'''
+		parameter : ID
+	'''
+	p[0] = [
+		ast.Name(
+			id="var_"+p[1],
+			ctx=ast.Param(),
+			lineno=p.lineno(1),
+			col_offset=p.lexpos(1)
+		)
+	]
+
+def p_parameterlist_single(p):
+	r'''
+		parameterlist : parameter
+	'''
+	p[0] = p[1]
+
+def p_parameterlist_multiple(p):
+	r'''
+		parameterlist : parameter ',' parameterlist
+	'''
+	p[0] = p[1] + p[3]
+
+def p_toplevels_single(p):
+	r"toplevels : toplevel"
+	p[0] = [p[1]]
+
+def p_toplevels_colon(p):
+	r"toplevels : toplevel ':' toplevels"
+	p[0] = [p[1]] + p[3]
+
+def p_toplevels_newline(p):
+	r"toplevels : toplevel NL toplevels"
+	p[0] = [p[1]] + p[3]
+
 def p_error(p):
     logging.error("Syntax error %s" % p)
 
-parser = yacc.yacc(start='statements')
+parser = yacc.yacc(start='toplevels')
 
-def compile_action(script):
+cache = {}
+
+def compile(script):
+	if (script in cache):
+		return cache[script]
+
+	starttime = time.time()
+
 	node = parser.parse(script, tracking=True)
 	from unparse import Unparser
 
 	module = ast.Module(
-		body=[
-			ast.FunctionDef(
-				name="script",
-				args=ast.arguments(
-					args=[
-						ast.Name(
-							id="rt",
-							ctx=ast.Param(),
-							lineno=0,
-							col_offset=0
-						)
-					],
-					defaults=[],
-					vararg=None,
-					kwarg=None
-				),
-				body=node,
-				decorator_list=[],
-				lineno=0,
-				col_offset=0
-			)
-		],
+		body=node,
 	    lineno=0,
 	    col_offset=0
 	)
@@ -441,15 +520,19 @@ def compile_action(script):
 	# Now we've created the AST for the Python module, compile it into a
 	# code object...
 
-	co = compile(module, "script", "exec")
+	co = __builtin__.compile(module, "", "exec")
 
-	# ...then run it in a new scope to actually define the function...
+	# ...then run it to actually define the functions...
 
 	scope = {}
 	exec co in scope
 
-	# ...then return the actual function.
+	endtime = time.time()
+	logging.info("compiled script in %.3fs", endtime - starttime)
 
-	return scope["script"]
+	# ...cache and return.
+
+	cache[script] = scope
+	return scope
 
 
