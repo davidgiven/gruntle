@@ -121,6 +121,7 @@ precedence = (
 	('left', 'ASSIGN', 'EQ', 'NE', 'LT', 'LE', 'GT', 'GE'),
 	('left', '+', '-'),
 	('left', '*', '/', '%'),
+	('right', 'UMINUS'),
 	('left', '(')
 )
 
@@ -163,6 +164,11 @@ def p_expression_infix(p):
 	'''
 	op = infix_operator_map[p[2]]
 	p[0] = call_runtime(op, p.lineno(2), p.lexpos(2), p[1], p[3])
+
+def p_expression_prefix(p):
+	r"expression : '-' expression %prec UMINUS"
+	op = prefix_operator_map[p[1]]
+	p[0] = call_runtime(op, p.lineno(2), p.lexpos(2), p[2])
 
 def p_expression_and(p):
 	r"expression : expression AND expression"
@@ -224,11 +230,6 @@ def p_expression_leaf(p):
 def p_leaf_parenthesis(p):
 	r"leaf : '(' expression ')'"
 	p[0] = p[2]
-
-def p_leaf_infix(p):
-	r"leaf : '-' leaf"
-	op = prefix_operator_map[p[1]]
-	p[0] = call_runtime(op, p.lineno(2), p.lexpos(2), p[2])
 
 def p_leaf_number(p):
 	r"leaf : NUMBER"

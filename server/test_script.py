@@ -81,6 +81,28 @@ scripts = [
 
 	('''
 		sub test
+			return -1
+		endsub
+	''',
+	-1),
+
+	('''
+		sub test
+			x = 1
+			return -x
+		endsub
+	''',
+	-1),
+
+	('''
+		sub test
+			return 1+ -2 * 3
+		endsub
+	''',
+	-5),
+
+	('''
+		sub test
 			if true then
 				return 1
 			else
