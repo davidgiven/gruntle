@@ -15,6 +15,11 @@ def is_number(x):
 def both_numeric(x, y):
 	return is_number(x) and is_number(y)
 
+def t_boolean(x):
+	if (type(x) != bool):
+		type_mismatch()
+	return x
+
 def type_mismatch():
 	raise ScriptError("type mismatch")
 
@@ -25,7 +30,10 @@ class ScriptRuntime:
 	def SetGlobal(self, k, v): self.globals[k] = v
 	def GetGlobal(self, k): return self.globals[k]
 
+	def CheckBoolean(self, x): return t_boolean(x)
+
 	def Neg(self, x): return -x
+	def Not(self, x): return not t_boolean(x)
 
 	def Add(self, x, y): return x + y
 	def Sub(self, x, y): return x - y

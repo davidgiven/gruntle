@@ -222,6 +222,21 @@ scripts = [
 
 	('''
 		sub test
+			return not true
+		endsub
+	''',
+	False),
+
+	('''
+		sub test
+			x = 1: y = 2
+			return not (x = y)
+		endsub
+	''',
+	True),
+
+	('''
+		sub test
 			y = 0
 			for x = 1 to 10
 				 y = y + x

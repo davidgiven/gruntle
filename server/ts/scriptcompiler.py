@@ -55,7 +55,7 @@ tokens = keywords.values() + [
 ]
 
 literals = [
-	"(", ")", ":", "+", "-", "*", "/", "%", "$", ".", ","
+	"(", ")", ":", "+", "-", "*", "/", "%", "$", ".", ",", "[", "]"
 ]
 
 t_ignore = ' \t'
@@ -112,7 +112,8 @@ infix_operator_map = {
 }
 
 prefix_operator_map = {
-	'-': 'Neg'
+	'-': 'Neg',
+	'not': 'Not'
 }
 
 precedence = (
@@ -121,7 +122,7 @@ precedence = (
 	('left', 'ASSIGN', 'EQ', 'NE', 'LT', 'LE', 'GT', 'GE'),
 	('left', '+', '-'),
 	('left', '*', '/', '%'),
-	('right', 'UMINUS'),
+	('right', 'UNARY'),
 	('left', '(')
 )
 
@@ -166,7 +167,10 @@ def p_expression_infix(p):
 	p[0] = call_runtime(op, p.lineno(2), p.lexpos(2), p[1], p[3])
 
 def p_expression_prefix(p):
-	r"expression : '-' expression %prec UMINUS"
+	r'''
+		expression : '-' expression %prec UNARY
+		           | NOT expression %prec UNARY
+	'''
 	op = prefix_operator_map[p[1]]
 	p[0] = call_runtime(op, p.lineno(2), p.lexpos(2), p[2])
 
@@ -174,7 +178,12 @@ def p_expression_and(p):
 	r"expression : expression AND expression"
 	p[0] = ast.BoolOp(
 		op=ast.And(),
-		values=[p[1], p[3]],
+		values=[
+			call_runtime(
+				"CheckBoolean", p.lineno(1), p.lexpos(1), p[1]),
+			call_runtime(
+				"CheckBoolean", p.lineno(3), p.lexpos(3), p[3])
+		],
 		lineno=p.lineno(2),
 		col_offset=p.lexpos(2)
 	)
@@ -183,7 +192,12 @@ def p_expression_or(p):
 	r"expression : expression OR expression"
 	p[0] = ast.BoolOp(
 		op=ast.Or(),
-		values=[p[1], p[3]],
+		values=[
+			call_runtime(
+				"CheckBoolean", p.lineno(1), p.lexpos(1), p[1]),
+			call_runtime(
+				"CheckBoolean", p.lineno(3), p.lexpos(3), p[3])
+		],
 		lineno=p.lineno(2),
 		col_offset=p.lexpos(2)
 	)
@@ -287,10 +301,6 @@ def p_leaf_false(p):
 		lineno=p.lineno(1),
 		col_offset=p.lexpos(1)
 	)
-
-def p_leaf_not(p):
-	r"leaf : NOT leaf"
-	p[0] = ast.UnaryOp(op=ast.Not, operand=p[2])
 
 # Statements
 
