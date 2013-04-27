@@ -302,6 +302,11 @@ def p_leaf_false(p):
 		col_offset=p.lexpos(1)
 	)
 
+def p_leaf_list(p):
+	r"leaf : '[' arglist ']'"
+	p[0] = call_runtime("MakeList", p.lineno(1), p.lexpos(1),
+		*p[2])
+
 # Statements
 
 # We can't allow bare expressions as statements due to ambiguity between =

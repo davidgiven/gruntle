@@ -415,6 +415,14 @@ scripts = [
 	''',
 	4),
 
+	('''
+		sub test
+			x = 1
+			return [1, x+x, x+x+x*x, 4]
+		endsub
+	''',
+	(1.0, 2.0, 3.0, 4.0)),
+
 #	('''
 #		return 1 < false
 #	''',

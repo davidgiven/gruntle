@@ -23,7 +23,30 @@ def t_boolean(x):
 def type_mismatch():
 	raise ScriptError("type mismatch")
 
-class ScriptRuntime:
+class ScriptObject(object):
+	def __eq__(self, x): type_mismatch()
+	def __ne__(self, x): type_mismatch()
+	def __lt__(self, x): type_mismatch()
+	def __le__(self, x): type_mismatch()
+	def __gt__(self, x): type_mismatch()
+	def __ge__(self, x): type_mismatch()
+	def __zero__(self, x): type_mismatch()
+	def __str__(self): return self.__repr__()
+	def __unicode__(self): return unicode(self.__repr__())
+
+class List(ScriptObject):
+	def __init__(self, *values):
+		self.values = values
+
+	def __eq__(self, x): return self.values == x
+	def __ne__(self, x): return self.values != x
+
+	def __repr__(self):
+		return "List(" + \
+			(", ".join([x.__repr__() for x in self.values])) + \
+			")"
+
+class ScriptRuntime(object):
 	def __init__(self):
 		self.globals = {}
 
@@ -89,3 +112,7 @@ class ScriptRuntime:
 				if (i <= stop):
 					break
 				i = i + step
+
+	def MakeList(self, *values):
+		return List(*values)
+
