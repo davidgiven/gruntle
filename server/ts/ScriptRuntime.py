@@ -9,15 +9,17 @@
 
 from ts.exceptions import *
 
-def is_number(x):
-	return (type(x) is int) or (type(x) is float) or (type(x) is long)
+def t_number(x):
+	if (type(x) is int) or (type(x) is float) or (type(x) is long):
+		return x
+	type_mismatch()
 
-def both_numeric(x, y):
-	return is_number(x) and is_number(y)
-
-def check_same_types(x, y):
-	if (type(x) != type(y)):
-		type_mismatch()
+def t_string(x):
+	if (type(x) is unicode):
+		return x
+	if (type(x) is str):
+		return unicode(x, "UTF-8")
+	type_mismatch()
 
 def t_boolean(x):
 	if (type(x) != bool):
@@ -27,28 +29,51 @@ def t_boolean(x):
 def type_mismatch():
 	raise ScriptError("type mismatch")
 
-class ScriptObject(object):
-	def __eq__(self, x): type_mismatch()
-	def __ne__(self, x): type_mismatch()
-	def __lt__(self, x): type_mismatch()
-	def __le__(self, x): type_mismatch()
-	def __gt__(self, x): type_mismatch()
-	def __ge__(self, x): type_mismatch()
-	def __zero__(self, x): type_mismatch()
-	def __str__(self): return self.__repr__()
-	def __unicode__(self): return unicode(self.__repr__())
+# This is a load of foul hackery. We have to fake our own methods on system
+# types (int, float, bool, unicode, etc.) The following 'classes' are
+# bundles of methods for each type. When a run-time operation is performed
+# on a value, the type of the left parameter is looked up and the appropriate
+# 'class' found.
 
-class List(ScriptObject):
-	def __init__(self, *values):
-		self.values = values
+class NumberMethods:
+	def Add(x, y): return x + t_number(y)
+	def Sub(x, y): return x - t_number(y)
+	def Mult(x, y): return x * t_number(y)
+	def Div(x, y): return x / t_number(y)
+	def Mod(x, y): return x % t_number(y)
 
-	def __eq__(self, x): return self.values == x
-	def __ne__(self, x): return self.values != x
+	def Neg(x, y): return -x
 
-	def __repr__(self):
-		return "List(" + \
-			(", ".join([x.__repr__() for x in self.values])) + \
-			")"
+	def Eq(x, y): return x == y
+	def NotEq(x, y): return x != y
+	def Lt(x, y): return x < t_number(y)
+	def LtE(x, y): return x <= t_number(y)
+	def Gt(x, y): return x > t_number(y)
+	def GtE(x, y): return x >= t_number(y)
+
+class BooleanMethods:
+	def Not(x, y): return not x
+
+	def Eq(x, y): return x == y
+	def Ne(x, y): return x != y
+
+class StringMethods:
+	def Add(x, y): return x + t_string(y)
+
+	def Eq(x, y): return x == y
+	def Ne(x, y): return x != y
+	def Lt(x, y): return x < t_string(y)
+	def LtE(x, y): return x <= t_string(y)
+	def Gt(x, y): return x > t_string(y)
+	def GtE(x, y): return x >= t_string(y)
+
+method_table = {
+	float: NumberMethods,
+	int: NumberMethods,
+	long: NumberMethods,
+	bool: BooleanMethods,
+	unicode: StringMethods
+}
 
 class ScriptRuntime(object):
 	def __init__(self):
@@ -58,45 +83,6 @@ class ScriptRuntime(object):
 	def GetGlobal(self, k): return self.globals[k]
 
 	def CheckBoolean(self, x): return t_boolean(x)
-
-	def Neg(self, x): return -x
-	def Not(self, x): return not t_boolean(x)
-
-	def Add(self, x, y): return x + y
-	def Sub(self, x, y): return x - y
-	def Mult(self, x, y): return x * y
-	def Div(self, x, y): return x / y
-	def Mod(self, x, y): return x % y
-
-	def Lt(self, x, y):
-		if both_numeric(x, y):
-			return x < y
-		check_same_types()
-		return x < y
-
-	def LtE(self, x, y):
-		if both_numeric(x, y):
-			return x <= y
-		check_same_types()
-		return x <= y
-
-	def Gt(self, x, y):
-		if both_numeric(x, y):
-			return x > y
-		check_same_types()
-		return x > y
-
-	def GtE(self, x, y):
-		if both_numeric(x, y):
-			return x >= y
-		check_same_types()
-		return x >= y
-
-	def Eq(self, x, y):
-		return x == y
-
-	def NotEq(self, x, y):
-		return x != y
 
 	def ForIterator(self, start, stop, step):
 		if (step == 0):
@@ -121,6 +107,22 @@ class ScriptRuntime(object):
 					break
 				i = i + step
 
-	def MakeList(self, *values):
-		return List(*values)
+	# Any other method call gets routed through the lookup tables above.
+
+	attrcache = {}
+	def __getattr__(self, name):
+		if (name in self.attrcache):
+			return self.attrcache[name]
+
+		def attr(x, y=None):
+			tx = type(x)
+			ty = type(y)
+			mt = method_table[tx]
+			try:
+				return mt.__dict__[name](x, y)
+			except KeyError:
+				raise ScriptError("type %s does not support %s", tx, name)
+
+		self.attrcache[name] = attr
+		return attr
 

@@ -323,8 +323,12 @@ def p_leaf_false(p):
 
 def p_leaf_list(p):
 	r"leaf : '[' arglist ']'"
-	p[0] = call_runtime("MakeList", p.lineno(1), p.lexpos(1),
-		*p[2])
+	p[0] = ast.Tuple(
+		elts=p[2],
+		ctx=ast.Load(),
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
 
 # Statements
 

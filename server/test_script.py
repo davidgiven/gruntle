@@ -451,6 +451,13 @@ scripts = [
 	''',
 	u"Fnö\'rd"),
 
+	(ur'''
+		sub test
+			return '123' + '456'
+		endsub
+	''',
+	u"123456"),
+
 #	(u'''
 #		return 1 < false
 #	''',
