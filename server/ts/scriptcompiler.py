@@ -12,6 +12,7 @@ import ply.lex as lex
 import ply.yacc as yacc
 import ast
 import time
+import re
 import __builtin__
 
 # --- Lexer -----------------------------------------------------------------
@@ -45,6 +46,7 @@ tokens = keywords.values() + [
 	"ID",
 	"NL",
 	"NUMBER",
+	"STRING",
 	"EQ",
 	"NE",
 	"LT",
@@ -67,6 +69,7 @@ def t_COMMENT(t):
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
     t.type = keywords.get(t.value, 'ID')
+    t.value = t.value.encode("UTF-8")
     return t
 
 def t_NL(t):
@@ -77,6 +80,14 @@ def t_NL(t):
 def t_NUMBER(t):
 	r'\d+'
 	t.value = int(t.value)
+	return t
+
+def t_STRING(t):
+	r"'(?:(?:[^'\\])|(?:\\.))*'"
+	s = "u"+t.value
+	print(s)
+	s = ast.literal_eval(s)
+	t.value = s
 	return t
 
 t_EQ = r'=='
@@ -91,7 +102,7 @@ def t_error(t):
 	logging.error("Illegal character '%s'" % t.value[0])
 	t.lexer.skip(1)
 
-lexer = lex.lex()
+lexer = lex.lex(reflags=re.UNICODE)
 
 # --- Parser/compiler -------------------------------------------------------
 
@@ -249,6 +260,14 @@ def p_leaf_number(p):
 	r"leaf : NUMBER"
 	p[0] = ast.Num(
 		n=float(p[1]),
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
+
+def p_leaf_string(p):
+	r"leaf : STRING"
+	p[0] = ast.Str(
+		s=p[1],
 		lineno=p.lineno(1),
 		col_offset=p.lexpos(1)
 	)

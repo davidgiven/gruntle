@@ -29,28 +29,28 @@ def run_test(test):
 		print "PASSED"
 
 scripts = [
-	('''
+	(u'''
 		sub test
 			return true
 		endsub
 	''',
 	True),
 
-	('''
+	(u'''
 		sub test
 			return false
 		endsub
 	''',
 	False),
 
-	('''
+	(u'''
 		sub test
 			return 1+1
 		endsub
 	''',
 	2),
 
-	('''
+	(u'''
 		sub test
 			x = 1: y = 1
 			return x+y
@@ -58,35 +58,35 @@ scripts = [
 	''',
 	2),
 
-	('''
+	(u'''
 		sub test
 			return 1+2*3
 		endsub
 	''',
 	7),
 
-	('''
+	(u'''
 		sub test
 			return 1*2+3
 		endsub
 	''',
 	5),
 
-	('''
+	(u'''
 		sub test
 			return 1/2
 		endsub
 	''',
 	0.5),
 
-	('''
+	(u'''
 		sub test
 			return -1
 		endsub
 	''',
 	-1),
 
-	('''
+	(u'''
 		sub test
 			x = 1
 			return -x
@@ -94,14 +94,14 @@ scripts = [
 	''',
 	-1),
 
-	('''
+	(u'''
 		sub test
 			return 1+ -2 * 3
 		endsub
 	''',
 	-5),
 
-	('''
+	(u'''
 		sub test
 			if true then
 				return 1
@@ -112,7 +112,7 @@ scripts = [
 	''',
 	1),
 
-	('''
+	(u'''
 		sub test
 			if false then
 				return 1
@@ -123,7 +123,7 @@ scripts = [
 	''',
 	0),
 
-	('''
+	(u'''
 		sub test
 			if false then
 				return 1
@@ -138,7 +138,7 @@ scripts = [
 	''',
 	0),
 
-	('''
+	(u'''
 		sub test
 			if true then
 				return 1
@@ -148,7 +148,7 @@ scripts = [
 	''',
 	1),
 
-	('''
+	(u'''
 		sub test
 			if false then
 				return 1
@@ -158,21 +158,21 @@ scripts = [
 	''',
 	0),
 
-	('''
+	(u'''
 		sub test
 			if true then return 1 else return 0
 		endsub
 	''',
 	1),
 
-	('''
+	(u'''
 		sub test
 			if false then return 1 else return 0
 		endsub
 	''',
 	0),
 
-	('''
+	(u'''
 		sub test
 			if true then return 1
 			return 0
@@ -180,7 +180,7 @@ scripts = [
 	''',
 	1),
 
-	('''
+	(u'''
 		sub test
 			if false then return 1
 			return 0
@@ -188,7 +188,7 @@ scripts = [
 	''',
 	0),
 
-	('''
+	(u'''
 		sub test
 			if false then if false then if false then return 1 else return 2
 			return 0
@@ -196,7 +196,7 @@ scripts = [
 	''',
 	0),
 
-	('''
+	(u'''
 		sub test
 			if true then if true then if true then return 1 else return 2
 			return 0
@@ -204,14 +204,14 @@ scripts = [
 	''',
 	1),
 
-	('''
+	(u'''
 		sub test
 			$x = 1: return $x
 		endsub
 	''',
 	1),
 
-	('''
+	(u'''
 		sub test
 			$x = 1: y = 2
 			$x = $x + y
@@ -220,14 +220,14 @@ scripts = [
 	''',
 	3),
 
-	('''
+	(u'''
 		sub test
 			return not true
 		endsub
 	''',
 	False),
 
-	('''
+	(u'''
 		sub test
 			x = 1: y = 2
 			return not (x = y)
@@ -235,7 +235,7 @@ scripts = [
 	''',
 	True),
 
-	('''
+	(u'''
 		sub test
 			y = 0
 			for x = 1 to 10
@@ -246,7 +246,7 @@ scripts = [
 	''',
 	55),
 
-	('''
+	(u'''
 		sub test
 			y = 0
 			for x = 10 to 1
@@ -257,7 +257,7 @@ scripts = [
 	''',
 	10),
 
-	('''
+	(u'''
 		sub test
 			y = 0
 			for x = 1 to 10 step -1
@@ -268,7 +268,7 @@ scripts = [
 	''',
 	1),
 
-	('''
+	(u'''
 		sub test
 			y = 0
 			for x = 10 to 1 step -1
@@ -279,7 +279,7 @@ scripts = [
 	''',
 	55),
 
-	('''
+	(u'''
 		sub test
 			y = 0
 			for x = 1 to 10: y = y + x: next
@@ -288,7 +288,7 @@ scripts = [
 	''',
 	55),
 
-	('''
+	(u'''
 		sub test
 			y = 0: x = 0
 			while (x < 10)
@@ -300,7 +300,7 @@ scripts = [
 	''',
 	45),
 
-	('''
+	(u'''
 		sub test
 			y = 0: x = 0
 			while (x < 10): y=y+x: x=x+1: endwhile
@@ -309,91 +309,91 @@ scripts = [
 	''',
 	45),
 
-	('''
+	(u'''
 		sub test
 			x=1: y=2: return x < y
 		endsub
 	''',
 	True),
 
-	('''
+	(u'''
 		sub test
 			x=1: y=2: return x <= y
 		endsub
 	''',
 	True),
 
-	('''
+	(u'''
 		sub test
 			x=1: y=2: return x > y
 		endsub
 	''',
 	False),
 
-	('''
+	(u'''
 		sub test
 			x=1: y=2: return x >= y
 		endsub
 	''',
 	False),
 
-	('''
+	(u'''
 		sub test
 			x=1: y=2: return x == y
 		endsub
 	''',
 	False),
 
-	('''
+	(u'''
 		sub test
 			x=1: y=2: return x = y
 		endsub
 	''',
 	False),
 
-	('''
+	(u'''
 		sub test
 			x=1: y=2: return x != y
 		endsub
 	''',
 	True),
 
-	('''
+	(u'''
 		sub test
 			x=1: y=2: return x <> y
 		endsub
 	''',
 	True),
 
-	('''
+	(u'''
 		sub test
 			x=1: y=2: return x<y and y==2
 		endsub
 	''',
 	True),
 
-	('''
+	(u'''
 		sub test
 			x=1: y=2: return x>y or y==2
 		endsub
 	''',
 	True),
 
-	('''
+	(u'''
 		sub test
 			return true and true or false
 		endsub
 	''',
 	True),
 
-	('''
+	(u'''
 		sub test
 			return true or true and false
 		endsub
 	''',
 	True),
 
-	('''
+	(u'''
 		sub zero
 		endsub
 
@@ -415,7 +415,7 @@ scripts = [
 	''',
 	4),
 
-	('''
+	(u'''
 		sub test
 			x = 1
 			return [1, x+x, x+x+x*x, 4]
@@ -423,7 +423,7 @@ scripts = [
 	''',
 	(1.0, 2.0, 3.0, 4.0)),
 
-	('''
+	(u'''
 		sub test
 			for x=1 to 10
 				break
@@ -433,7 +433,7 @@ scripts = [
 	''',
 	1),
 
-	('''
+	(u'''
 		sub test
 			for x=1 to 10
 				continue
@@ -444,7 +444,14 @@ scripts = [
 	''',
 	10),
 
-#	('''
+	(ur'''
+		sub test
+			return 'Fnö\'rd'
+		endsub
+	''',
+	u"Fnö\'rd"),
+
+#	(u'''
 #		return 1 < false
 #	''',
 #	True),
