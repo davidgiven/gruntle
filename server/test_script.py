@@ -423,6 +423,27 @@ scripts = [
 	''',
 	(1.0, 2.0, 3.0, 4.0)),
 
+	('''
+		sub test
+			for x=1 to 10
+				break
+			next
+			return x
+		endsub
+	''',
+	1),
+
+	('''
+		sub test
+			for x=1 to 10
+				continue
+				break
+			next
+			return x
+		endsub
+	''',
+	10),
+
 #	('''
 #		return 1 < false
 #	''',

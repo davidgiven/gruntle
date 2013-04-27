@@ -461,6 +461,20 @@ def p_statement_return(p):
 		col_offset=p.lexpos(1)
 	)
 
+def p_statement_break(p):
+	r"statement : BREAK"
+	p[0] = ast.Break(
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
+
+def p_statement_continue(p):
+	r"statement : CONTINUE"
+	p[0] = ast.Continue(
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
+
 def p_statement_empty(p):
 	r"statement :"
 	p[0] = ast.Pass(
