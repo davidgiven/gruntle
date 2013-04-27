@@ -15,6 +15,10 @@ def is_number(x):
 def both_numeric(x, y):
 	return is_number(x) and is_number(y)
 
+def check_same_types(x, y):
+	if (type(x) != type(y)):
+		type_mismatch()
+
 def t_boolean(x):
 	if (type(x) != bool):
 		type_mismatch()
@@ -67,22 +71,26 @@ class ScriptRuntime(object):
 	def Lt(self, x, y):
 		if both_numeric(x, y):
 			return x < y
-		type_mismatch()
+		check_same_types()
+		return x < y
 
 	def LtE(self, x, y):
 		if both_numeric(x, y):
 			return x <= y
-		type_mismatch()
+		check_same_types()
+		return x <= y
 
 	def Gt(self, x, y):
 		if both_numeric(x, y):
 			return x > y
-		type_mismatch()
+		check_same_types()
+		return x > y
 
 	def GtE(self, x, y):
 		if both_numeric(x, y):
 			return x >= y
-		type_mismatch()
+		check_same_types()
+		return x >= y
 
 	def Eq(self, x, y):
 		return x == y
