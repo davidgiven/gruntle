@@ -134,7 +134,7 @@ precedence = (
 	('left', '+', '-'),
 	('left', '*', '/', '%'),
 	('right', 'UNARY'),
-	('left', '(')
+	('left', '(', '[')
 )
 
 def call_runtime(name, lineno, col_offset, *args):
@@ -224,6 +224,13 @@ def p_expression_call(p):
         lineno=p.lineno(2),
         col_offset=p.lexpos(2)
     )
+
+def p_expression_index(p):
+	r"expression : expression '[' expression ']'"
+	p[0] = call_runtime(
+		"Index", p.lineno(2), p.lexpos(2),
+		p[1], p[3]
+	)
 
 def p_callargs(p):
 	r"callargs : '(' arglist ')'"

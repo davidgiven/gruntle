@@ -26,6 +26,13 @@ def t_boolean(x):
 		type_mismatch()
 	return x
 
+def t_list(x):
+	if (type(x) is tuple):
+		return x
+	if (type(x) is list):
+		return tuple(x)
+	type_mismatch()
+
 def type_mismatch():
 	raise ScriptError("type mismatch")
 
@@ -67,12 +74,24 @@ class StringMethods:
 	def Gt(x, y): return x > t_string(y)
 	def GtE(x, y): return x >= t_string(y)
 
+class ListMethods:
+	def Add(x, y): return x + t_list(y)
+
+	def Index(x, y):
+		index = int(t_number(y))
+		return x[index]
+
+	def Eq(x, y): return x is y
+	def Ne(x, y): return not (x is y)
+
 method_table = {
 	float: NumberMethods,
 	int: NumberMethods,
 	long: NumberMethods,
 	bool: BooleanMethods,
-	unicode: StringMethods
+	unicode: StringMethods,
+	tuple: ListMethods,
+	list: ListMethods
 }
 
 class ScriptRuntime(object):

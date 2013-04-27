@@ -458,6 +458,20 @@ scripts = [
 	''',
 	u"123456"),
 
+	(ur'''
+		sub test
+			return ['1', '2', '3'][1]
+		endsub
+	''',
+	u"2"),
+
+	(ur'''
+		sub test
+			return [1, 2] + [3, 4]
+		endsub
+	''',
+	(1.0, 2.0, 3.0, 4.0)),
+
 #	(u'''
 #		return 1 < false
 #	''',
