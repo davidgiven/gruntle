@@ -9,6 +9,7 @@
 
 import ts.scriptcompiler as scriptcompiler
 from ts.ScriptRuntime import ScriptRuntime
+from ts.Markup import Markup
 import dis
 import logging
 import sys
@@ -22,8 +23,9 @@ def run_test(test):
 	module = scriptcompiler.compile(script)
 	rt = ScriptRuntime()
 	result = module["var_test"](rt)
+	print "result: ", result
 	if (result != desiredresult):
-		print "TEST FAILED: ", result, " != ", desiredresult
+		print "TEST FAILED: should be ", desiredresult
 		exit(1)
 	else:
 		print "PASSED"
@@ -471,6 +473,31 @@ scripts = [
 		endsub
 	''',
 	(1.0, 2.0, 3.0, 4.0)),
+
+	(ur'''
+		sub test
+			x = 1
+			return "foo" + "foo{x}bar" + "foo{x}bar{x}baz"
+		endsub
+	''',
+	Markup('foo', 'foo', '1', 'bar', 'foo', '1', 'bar', '1', 'baz')),
+
+	(ur'''
+		sub test
+			x = 'cow'
+			return "How now, brown {x}"
+		endsub
+	''',
+	Markup('How now, brown ', 'cow')),
+
+	(ur'''
+		sub test
+			x = 'cow'
+			x = "{x}"
+			return "How now, brown {x}"
+		endsub
+	''',
+	Markup('How now, brown ', Markup('cow'))),
 
 #	(u'''
 #		return 1 < false

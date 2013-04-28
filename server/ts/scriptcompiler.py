@@ -47,18 +47,27 @@ tokens = keywords.values() + [
 	"NL",
 	"NUMBER",
 	"STRING",
+	"MARKUPBEGIN",
+	"MARKUPEND",
 	"EQ",
 	"NE",
 	"LT",
 	"LE",
 	"GT",
 	"GE",
-	"ASSIGN"
+	"ASSIGN",
+	"OPENBRACE",
+	"CLOSEBRACE"
 ]
 
 literals = [
 	"(", ")", ":", "+", "-", "*", "/", "%", "$", ".", ",", "[", "]"
 ]
+
+states = (
+	('markuptext', 'exclusive'),
+	('markupexpr', 'inclusive')
+)
 
 t_ignore = ' \t'
 
@@ -85,7 +94,6 @@ def t_NUMBER(t):
 def t_STRING(t):
 	r"'(?:(?:[^'\\])|(?:\\.))*'"
 	s = "u"+t.value
-	print(s)
 	s = ast.literal_eval(s)
 	t.value = s
 	return t
@@ -97,6 +105,41 @@ t_GE = r'>='
 t_LT = r'<'
 t_GT = r'>'
 t_ASSIGN = r'='
+
+def t_MARKUPBEGIN(t):
+	r'"'
+	t.lexer.push_state("markuptext")
+	return t
+
+def t_markuptext_STRING(t):
+	r'(?:(?:[^"\\{])|(?:\\.))+'
+	s = 'u"'+t.value.replace('"', '\\"')+'"'
+	s = ast.literal_eval(s)
+	t.value = s
+	return t
+
+def t_markuptext_MARKUPEND(t):
+	r'"'
+	t.lexer.pop_state()
+	return t
+
+def t_markuptext_OPENBRACE(t):
+	r"{"
+	t.lexer.bracelevel = 1
+	t.lexer.push_state("markupexpr")
+	return t
+
+def t_markupexpr_OPENBRACE(t):
+	r"{"
+	t.lexer.bracelevel += 1
+	return t
+
+def t_markupexpr_CLOSEBRACE(t):
+	r"}"
+	t.lexer.bracelevel -= 1
+	if (t.lexer.bracelevel == 0):
+		t.lexer.pop_state()
+	return t
 
 def t_error(t):
 	logging.error("Illegal character '%s'" % t.value[0])
@@ -336,6 +379,29 @@ def p_leaf_list(p):
 		lineno=p.lineno(1),
 		col_offset=p.lexpos(1)
 	)
+
+def p_leaf_markup(p):
+	r"leaf : MARKUPBEGIN markupelements MARKUPEND"
+	p[0] = call_runtime("MakeMarkup", p.lineno(1), p.lexpos(1),
+		*p[2])
+
+def p_markupelements_empty(p):
+	r"markupelements :"
+	p[0] = []
+
+def p_markupelements_markupstring(p):
+	r"markupelements : STRING markupelements"
+	p[0] = [
+		ast.Str(
+			s=p[1],
+			lineno=p.lineno(1),
+			col_offset=p.lexpos(1)
+		)
+	] + p[2]
+
+def p_markupelements_expr(p):
+	r"markupelements : OPENBRACE expression CLOSEBRACE markupelements"
+	p[0] = [p[2]] + p[4]
 
 # Statements
 

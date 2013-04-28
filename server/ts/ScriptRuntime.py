@@ -8,6 +8,7 @@
 # the full text.
 
 from ts.exceptions import *
+from ts.Markup import Markup
 
 def t_number(x):
 	if (type(x) is int) or (type(x) is float) or (type(x) is long):
@@ -31,6 +32,11 @@ def t_list(x):
 		return x
 	if (type(x) is list):
 		return tuple(x)
+	type_mismatch()
+
+def t_markup(x):
+	if (type(x) is Markup):
+		return x
 	type_mismatch()
 
 def type_mismatch():
@@ -58,11 +64,15 @@ class NumberMethods:
 	def Gt(x, y): return x > t_number(y)
 	def GtE(x, y): return x >= t_number(y)
 
+	def Markup(x, y): return u"%g" % (x,)
+
 class BooleanMethods:
 	def Not(x, y): return not x
 
 	def Eq(x, y): return x == y
 	def Ne(x, y): return x != y
+
+	def Markup(x, y): return u"true" if x else u"false"
 
 class StringMethods:
 	def Add(x, y): return x + t_string(y)
@@ -74,6 +84,8 @@ class StringMethods:
 	def Gt(x, y): return x > t_string(y)
 	def GtE(x, y): return x >= t_string(y)
 
+	def Markup(x, y): return x
+
 class ListMethods:
 	def Add(x, y): return x + t_list(y)
 
@@ -84,6 +96,11 @@ class ListMethods:
 	def Eq(x, y): return x is y
 	def Ne(x, y): return not (x is y)
 
+class MarkupMethods:
+	def Add(x, y): return x + t_markup(y)
+
+	def Markup(x, y): return x.markup
+
 method_table = {
 	float: NumberMethods,
 	int: NumberMethods,
@@ -91,7 +108,8 @@ method_table = {
 	bool: BooleanMethods,
 	unicode: StringMethods,
 	tuple: ListMethods,
-	list: ListMethods
+	list: ListMethods,
+	Markup: MarkupMethods,
 }
 
 class ScriptRuntime(object):
@@ -125,6 +143,10 @@ class ScriptRuntime(object):
 				if (i <= stop):
 					break
 				i = i + step
+
+	def MakeMarkup(self, *elements):
+		m = [self.Markup(x) for x in elements]
+		return Markup(*m)
 
 	# Any other method call gets routed through the lookup tables above.
 
