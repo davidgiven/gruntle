@@ -501,7 +501,7 @@ scripts = [
 
 	(ur'''
 		sub test
-			a = 1
+			a = 1.6
 			return [a.toInt(), 2, 3, 4].length()
 		endsub
 	''',

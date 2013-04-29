@@ -87,8 +87,8 @@ def t_NL(t):
 	return t
 
 def t_NUMBER(t):
-	r'\d+'
-	t.value = int(t.value)
+	r'(([0-9]*\.)?[0-9]+([eE][-+]?[0-9]+)?)|(%d+)'
+	t.value = float(t.value)
 	return t
 
 def t_STRING(t):
