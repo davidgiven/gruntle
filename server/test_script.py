@@ -499,6 +499,14 @@ scripts = [
 	''',
 	Markup('How now, brown ', Markup('cow'))),
 
+	(ur'''
+		sub test
+			a = 1
+			return [a.toInt(), 2, 3, 4].length()
+		endsub
+	''',
+	4),
+
 #	(u'''
 #		return 1 < false
 #	''',

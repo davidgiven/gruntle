@@ -177,7 +177,8 @@ precedence = (
 	('left', '+', '-'),
 	('left', '*', '/', '%'),
 	('right', 'UNARY'),
-	('left', '(', '[')
+	('left', '(', '['),
+	('left', '.'),
 )
 
 def call_runtime(name, lineno, col_offset, *args):
@@ -273,6 +274,18 @@ def p_expression_index(p):
 	p[0] = call_runtime(
 		"Index", p.lineno(2), p.lexpos(2),
 		p[1], p[3]
+	)
+
+def p_expression_property(p):
+	r"expression : expression '.' ID"
+	p[0] = call_runtime(
+		"Property", p.lineno(2), p.lexpos(2),
+		p[1],
+		ast.Str(
+			s=unicode(p[3]),
+			lineno=p.lineno(3),
+			col_offset=p.lineno(3)
+		)
 	)
 
 def p_callargs(p):

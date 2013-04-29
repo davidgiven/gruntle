@@ -9,6 +9,7 @@
 
 from ts.exceptions import *
 from ts.Markup import Markup
+import math
 
 def t_number(x):
 	if (type(x) is int) or (type(x) is float) or (type(x) is long):
@@ -42,74 +43,94 @@ def t_markup(x):
 def type_mismatch():
 	raise ScriptError("type mismatch")
 
+def unknown_property(n):
+	raise ScriptError("no such property '%s'" % (n,))
+
 # This is a load of foul hackery. We have to fake our own methods on system
-# types (int, float, bool, unicode, etc.) The following 'classes' are
+# types (int, float, bool, unicode, etc.) The following classes are
 # bundles of methods for each type. When a run-time operation is performed
 # on a value, the type of the left parameter is looked up and the appropriate
-# 'class' found.
+# class found.
 
-class NumberMethods:
-	def Add(x, y): return x + t_number(y)
-	def Sub(x, y): return x - t_number(y)
-	def Mult(x, y): return x * t_number(y)
-	def Div(x, y): return x / t_number(y)
-	def Mod(x, y): return x % t_number(y)
+class GenericMethods(object):
+	def Eq(self, x, y): return x == y
+	def NotEq(self, x, y): return x != y
 
-	def Neg(x, y): return -x
+	def Property(self, x, name):
+		m = getattr(self, "property_"+name)
+		if not m:
+			unknown_property(name)
+		def f(rt, *args):
+			return m(rt, x, *args)
+		return f
 
-	def Eq(x, y): return x == y
-	def NotEq(x, y): return x != y
-	def Lt(x, y): return x < t_number(y)
-	def LtE(x, y): return x <= t_number(y)
-	def Gt(x, y): return x > t_number(y)
-	def GtE(x, y): return x >= t_number(y)
+	def property_markup(self, rt, x): return self.Markup(x)
 
-	def Markup(x, y): return u"%g" % (x,)
+class NumberMethods(GenericMethods):
+	def Add(self, x, y): return x + t_number(y)
+	def Sub(self, x, y): return x - t_number(y)
+	def Mult(self, x, y): return x * t_number(y)
+	def Div(self, x, y): return x / t_number(y)
+	def Mod(self, x, y): return x % t_number(y)
 
-class BooleanMethods:
-	def Not(x, y): return not x
+	def Neg(self, x): return -x
 
-	def Eq(x, y): return x == y
-	def Ne(x, y): return x != y
+	def Lt(self, x, y): return x < t_number(y)
+	def LtE(self, x, y): return x <= t_number(y)
+	def Gt(self, x, y): return x > t_number(y)
+	def GtE(self, x, y): return x >= t_number(y)
 
-	def Markup(x, y): return u"true" if x else u"false"
+	def Markup(self, x): return u"%g" % (x,)
 
-class StringMethods:
-	def Add(x, y): return x + t_string(y)
+	def property_toString(self, rt, x): return self.Markup(x)
+	def property_toInt(self, rt, x): return float(int(x))
 
-	def Eq(x, y): return x == y
-	def Ne(x, y): return x != y
-	def Lt(x, y): return x < t_string(y)
-	def LtE(x, y): return x <= t_string(y)
-	def Gt(x, y): return x > t_string(y)
-	def GtE(x, y): return x >= t_string(y)
+class BooleanMethods(GenericMethods):
+	def Not(self, x): return not x
 
-	def Markup(x, y): return x
+	def Markup(self, x): return u"true" if x else u"false"
 
-class ListMethods:
-	def Add(x, y): return x + t_list(y)
+	def property_toString(self, rt, x): return self.Markup(x)
 
-	def Index(x, y):
+class StringMethods(GenericMethods):
+	def Add(self, x, y): return x + t_string(y)
+
+	def Lt(self, x, y): return x < t_string(y)
+	def LtE(self, x, y): return x <= t_string(y)
+	def Gt(self, x, y): return x > t_string(y)
+	def GtE(self, x, y): return x >= t_string(y)
+
+	def Markup(self, x): return x
+
+	def property_length(self, rt, x): return len(x)
+	def property_toString(self, rt, x): return x
+
+class ListMethods(GenericMethods):
+	def Add(self, x, y): return x + t_list(y)
+
+	def Index(self, x, y):
 		index = int(t_number(y))
 		return x[index]
 
-	def Eq(x, y): return x is y
-	def Ne(x, y): return not (x is y)
+	def Eq(self, x, y): return x is y
+	def Ne(self, x, y): return not (x is y)
 
-class MarkupMethods:
-	def Add(x, y): return x + t_markup(y)
+	def property_length(self, rt, x): return len(x)
 
-	def Markup(x, y): return x.markup
+class MarkupMethods(GenericMethods):
+	def Add(self, x, y): return x + t_markup(y)
+
+	def Markup(self, x): return x.markup
 
 method_table = {
-	float: NumberMethods,
-	int: NumberMethods,
-	long: NumberMethods,
-	bool: BooleanMethods,
-	unicode: StringMethods,
-	tuple: ListMethods,
-	list: ListMethods,
-	Markup: MarkupMethods,
+	float: NumberMethods(),
+	int: NumberMethods(),
+	long: NumberMethods(),
+	bool: BooleanMethods(),
+	unicode: StringMethods(),
+	tuple: ListMethods(),
+	list: ListMethods(),
+	Markup: MarkupMethods(),
 }
 
 class ScriptRuntime(object):
@@ -155,12 +176,11 @@ class ScriptRuntime(object):
 		if (name in self.attrcache):
 			return self.attrcache[name]
 
-		def attr(x, y=None):
+		def attr(x, *y):
 			tx = type(x)
-			ty = type(y)
 			mt = method_table[tx]
 			try:
-				return mt.__dict__[name](x, y)
+				return getattr(mt, name)(x, *y)
 			except KeyError:
 				raise ScriptError("type %s does not support %s", tx, name)
 
