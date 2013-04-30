@@ -129,29 +129,17 @@
 	    	$("#editroomid").text(currentmessage.name);
 			$("#editroomname").text(currentmessage.title);
 
-			$("#editdescription").empty()
-	    	var paras = currentmessage.description.split("\n");
-	    	for (var i = 0; i < paras.length; i++)
-	    		$("#editdescription").append($("<p/>").text(paras[i]));
-
-	    	$("#roomeditor .action").remove();
-        	$.each(currentmessage.allactions,
-        		function (id, action)
-        		{
-        			var editor = create_action_editor(id, action);
-        			$("#editactions").before(editor);
-        		}
-        	);
-        	
-        	$("#createactionbutton")
-        		.unbind()
-        		.click(
-        			function()
-        			{
-        				add_new_action();
-        				return false;
-        			}
-        		);
+			$("#codecontainer").empty();
+			var code = CodeMirror($("#codecontainer")[0],
+				{
+					value: "This is code.",
+                    mode: "tb",
+                    lineWrapping: true,
+                    lineNumbers: true,
+                    tabSize: 2,
+                    indentWithTabs: 2,
+				}
+			);
 
         	$("#editcancelbutton").unbind().click(cancel_cb);
         	$("#editsavebutton").unbind().click(save_cb);

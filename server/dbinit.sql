@@ -58,6 +58,7 @@ CREATE TABLE rooms
 	description TEXT,
 	actions BLOB,
 	immutable INTEGER,
+	script TEXT,
 	realm INTEGER REFERENCES realms(id)
 );
 CREATE INDEX rooms_byname ON rooms(name);

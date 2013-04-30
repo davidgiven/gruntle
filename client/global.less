@@ -317,26 +317,56 @@ HTML
 	.resizable
 	{
 	    width: 30em;
-	    height: 20em;
+	    height: 30em;
 	}
 	    
-    .container
+    .nonscrollcontainer
     {
-		#editdescription
+        position: absolute;
+        top: 0;
+        bottom: 0;
+
+		> TABLE
 		{
-			min-height: 6em;
+			height: 100%;
 		}
-		
-		#editactions LI TABLE
+
+		.expandable
 		{
-			width: 100%;
+			height: 100%;
+
+			TD
+			{
+				height: 100%;
+				position: relative;
+
+				#codecontainer
+				{
+			        border: 1px solid black;
+			        background-color: white;
+					box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, 0.6);
+					position: absolute;
+					left: 0;
+					right: 0;
+					top: 0;
+					bottom: 0;
+					overflow: auto;
+
+					.CodeMirror
+					{
+						width: 100%;
+						height: 100%;
+					}
+				}
+			}
 		}
-		
-		.containstype
+
+		#editcheckbutton
 		{
-			text-align: right;
+			float: left;
 		}
 	}
+
 }
 
 #playarea, #editdescription
