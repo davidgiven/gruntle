@@ -257,8 +257,8 @@ def p_expression_or(p):
 		col_offset=p.lexpos(2)
 	)
 
-def p_expression_call(p):
-	r"expression : expression callargs"
+def p_leaf_call(p):
+	r"leaf : leaf callargs"
 	p[0] = ast.Call(
 		func=p[1],
         args=p[2],
@@ -269,15 +269,15 @@ def p_expression_call(p):
         col_offset=p.lexpos(2)
     )
 
-def p_expression_index(p):
-	r"expression : expression '[' expression ']'"
+def p_leaf_index(p):
+	r"leaf : leaf '[' expression ']'"
 	p[0] = call_runtime(
 		"Index", p.lineno(2), p.lexpos(2),
 		p[1], p[3]
 	)
 
-def p_expression_property(p):
-	r"expression : expression '.' ID"
+def p_leaf_property(p):
+	r"leaf : leaf '.' ID"
 	p[0] = call_runtime(
 		"Property", p.lineno(2), p.lexpos(2),
 		p[1],
@@ -418,24 +418,15 @@ def p_markupelements_expr(p):
 
 # Statements
 
-# We can't allow bare expressions as statements due to ambiguity between =
-# as assignment and = as comparison. So we have to add explicit call rules.
+# Allow bare leaves as expressions (so we can get calls).
 
-def p_statement_expression(p):
-	r"statement : leaf callargs"
+def p_statement_leaf(p):
+	r"statement : leaf"
 	p[0] = ast.Expr(
-		value=ast.Call(
-			func=p[1],
-	        args=p[2],
-	        keywords=[],
-	        kwargs=None,
-	        starargs=None,
-	        lineno=p.lineno(2),
-	        col_offset=p.lexpos(2)
-	    ),
-        lineno=p.lineno(1),
-        col_offset=p.lexpos(1)
-    )
+		value=p[1],
+		lineno=p.lineno(1),
+		col_offset=p.lexpos(1)
+	)
 
 def p_statement_assign_var(p):
 	r"statement : ID ASSIGN expression"

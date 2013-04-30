@@ -507,6 +507,17 @@ scripts = [
 	''',
 	4),
 
+	(ur'''
+		sub test
+			a = [1, 2, 3, 4]
+			a.length()
+			[1, 2].length()
+			4
+			return 0
+		endsub
+	''',
+	0),
+
 #	(u'''
 #		return 1 < false
 #	''',
