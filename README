@@ -140,6 +140,7 @@ The Javascript client embeds copies of:
 - LESS; Apache 2 licensed, see http://lesscss.org/
 - Yahoo's reset-min; BSD licensed, see http://developer.yahoo.com/yui/license.html
 - jsprettify; Apache 2 licensed, see https://code.google.com/p/jsprettify.
+- codemirror; MIT licensed; see http://codemirror.net/
 
 The Python server embeds copies of:
 
