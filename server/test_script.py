@@ -518,6 +518,16 @@ scripts = [
 	''',
 	0),
 
+	(ur'''
+		# Comment 1.
+
+		sub test
+			# Comment 2.
+			return 0 # Comment 3
+		endsub
+	''',
+	0),
+
 #	(u'''
 #		return 1 < false
 #	''',

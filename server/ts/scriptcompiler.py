@@ -72,7 +72,7 @@ states = (
 t_ignore = ' \t'
 
 def t_COMMENT(t):
-	r';[^\n]*'
+	r'\#[^\n]*'
 	pass
 
 def t_ID(t):
