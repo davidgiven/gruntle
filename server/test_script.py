@@ -9,7 +9,9 @@
 
 import ts.scriptcompiler as scriptcompiler
 from ts.ScriptRuntime import ScriptRuntime
+from ts.ScriptRuntime import executeScript
 from ts.Markup import Markup
+from ts.exceptions import *
 import dis
 import logging
 import sys
@@ -22,7 +24,10 @@ def run_test(test):
 	print script
 	module = scriptcompiler.compile(script)
 	rt = ScriptRuntime()
-	result = module["var_test"](rt)
+	try:
+		result = executeScript(rt, module, "test")
+	except AppError, e:
+		result = e
 	print "result: ", result
 	if (result != desiredresult):
 		print "TEST FAILED: should be ", desiredresult
@@ -527,6 +532,15 @@ scripts = [
 		endsub
 	''',
 	0),
+
+	(ur'''
+		sub test
+			while true
+				# Do nothing
+			endwhile
+		endsub
+	''',
+	ScriptError("CPU quota expired")),
 
 #	(u'''
 #		return 1 < false

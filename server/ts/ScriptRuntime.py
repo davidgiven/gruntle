@@ -10,6 +10,7 @@
 from ts.exceptions import *
 from ts.Markup import Markup
 import math
+import signal
 
 def t_number(x):
 	if (type(x) is int) or (type(x) is float) or (type(x) is long):
@@ -187,3 +188,14 @@ class ScriptRuntime(object):
 		self.attrcache[name] = attr
 		return attr
 
+def signalHandler(signum, frame):
+	raise ScriptError("CPU quota expired")
+
+def executeScript(rt, module, name, *args):
+	signal.signal(signal.SIGALRM, signalHandler)
+
+	signal.setitimer(signal.ITIMER_REAL, 0.5)
+	result = module["var_"+name](rt)
+	signal.alarm(0)
+
+	return result

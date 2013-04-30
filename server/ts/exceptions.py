@@ -8,8 +8,13 @@
 # the full text.
 
 class ServerUserError(RuntimeError):
-	pass
-	
+	def __eq__(self, other):
+		print type(other), self.__class__
+		return (type(other) == self.__class__) and (self.args == other.args)
+
+	def __ne__(self, other):
+		return not self.__eq__(other)
+
 class InvalidObjectReference(ServerUserError):
 	def __init__(self, arg=None):
 		self.args = (arg,)
