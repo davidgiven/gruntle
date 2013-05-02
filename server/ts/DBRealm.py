@@ -52,9 +52,9 @@ class DBRealm(DBObject):
 		
 	# Room management
 	
-	def addRoom(self, name, title, description):
+	def addRoom(self, name, title, script):
 		room = DBRoom()
-		room.create(self, name, title, description)
+		room.create(self, name, title, script)
 		return room
 
 	def findRoom(self, name):

@@ -1,3 +1,22 @@
+-- thickishstring server
+-- Copyright © 2013 David Given
+--
+-- This software is redistributable under the terms of the Simplified BSD
+-- open source license. Please see the COPYING file in the distribution for
+-- the full text.
+
+-- Actions.
+
+CREATE TABLE actions
+(
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	description TEXT,
+	type TEXT,
+	target TEXT,
+	room INTEGER REFERENCES rooms(id)
+);
+CREATE INDEX actions_byroom ON actions(room);
+
 PRAGMA auto_vacuum = FULL;
 PRAGMA encoding = "UTF-8";
 PRAGMA foreign_keys = ON;
@@ -7,7 +26,7 @@ BEGIN;
 
 -- Global settings.
 
-CREATE TABLE variables
+CREATE TABLE settings
 (
 	key TEXT NOT NULL PRIMARY KEY,
 	value TEXT
@@ -55,25 +74,25 @@ CREATE TABLE rooms
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	name TEXT,
 	title TEXT,
-	description TEXT,
-	actions BLOB,
-	immutable INTEGER,
 	script TEXT,
+	immutable INTEGER,
 	realm INTEGER REFERENCES realms(id)
 );
 CREATE INDEX rooms_byname ON rooms(name);
 CREATE INDEX rooms_byrealm ON rooms(realm);
 
--- Actions.
+-- Instance variables.
 
-CREATE TABLE actions
+CREATE TABLE variables
 (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	description TEXT,
-	type TEXT,
-	target TEXT,
-	room INTEGER REFERENCES rooms(id)
+	name TEXT,
+	realm INTEGER REFERENCES realms(id),
+	instance INTEGER REFERENCES instances(id),
+	data TEXT,
+	UNIQUE(name, realm)
 );
-CREATE INDEX actions_byroom ON actions(room);
+CREATE INDEX variables_byrealm ON variables(realm);
+CREATE INDEX variables_byinstance ON variables(instance);
 
 COMMIT;

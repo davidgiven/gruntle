@@ -535,6 +535,30 @@ scripts = [
 
 	(ur'''
 		sub test
+			return [1,
+				2]
+		endsub
+	''',
+	(1, 2)),
+
+	(ur'''
+		sub test
+			return [[1]]
+		endsub
+	''',
+	((1,),)),
+
+	(ur'''
+		sub test
+			return [
+				[1]
+			]
+		endsub
+	''',
+	((1,),)),
+
+	(ur'''
+		sub test
 			while true
 				# Do nothing
 			endwhile

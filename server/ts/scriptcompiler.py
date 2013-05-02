@@ -15,6 +15,8 @@ import time
 import re
 import __builtin__
 from ts.exceptions import *
+from ts.Markup import *
+from ts.ScriptRuntime import makeAction
 
 # --- Lexer -----------------------------------------------------------------
 
@@ -735,6 +737,7 @@ def compile(script):
 	# ...then run it to actually define the functions...
 
 	scope = {}
+	scope["var_Action"] = makeAction
 	exec co in scope
 
 	endtime = time.time()
