@@ -30,3 +30,8 @@ class AppError(ServerUserError):
 class ScriptError(AppError):
 	def __init__(self, message, *args):
 		self.args = (message % args,)
+
+class ScriptCompilationError(AppError):
+	def __init__(self, message, *args):
+		self.args = (message % args,)
+

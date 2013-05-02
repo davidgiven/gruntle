@@ -14,6 +14,7 @@ import ast
 import time
 import re
 import __builtin__
+from ts.exceptions import *
 
 # --- Lexer -----------------------------------------------------------------
 
@@ -94,6 +95,8 @@ def t_NUMBER(t):
 def t_STRING(t):
 	r"'(?:(?:[^'\\])|(?:\\.))*'"
 	s = "u"+t.value
+	t.lexer.lineno += s.count('\n')
+	s = s.replace('\n', '\\n')
 	s = ast.literal_eval(s)
 	t.value = s
 	return t
@@ -114,6 +117,8 @@ def t_MARKUPBEGIN(t):
 def t_markuptext_STRING(t):
 	r'(?:(?:[^"\\{])|(?:\\.))+'
 	s = 'u"'+t.value.replace('"', '\\"')+'"'
+	t.lexer.lineno += s.count('\n')
+	s = s.replace('\n', '\\n')
 	s = ast.literal_eval(s)
 	t.value = s
 	return t
@@ -203,55 +208,61 @@ def call_runtime(name, lineno, col_offset, *args):
         col_offset=col_offset
     )
 
+def p_ws(p):
+	r'''
+		ws :
+		   | NL
+	'''
+
 def p_expression_infix(p):
 	r'''
-		expression : expression '+' expression
-		           | expression '-' expression
-		           | expression '*' expression
-		           | expression '/' expression
-		           | expression '%' expression
-		           | expression ASSIGN expression
-		           | expression EQ expression
-		           | expression NE expression
-		           | expression LT expression
-		           | expression LE expression
-		           | expression GT expression
-		           | expression GE expression
+		expression : expression '+' ws expression
+		           | expression '-' ws expression
+		           | expression '*' ws expression
+		           | expression '/' ws expression
+		           | expression '%' ws expression
+		           | expression ASSIGN ws expression
+		           | expression EQ ws expression
+		           | expression NE ws expression
+		           | expression LT ws expression
+		           | expression LE ws expression
+		           | expression GT ws expression
+		           | expression GE ws expression
 	'''
 	op = infix_operator_map[p[2]]
-	p[0] = call_runtime(op, p.lineno(2), p.lexpos(2), p[1], p[3])
+	p[0] = call_runtime(op, p.lineno(2), p.lexpos(2), p[1], p[4])
 
 def p_expression_prefix(p):
 	r'''
-		expression : '-' expression %prec UNARY
-		           | NOT expression %prec UNARY
+		expression : '-' ws expression %prec UNARY
+		           | NOT ws expression %prec UNARY
 	'''
 	op = prefix_operator_map[p[1]]
-	p[0] = call_runtime(op, p.lineno(2), p.lexpos(2), p[2])
+	p[0] = call_runtime(op, p.lineno(3), p.lexpos(3), p[3])
 
 def p_expression_and(p):
-	r"expression : expression AND expression"
+	r"expression : expression AND ws expression"
 	p[0] = ast.BoolOp(
 		op=ast.And(),
 		values=[
 			call_runtime(
 				"CheckBoolean", p.lineno(1), p.lexpos(1), p[1]),
 			call_runtime(
-				"CheckBoolean", p.lineno(3), p.lexpos(3), p[3])
+				"CheckBoolean", p.lineno(4), p.lexpos(4), p[4])
 		],
 		lineno=p.lineno(2),
 		col_offset=p.lexpos(2)
 	)
 
 def p_expression_or(p):
-	r"expression : expression OR expression"
+	r"expression : expression OR ws expression"
 	p[0] = ast.BoolOp(
 		op=ast.Or(),
 		values=[
 			call_runtime(
 				"CheckBoolean", p.lineno(1), p.lexpos(1), p[1]),
 			call_runtime(
-				"CheckBoolean", p.lineno(3), p.lexpos(3), p[3])
+				"CheckBoolean", p.lineno(4), p.lexpos(4), p[4])
 		],
 		lineno=p.lineno(2),
 		col_offset=p.lexpos(2)
@@ -270,10 +281,10 @@ def p_leaf_call(p):
     )
 
 def p_leaf_index(p):
-	r"leaf : leaf '[' expression ']'"
+	r"leaf : leaf '[' ws expression ws ']'"
 	p[0] = call_runtime(
 		"Index", p.lineno(2), p.lexpos(2),
-		p[1], p[3]
+		p[1], p[4]
 	)
 
 def p_leaf_property(p):
@@ -289,7 +300,7 @@ def p_leaf_property(p):
 	)
 
 def p_callargs(p):
-	r"callargs : '(' arglist ')'"
+	r"callargs : '(' ws arglist ws ')'"
 	p[0] = [
 		ast.Name(
 			id="rt",
@@ -297,7 +308,7 @@ def p_callargs(p):
 			lineno=p.lineno(1),
 			col_offset=p.lexpos(1)
 		)
-	] + p[2]
+	] + p[3]
 
 def p_arglist_empty(p):
 	r"arglist :"
@@ -308,16 +319,16 @@ def p_arglist_single(p):
 	p[0] = [p[1]]
 
 def p_arglist_multiple(p):
-	r"arglist : expression ',' arglist"
-	p[0] = [p[1]] + p[3]
+	r"arglist : expression ws ',' ws arglist"
+	p[0] = [p[1]] + p[5]
 
 def p_expression_leaf(p):
 	r"expression : leaf"
 	p[0] = p[1]
 
 def p_leaf_parenthesis(p):
-	r"leaf : '(' expression ')'"
-	p[0] = p[2]
+	r"leaf : '(' ws expression ws ')'"
+	p[0] = p[3]
 
 def p_leaf_number(p):
 	r"leaf : NUMBER"
@@ -385,9 +396,9 @@ def p_leaf_false(p):
 	)
 
 def p_leaf_list(p):
-	r"leaf : '[' arglist ']'"
+	r"leaf : '[' ws arglist ws ']'"
 	p[0] = ast.Tuple(
-		elts=p[2],
+		elts=p[3],
 		ctx=ast.Load(),
 		lineno=p.lineno(1),
 		col_offset=p.lexpos(1)
@@ -691,7 +702,7 @@ def p_toplevels_newline(p):
 	p[0] = [p[1]] + p[3]
 
 def p_error(p):
-    logging.error("Syntax error %s" % p)
+	raise ScriptCompilationError("syntax error %s" % p)
 
 parser = yacc.yacc(start='toplevels')
 
