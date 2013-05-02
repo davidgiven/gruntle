@@ -300,7 +300,7 @@ def p_leaf_property(p):
 	)
 
 def p_callargs(p):
-	r"callargs : '(' ws arglist ws ')'"
+	r"callargs : '(' arglist ')'"
 	p[0] = [
 		ast.Name(
 			id="rt",
@@ -308,19 +308,19 @@ def p_callargs(p):
 			lineno=p.lineno(1),
 			col_offset=p.lexpos(1)
 		)
-	] + p[3]
+	] + p[2]
 
 def p_arglist_empty(p):
-	r"arglist :"
+	r"arglist : ws"
 	p[0] = []
 
 def p_arglist_single(p):
-	r"arglist : expression"
-	p[0] = [p[1]]
+	r"arglist : ws expression ws"
+	p[0] = [p[2]]
 
 def p_arglist_multiple(p):
-	r"arglist : expression ws ',' ws arglist"
-	p[0] = [p[1]] + p[5]
+	r"arglist : ws expression ',' ws arglist"
+	p[0] = [p[2]] + p[5]
 
 def p_expression_leaf(p):
 	r"expression : leaf"
@@ -396,9 +396,9 @@ def p_leaf_false(p):
 	)
 
 def p_leaf_list(p):
-	r"leaf : '[' ws arglist ws ']'"
+	r"leaf : '[' arglist ']'"
 	p[0] = ast.Tuple(
-		elts=p[3],
+		elts=p[2],
 		ctx=ast.Load(),
 		lineno=p.lineno(1),
 		col_offset=p.lexpos(1)
@@ -714,6 +714,7 @@ def compile(script):
 
 	starttime = time.time()
 
+	lexer.lineno = 1
 	node = parser.parse(script, tracking=True, debug=0)
 	from unparse import Unparser
 
