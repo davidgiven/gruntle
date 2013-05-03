@@ -713,6 +713,7 @@ def p_toplevels_newline(p):
 
 def p_error(p):
 	global errorlog
+	logging.debug("script parse error: %s" % p)
 	errorlog += (
 		{
 			"message": u"Syntax error",

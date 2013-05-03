@@ -7,11 +7,14 @@
 # open source license. Please see the COPYING file in the distribution for
 # the full text.
 
-from ts.exceptions import *
-from ts.Markup import *
 import math
 import signal
 import re
+import anyjson as json
+
+from ts.exceptions import *
+from ts.Markup import *
+import ts.db as db
 
 def checkNumber(x):
 	if (type(x) is int) or (type(x) is float) or (type(x) is long):
@@ -73,6 +76,11 @@ class GenericMethods(object):
 
 	def property_markup(self, rt, x): return self.Markup(x)
 
+class NilMethods(GenericMethods):
+	def Markup(self, x): return u"nil"
+
+	def property_toString(self, rt, x): return self.Markup(x)
+
 class NumberMethods(GenericMethods):
 	def Add(self, x, y): return x + checkNumber(y)
 	def Sub(self, x, y): return x - checkNumber(y)
@@ -130,6 +138,7 @@ class MarkupMethods(GenericMethods):
 	def Markup(self, x): return x.markup
 
 method_table = {
+    type(None): NilMethods(),
 	float: NumberMethods(),
 	int: NumberMethods(),
 	long: NumberMethods(),
@@ -145,10 +154,29 @@ def makeAction(rt, markup, consequence):
 
 class ScriptRuntime(object):
 	def __init__(self, realm, instance, room):
-		self.globals = {}
+		self.realm = realm
+		self.instance = instance
+		self.room = room
 
-	def SetGlobal(self, k, v): self.globals[k] = v
-	def GetGlobal(self, k): return self.globals[k]
+	def SetGlobal(self, k, v):
+		try:
+			j = json.serialize(v)
+		except ValueError:
+			raise ScriptError("attempt to store value in a global which cannot be stored in a global")
+
+		db.sql.cursor().execute("INSERT OR REPLACE INTO variables "
+			"(name, realm, instance, data) VALUES (?, ?, ?, ?)",
+			(k, self.realm.id, self.instance.id, j))
+
+	def GetGlobal(self, k):
+		c = db.sql.cursor().execute("SELECT data FROM variables WHERE "
+			"name=? AND realm=? AND instance=?",
+			(k, self.realm.id, self.instance.id))
+		try:
+			j = c.next()[0]
+			return json.deserialize(j)
+		except StopIteration:
+			return None
 
 	def CheckBoolean(self, x): return checkBoolean(x)
 
@@ -210,6 +238,7 @@ def executeScript(rt, module, name, *args):
 		r = re.compile(ur"'var_(\w+)' is not defined", re.U)
 		m = re.search(r, unicode(str(e), "UTF-8"))
 		if not m:
+			logging.exception(e)
 			raise ScriptError("mysterious script error")
 		raise ScriptError(u"variable '%s' is not defined", m.group(1))
 	finally:

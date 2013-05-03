@@ -337,6 +337,7 @@ endsub
 			descriptiono = checkMarkup(executeScript(rt, module, "RoomDescription"))
 			description = rt.Markup(descriptiono)
 		except ScriptError, e:
+			logging.exception(e)
 			description = "[There is a realm programming error in the description for this room.]"
 
 		msg = {
@@ -412,6 +413,7 @@ endsub
 			logging.debug(actionso)
 			actions = [ checkMarkup(x).markup for x in actionso ]
 		except ScriptError, e:
+			logging.exception(e)
 			actions = ["[There is a realm programming error in the actions for this room.]"]
 
 		return actions
@@ -419,6 +421,8 @@ endsub
 	# Execute a player action.
 	
 	def onAction(self, actionid):
+		instance = self.instance
+		realm = instance.realm
 		room = self.room
 
 		consequence = Action.getConsequenceFromId(actionid)
@@ -433,7 +437,9 @@ endsub
 				raise AppError("room '"+target+"' does not exist in realm")
 			self.moveTo(targetroom)
 		else:
-			pass
+			module = scriptcompiler.compile(room.script)
+			rt = ScriptRuntime(realm, instance, room)
+			executeScript(rt, module, consequence)
 
 	# The player has asked to warp to a new room.
 	
