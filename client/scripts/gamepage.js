@@ -91,7 +91,7 @@
 			if (!current_status_div)
     		return;
     	
-		var m = $("<p/>").append(W.Markup.ToDOM(markup));
+		var m = W.Markup.ToParagraphs(markup);
 		if (style)
 			m.addClass(style);
 		
@@ -208,12 +208,9 @@
             	
             	var header = $("<h1/>").text(message.title);
             	var body = $("<div/>");
-    
-            	var paras = message.description.split("\n");
-            	for (var i = 0; i < paras.length; i++)
-            		body.append($("<p/>").text(paras[i]));
-            	jsprettify.prettifyHtml(body[0]);
-            	
+
+                W.Markup.ToParagraphs(message.description).appendTo(body);
+
             	current_text_div.empty();
             	
             	if (message.editable)
@@ -280,9 +277,7 @@
                 			m.push(" are here.");
                 		}
 
-        				var s = $("<p/>")
-        				W.Markup.ToDOM(m).appendTo(s);
-        				s.appendTo(current_status_div);
+        				W.Markup.ToParagraphs(m).appendTo(current_status_div);
             		}
             		
             		shown_user_list = true;
@@ -342,34 +337,8 @@
             	$.each(message.actions,
             		function (id, action)
             		{
-                		var e = $("<a href='#'/>");
-                		e.text(action.description);
-                		
-                		e.click(
-                			function()
-                    		{
-					show_simple_markup(
-						[
-							"> ",
-							action.description
-						],
-						"action"
-					);
-
-                    			W.Socket.Send(
-                    				{
-                    				 	command: "action",
-                    				 	actionid: id
-                    				}
-                    			);
-                    			
-                    			updateScrollPosition();
-                    			return false;
-                    		}
-                		);
-                		
                 		var li = $("<li/>");
-                		li.append(e);
+            		    W.Markup.ToSpan(action).appendTo(li);
                 		list.append(li);
                 		
                 		count++;
@@ -396,7 +365,27 @@
         	else
         		show_actions();
         },
-        
+
+        PerformActionConsequence: function(markup, id)
+        {
+            show_simple_markup(
+                [
+                    "> ",
+                    markup
+                ],
+                "action"
+            );
+
+            W.Socket.Send(
+                {
+                    command: "action",
+                    actionid: id
+                }
+            );
+
+            updateScrollPosition();
+        },
+
         ArrivedEvent: function(message)
         {
         	show_simple_markup(message.markup);

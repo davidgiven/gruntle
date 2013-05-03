@@ -2,7 +2,7 @@
 // CodeMirror 1 mode.
 // highlights keywords, strings, comments (no leveling supported! ("[==[")), tokens, basic indenting
 
-CodeMirror.defineMode("lua", function(config, parserConfig) {
+CodeMirror.defineMode("tb", function(config, parserConfig) {
   var indentUnit = config.indentUnit;
 
   function prefixRE(words) {

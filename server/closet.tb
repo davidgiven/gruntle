@@ -1,0 +1,17 @@
+# thickishstring server
+# Copyright © 2013 David Given
+#
+# This software is redistributable under the terms of the Simplified BSD
+# open source license. Please see the COPYING file in the distribution for
+# the full text.
+
+sub RoomDescription
+	return "The cleaning closet is full of junk, and is very dark.
+		You don't want to move unless you knock	something over."
+endsub
+
+sub Actions
+	return [
+		Action("Leave before you spill bleach on yourself.", '>entrypoint')
+	]
+endsub

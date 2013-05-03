@@ -60,7 +60,7 @@
 <div id="roomeditor" class="dialogue">
 	<div class="resizable">
 		<h3 class="dialogue-title">Room editor</h3>
-		<div class="container">
+		<div class="nonscrollcontainer">
 			<table>
 				<tbody>
 					<tr>
@@ -71,17 +71,15 @@
 						<th>Room title:</th>
 						<td><div id="editroomname" contenteditable="true"><br/></div></td>
 					</tr>
-					<tr>
-						<th>Description:</th>
-						<td><div id="editdescription" contenteditable="true"><br/></div></td>
+					<tr class="expandable">
+						<td colspan="2">
+							<div id="codecontainer"/>
+						</td>
 					</tr>
-				</tbody>
-				<tbody id="editactions">
 					<tr>
-						<th>
-							<a href="#" id="createactionbutton">[add action]</a>
-						</th>
+						<th/>
 						<td class='containsbuttons'>
+							<input type="button" id="editcheckbutton" value="Check"/>
 							<input type="button" id="editcancelbutton" value="Cancel"/>
 							<input type="button" id="editsavebutton" value="Save"/>
 						</td>

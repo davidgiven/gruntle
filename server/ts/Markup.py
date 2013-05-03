@@ -78,3 +78,25 @@ class Markup(object):
 	def type(self):
 		return self.markup["type"]
 
+# The big table of action IDs (to avoid sending the consequence string to
+# the client).
+
+actionidtable = {}
+
+class Action(Markup):
+	def __init__(self, markup, consequence):
+		c = intern(consequence.encode("UTF-8"))
+		actionidtable[id(c)] = consequence
+
+		super(Action, self).__init__(
+			type=u"action",
+			id=id(c),
+			markup=markup)
+
+	@staticmethod
+	def getConsequenceFromId(id):
+		try:
+			return actionidtable[id]
+		except KeyError:
+			raise PermissionDenied()
+

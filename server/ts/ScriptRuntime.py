@@ -8,36 +8,41 @@
 # the full text.
 
 from ts.exceptions import *
-from ts.Markup import Markup
+from ts.Markup import *
 import math
 import signal
 
-def t_number(x):
+def checkNumber(x):
 	if (type(x) is int) or (type(x) is float) or (type(x) is long):
 		return x
 	type_mismatch()
 
-def t_string(x):
+def checkString(x):
 	if (type(x) is unicode):
 		return x
 	if (type(x) is str):
 		return unicode(x, "UTF-8")
 	type_mismatch()
 
-def t_boolean(x):
+def checkBoolean(x):
 	if (type(x) != bool):
 		type_mismatch()
 	return x
 
-def t_list(x):
+def checkList(x):
 	if (type(x) is tuple):
 		return x
 	if (type(x) is list):
 		return tuple(x)
 	type_mismatch()
 
-def t_markup(x):
-	if (type(x) is Markup):
+def checkMarkup(x):
+	if (isinstance(x, Markup)):
+		return x
+	type_mismatch()
+
+def checkAction(x):
+	if (isinstance(x, Action)):
 		return x
 	type_mismatch()
 
@@ -68,18 +73,18 @@ class GenericMethods(object):
 	def property_markup(self, rt, x): return self.Markup(x)
 
 class NumberMethods(GenericMethods):
-	def Add(self, x, y): return x + t_number(y)
-	def Sub(self, x, y): return x - t_number(y)
-	def Mult(self, x, y): return x * t_number(y)
-	def Div(self, x, y): return x / t_number(y)
-	def Mod(self, x, y): return x % t_number(y)
+	def Add(self, x, y): return x + checkNumber(y)
+	def Sub(self, x, y): return x - checkNumber(y)
+	def Mult(self, x, y): return x * checkNumber(y)
+	def Div(self, x, y): return x / checkNumber(y)
+	def Mod(self, x, y): return x % checkNumber(y)
 
 	def Neg(self, x): return -x
 
-	def Lt(self, x, y): return x < t_number(y)
-	def LtE(self, x, y): return x <= t_number(y)
-	def Gt(self, x, y): return x > t_number(y)
-	def GtE(self, x, y): return x >= t_number(y)
+	def Lt(self, x, y): return x < checkNumber(y)
+	def LtE(self, x, y): return x <= checkNumber(y)
+	def Gt(self, x, y): return x > checkNumber(y)
+	def GtE(self, x, y): return x >= checkNumber(y)
 
 	def Markup(self, x): return u"%g" % (x,)
 
@@ -94,12 +99,12 @@ class BooleanMethods(GenericMethods):
 	def property_toString(self, rt, x): return self.Markup(x)
 
 class StringMethods(GenericMethods):
-	def Add(self, x, y): return x + t_string(y)
+	def Add(self, x, y): return x + checkString(y)
 
-	def Lt(self, x, y): return x < t_string(y)
-	def LtE(self, x, y): return x <= t_string(y)
-	def Gt(self, x, y): return x > t_string(y)
-	def GtE(self, x, y): return x >= t_string(y)
+	def Lt(self, x, y): return x < checkString(y)
+	def LtE(self, x, y): return x <= checkString(y)
+	def Gt(self, x, y): return x > checkString(y)
+	def GtE(self, x, y): return x >= checkString(y)
 
 	def Markup(self, x): return x
 
@@ -107,10 +112,10 @@ class StringMethods(GenericMethods):
 	def property_toString(self, rt, x): return x
 
 class ListMethods(GenericMethods):
-	def Add(self, x, y): return x + t_list(y)
+	def Add(self, x, y): return x + checkList(y)
 
 	def Index(self, x, y):
-		index = int(t_number(y))
+		index = int(checkNumber(y))
 		return x[index]
 
 	def Eq(self, x, y): return x is y
@@ -119,7 +124,7 @@ class ListMethods(GenericMethods):
 	def property_length(self, rt, x): return len(x)
 
 class MarkupMethods(GenericMethods):
-	def Add(self, x, y): return x + t_markup(y)
+	def Add(self, x, y): return x + checkMarkup(y)
 
 	def Markup(self, x): return x.markup
 
@@ -134,14 +139,17 @@ method_table = {
 	Markup: MarkupMethods(),
 }
 
+def makeAction(rt, markup, consequence):
+	return Action(checkMarkup(markup).markup, checkString(consequence))
+
 class ScriptRuntime(object):
-	def __init__(self):
+	def __init__(self, realm, instance, room):
 		self.globals = {}
 
 	def SetGlobal(self, k, v): self.globals[k] = v
 	def GetGlobal(self, k): return self.globals[k]
 
-	def CheckBoolean(self, x): return t_boolean(x)
+	def CheckBoolean(self, x): return checkBoolean(x)
 
 	def ForIterator(self, start, stop, step):
 		if (step == 0):
