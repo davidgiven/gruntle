@@ -18,6 +18,8 @@ from ts.exceptions import *
 from ts.Markup import *
 from ts.ScriptRuntime import makeAction
 
+errorlog = None
+
 # --- Lexer -----------------------------------------------------------------
 
 keywords = {
@@ -149,7 +151,13 @@ def t_markupexpr_CLOSEBRACE(t):
 	return t
 
 def t_error(t):
-	logging.error("Illegal character '%s'" % t.value[0])
+	global errorlog
+	errorlog += (
+		{
+			"message": u"Illegal character '%s'" % t.value[0],
+			"lineno": p.lineno
+		},
+	)
 	t.lexer.skip(1)
 
 lexer = lex.lex(reflags=re.UNICODE)
@@ -704,7 +712,13 @@ def p_toplevels_newline(p):
 	p[0] = [p[1]] + p[3]
 
 def p_error(p):
-	raise ScriptCompilationError("syntax error %s" % p)
+	global errorlog
+	errorlog += (
+		{
+			"message": u"Syntax error",
+			"lineno": p.lineno
+		},
+	)
 
 parser = yacc.yacc(start='toplevels')
 
@@ -717,8 +731,13 @@ def compile(script):
 	starttime = time.time()
 
 	lexer.lineno = 1
+	global errorlog
+	errorlog = []
 	node = parser.parse(script, tracking=True, debug=0)
-	from unparse import Unparser
+
+	if errorlog:
+		logging.debug(repr(errorlog))
+		raise ScriptCompilationError(errorlog)
 
 	module = ast.Module(
 		body=node,
@@ -726,6 +745,8 @@ def compile(script):
 	    col_offset=0
 	)
 	#print ast.dump(module, include_attributes=True)
+
+	from unparse import Unparser
 	Unparser(module)
 	print
 

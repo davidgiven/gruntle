@@ -11,6 +11,7 @@ from ts.exceptions import *
 from ts.Markup import *
 import math
 import signal
+import re
 
 def checkNumber(x):
 	if (type(x) is int) or (type(x) is float) or (type(x) is long):
@@ -203,7 +204,15 @@ def executeScript(rt, module, name, *args):
 	signal.signal(signal.SIGALRM, signalHandler)
 
 	signal.setitimer(signal.ITIMER_REAL, 0.5)
-	result = module["var_"+name](rt)
-	signal.alarm(0)
+	try:
+		result = module["var_"+name](rt)
+	except NameError, e:
+		r = re.compile(ur"'var_(\w+)' is not defined", re.U)
+		m = re.search(r, unicode(str(e), "UTF-8"))
+		if not m:
+			raise ScriptError("mysterious script error")
+		raise ScriptError(u"variable '%s' is not defined", m.group(1))
+	finally:
+		signal.alarm(0)
 
 	return result

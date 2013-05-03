@@ -223,7 +223,12 @@
         				.click(
         					function()
         					{
-        						W.RoomEditor.Show(message);
+                        		W.Socket.Send(
+                        			{
+                        			 	command: "getroomdata",
+                        			 	room: W.CurrentRoom
+                        			}
+                        		);
         						return false;
         					}
         				);
@@ -322,7 +327,12 @@
         				.click(
         					function()
         					{
-        						W.RoomEditor.Show(message);
+                        		W.Socket.Send(
+                        			{
+                        			 	command: "getroomdata",
+                        			 	room: W.CurrentRoom
+                        			}
+                        		);
         						return false;
         					}
         				);
@@ -365,6 +375,11 @@
         	else
         		show_actions();
         },
+
+		RoomDataEvent: function(message)
+		{
+			W.RoomEditor.Show(message);
+		},
 
         PerformActionConsequence: function(markup, id)
         {
@@ -435,7 +450,7 @@
         	$.each(message.details,
         		function (_, s)
         		{
-        			$("<div/>").text(s).appendTo(bq)
+        			$("<div/>").text(s).appendTo(bq);
         		}
         	);
         	m.append(bq);
@@ -445,7 +460,38 @@
         	W.Effects.NewText(m);
         	adjustScrolling(false);
         },
-        	
+
+        ScriptCompilationFailureEvent: function(message)
+        {
+            var errorlog = message.errorlog;
+
+            var m;
+            if (errorlog.length == 0)
+            {
+                m = $("<p class='realmerror'/>")
+                    .text("Script compiles successfully.");
+            }
+            else
+            {
+				m = $("<p class='realmerror'/>")
+					.text("Error when compiling script:");
+				var bq = $("<blockquote/>")
+				$.each(message.errorlog,
+					function (_, e)
+					{
+						var s = "Line "+e.lineno+": "+e.message;
+						$("<div/>").text(s).appendTo(bq);
+					}
+				);
+				m.append(bq);
+			}
+        	m.hide();
+        	jsprettify.prettifyHtml(m[0]);
+        	current_status_div.append(m);
+        	W.Effects.NewText(m);
+        	adjustScrolling(false);
+        },
+
         RealmsEvent: function(message)
         {
        		realms = message;

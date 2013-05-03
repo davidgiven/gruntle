@@ -54,7 +54,8 @@ class Connection(WebSocket):
 						p = "(none)"
 						if self.player:
 							p = self.player.name
-						logging.debug("%d,%s< %s", id(self), p, message.data)
+						logging.debug("%d,%s< %s", id(self), p,
+							unicode(message.data, "UTF-8"))
 					
 						packet = json.deserialize(message.data)
 					except TypeError:

@@ -32,6 +32,7 @@ class ScriptError(AppError):
 		self.args = (message % args,)
 
 class ScriptCompilationError(AppError):
-	def __init__(self, message, *args):
-		self.args = (message % args,)
+	def __init__(self, errorlog):
+		self.args = ("Error when compiling script",)
+		self.errorlog = errorlog
 

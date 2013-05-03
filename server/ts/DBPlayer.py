@@ -331,10 +331,13 @@ endsub
 				
 		editable = (realm.owner == self)
 
-		module = scriptcompiler.compile(room.script)
-		rt = ScriptRuntime(realm, instance, room)
-		descriptiono = checkMarkup(executeScript(rt, module, "RoomDescription"))
-		description = rt.Markup(descriptiono)
+		try:
+			module = scriptcompiler.compile(room.script)
+			rt = ScriptRuntime(realm, instance, room)
+			descriptiono = checkMarkup(executeScript(rt, module, "RoomDescription"))
+			description = rt.Markup(descriptiono)
+		except ScriptError, e:
+			description = "[There is a realm programming error in the description for this room.]"
 
 		msg = {
 			"event": "look",
@@ -402,11 +405,14 @@ endsub
 		realm = instance.realm
 		room = self.room
 
-		module = scriptcompiler.compile(room.script)
-		rt = ScriptRuntime(realm, instance, room)
-		actionso = checkList(executeScript(rt, module, "Actions"))
-		logging.debug(actionso)
-		actions = [ checkMarkup(x).markup for x in actionso ]
+		try:
+			module = scriptcompiler.compile(room.script)
+			rt = ScriptRuntime(realm, instance, room)
+			actionso = checkList(executeScript(rt, module, "Actions"))
+			logging.debug(actionso)
+			actions = [ checkMarkup(x).markup for x in actionso ]
+		except ScriptError, e:
+			actions = ["[There is a realm programming error in the actions for this room.]"]
 
 		return actions
 	
@@ -490,16 +496,49 @@ endsub
 		realm.destroyRoom(room)
 		self.onRealms()
 	
-	# The player wants to edit a room.
+	# The player wants room data.
+
+	def onGetRoomData(self, room):
+		self.tell(
+			{
+				"event": "roomdata",
+				"id": room.id,
+				"name": room.name,
+				"title": room.title,
+				"script": room.script
+			}
+		)
+
+	# The player wants to change a room.
 	
-	def onEditRoom(self, room, name, title, description, actions):
+	def onSetRoomData(self, room, name, title, script):
+		# Syntax-check the script.
+
+		try:
+			scriptcompiler.compile(script)
+		except ScriptCompilationError, e:
+			self.tell(
+				{
+					"event": "scriptcompilationfailure",
+					"id": room.id,
+					"errorlog": e.errorlog
+				}
+			)
+			return
+
 		room.name = name
 		room.title = title
-		room.description = description
-		room.setActions(actions)
+		room.script = script
+
 		room.fireChangeNotification()
 		self.onRealms()
-		
+		self.tell(
+			{
+				"event": "roomchanged",
+				"id": room.id,
+			}
+		)
+
 	# The player wants to create a realm.
 	
 	def onCreateRealm(self, name):

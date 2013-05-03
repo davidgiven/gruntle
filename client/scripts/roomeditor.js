@@ -2,7 +2,8 @@
 {
 	"use strict";
 
-	var currentmessage;
+	var editor;
+	var room;
 	
 	var cancel_cb = function()
 	{
@@ -12,36 +13,34 @@
 	var save_cb = function()
 	{
 		/* Reload room title/description text. */
-		
-		currentmessage.name = $("#editroomid").text();
-		currentmessage.title = $("#editroomname").textWithBreaks();
-		currentmessage.description = $("#editdescription").textWithBreaks();
-		
-		/* Reload action text. */
-		
-		var actions = currentmessage.allactions;
-		$.each(actions,
-			function (id, action)
+
+		var name = $("#editroomid").text();
+		var title = $("#editroomname").textWithBreaks();
+		var script = editor.getValue();
+
+		W.Socket.Send(
 			{
-				var editor = $("#editaction-"+id);
-				action.type = editor.find(".containstype SELECT").val();
-				action.description = editor.find(".description").textWithBreaks();
-				action.target = editor.find(".target").textWithBreaks();
+				command: "setroomdata",
+				room: room,
+				name: name,
+				title: title,
+				script: script
 			}
 		);
+
+		//W.Effects.HideDialogue($("#roomeditor"));
+	};
+
+	var check_cb = function()
+	{
+		var script = editor.getValue();
 		
 		W.Socket.Send(
 			{
-				command: "editroom",
-				room: currentmessage.room,
-				name: currentmessage.name,
-				title: currentmessage.title,
-				description: currentmessage.description,
-				actions: currentmessage.allactions
+				command: "syntaxcheck",
+				script: script
 			}
 		);
-		
-		W.Effects.HideDialogue($("#roomeditor"));
 	};
 	
 	var add_new_action = function()
@@ -112,27 +111,19 @@
 	{
 		Show: function(message)
 		{
-			/* If the room editor is currently being shown, cancel it
-			 * instead. */
-			
+			/* If the room editor is currently being shown, do nothing. */
+
 			if ($("#roomeditor").is(":visible"))
-			{
-				cancel_cb();
 				return;
-			}
-			
-	    	/* Deep copy object (so we can change it without altering the 
-	    	 * copy attached to the room upstack). */
-	    	
-	    	currentmessage = $.extend(true, {}, message);
-	    	
-	    	$("#editroomid").text(currentmessage.name);
-			$("#editroomname").text(currentmessage.title);
+
+			room = message.id;
+	    	$("#editroomid").text(message.name);
+			$("#editroomname").text(message.title);
 
 			$("#codecontainer").empty();
-			var code = CodeMirror($("#codecontainer")[0],
+			editor = CodeMirror($("#codecontainer")[0],
 				{
-					value: "This is code.",
+					value: message.script,
                     mode: "tb",
                     lineWrapping: true,
                     lineNumbers: true,
@@ -143,8 +134,14 @@
 
         	$("#editcancelbutton").unbind().click(cancel_cb);
         	$("#editsavebutton").unbind().click(save_cb);
+        	$("#editcheckbutton").unbind().click(check_cb);
 
 	    	W.Effects.ShowDialogue($("#roomeditor"));
+
+	    	/* This must happen after the editor has been added to the DOM
+	    	 * tree. */
+
+	        editor.refresh();
 		},
 		
 		Cancel: function()
