@@ -144,7 +144,7 @@ class MarkupMethods(GenericMethods):
 	def property_markup(self, rt, x): return x.markup
 
 class ObjectMethods(GenericMethods):
-	pass
+	def property_markup(self, rt, x): return x.property_markup(rt)
 
 method_table = {
     type(None): NilMethods(),
