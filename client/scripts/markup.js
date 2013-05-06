@@ -49,7 +49,41 @@
        		);
 			a.appendTo(o.accumulator);
     	},
+
+    	error: function (o, markup)
+    	{
+    	    newline(o, "<div class='realmerror'/>");
+
+    	    o.accumulator.addClass("realmerror");
+    	    W.Markup.ToParagraphs(markup.message).appendTo(o.accumulator);
+        	var bq = $("<blockquote/>")
+        	$.each(markup.details,
+        		function (_, s)
+        		{
+        			$("<div/>").text(s).appendTo(bq);
+        		}
+        	);
+        	bq.appendTo(o.accumulator);
+
+        	newline(o);
+    	}
     };
+
+	var newline = function(o, e)
+	{
+		if (!e)
+			e = o.elementtype;
+
+		if (o.accumulator.length == 0)
+		{
+			o.accumulator.replaceWith($(e));
+		}
+		else
+		{
+			o.accumulator = $(e);
+			o.accumulator.appendTo(o.root);
+		}
+	}
 
     var append = function(o, markup)
     {
@@ -66,8 +100,7 @@
 			for (var i=0; i<(ss.length-1); i++)
 			{
 				ss[i].appendTo(o.accumulator);
-				o.accumulator = $(o.elementtype);
-				o.accumulator.appendTo(o.root);
+				newline(o);
 			}
 			ss[ss.length-1].appendTo(o.accumulator);
 		}

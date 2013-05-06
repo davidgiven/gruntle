@@ -348,7 +348,7 @@
             		function (id, action)
             		{
                 		var li = $("<li/>");
-            		    W.Markup.ToSpan(action).appendTo(li);
+            		    W.Markup.ToParagraphs(action).appendTo(li);
                 		list.append(li);
                 		
                 		count++;
@@ -433,10 +433,8 @@
         
         ActivityEvent: function(message)
         {
-        	var m = $("<div/>");
-        	m.textWithBreaks(message.message);
+            var m = W.Markup.ToParagraphs(message.markup)
         	m.hide();
-        	jsprettify.prettifyHtml(m[0]);
         	current_status_div.append(m);
         	W.Effects.NewText(m);
         	adjustScrolling(false);
@@ -444,21 +442,7 @@
         
         ErrorEvent: function(message)
         {
-        	var m = $("<p class='realmerror'/>")
-        		.text(message.message);
-        	var bq = $("<blockquote/>")
-        	$.each(message.details,
-        		function (_, s)
-        		{
-        			$("<div/>").text(s).appendTo(bq);
-        		}
-        	);
-        	m.append(bq);
-        	m.hide();
-        	jsprettify.prettifyHtml(m[0]);
-        	current_status_div.append(m);
-        	W.Effects.NewText(m);
-        	adjustScrolling(false);
+            W.GamePage.ActivityEvent(message);
         },
 
         ScriptCompilationFailureEvent: function(message)

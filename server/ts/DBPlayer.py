@@ -338,7 +338,11 @@ endsub
 			description = rt.Markup(descriptiono)
 		except ScriptError, e:
 			logging.exception(e)
-			description = "[There is a realm programming error in the description for this room.]"
+			description = {
+				"type": "error",
+				"message": "Error in realm (please contact the realm author):",
+				"details": [unicode(e)]
+			}
 
 		msg = {
 			"event": "look",
@@ -414,7 +418,13 @@ endsub
 			actions = [ checkMarkup(x).markup for x in actionso ]
 		except ScriptError, e:
 			logging.exception(e)
-			actions = ["[There is a realm programming error in the actions for this room.]"]
+			actions = [
+				{
+					"type": "error",
+					"message": "Error in realm (please contact the realm author):",
+					"details": [unicode(e)]
+				}
+			]
 
 		return actions
 	

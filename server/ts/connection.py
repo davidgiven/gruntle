@@ -75,8 +75,11 @@ class Connection(WebSocket):
 			self.sendMsg(
 				{
 					"event": "error",
-					"message": "Error in realm (please contact the realm author):",
-					"details": [unicode(e)]
+					"markup": {
+						"type": "error",
+						"message": "Error in realm (please contact the realm author):",
+						"details": [unicode(e)]
+					}
 				}
 			)
 		except Exception as e:
@@ -85,9 +88,12 @@ class Connection(WebSocket):
 			self.sendMsg(
 				{
 					"event": "error",
-					"message": "Server error (please contact the server administrator):",
-					"details": [e.__class__.__name__ + " " + unicode(e)] +
-						traceback.format_tb(tb)
+					"markup": {
+						"type": "error",
+						"message": "Server error (please contact the server administrator):",
+						"details": [e.__class__.__name__ + " " + unicode(e)] +
+							traceback.format_tb(tb)
+					}
 				}
 			)
 
