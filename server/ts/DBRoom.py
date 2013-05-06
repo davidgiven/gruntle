@@ -10,6 +10,7 @@
 from ts.DBObject import *
 from ts.DBRealm import *
 from ts.DBAction import *
+from ts.ScriptRuntime import *
 
 # Represents a room template.
 
@@ -74,4 +75,19 @@ class DBRoom(DBObject):
 	def property_toString(self, rt):
 		return self.title
 
+	def property_tell(self, rt, markup):
+		rt.instance.tell(self, rt.player,
+			{
+				"event": "activity",
+				"markup": checkMarkup(markup).markup
+			}
+		)
+
+	def property_broadcast(self, rt, markup):
+		rt.instance.tell(self, None,
+			{
+				"event": "activity",
+				"markup": checkMarkup(markup).markup
+			}
+		)
 
