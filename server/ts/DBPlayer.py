@@ -333,9 +333,9 @@ endsub
 
 		try:
 			module = scriptcompiler.compile(room.script)
-			rt = ScriptRuntime(realm, instance, room)
+			rt = ScriptRuntime(self, realm, instance, room)
 			descriptiono = checkMarkup(executeScript(rt, module, "RoomDescription"))
-			description = rt.Markup(descriptiono)
+			description = rt.markup(descriptiono)
 		except ScriptError, e:
 			logging.exception(e)
 			description = {
@@ -412,7 +412,7 @@ endsub
 
 		try:
 			module = scriptcompiler.compile(room.script)
-			rt = ScriptRuntime(realm, instance, room)
+			rt = ScriptRuntime(self, realm, instance, room)
 			actionso = checkList(executeScript(rt, module, "Actions"))
 			logging.debug(actionso)
 			actions = [ checkMarkup(x).markup for x in actionso ]
@@ -448,7 +448,7 @@ endsub
 			self.moveTo(targetroom)
 		else:
 			module = scriptcompiler.compile(room.script)
-			rt = ScriptRuntime(realm, instance, room)
+			rt = ScriptRuntime(self, realm, instance, room)
 			executeScript(rt, module, consequence)
 
 	# The player has asked to warp to a new room.
@@ -569,8 +569,27 @@ endsub
 		realm.name = newname
 		realm.fireChangeNotification()
 		self.onRealms()
-		
-	 	
+
+	# Scripting interface.
+
+	def property_markup(self, rt):
+		return Markup(
+			type=u"player",
+			name=self.name,
+			id=self.id
+		)
+
+	def property_toString(self, rt):
+		return self.name
+
+	def property_tell(self, rt, markup):
+		self.tell(
+			{
+				"event": "activity",
+				"markup": checkMarkup(markup).markup
+			}
+		)
+
 def findPlayerFromConnection(connection):
 	try:
 		return DBPlayer.connections[connection]

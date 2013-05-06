@@ -23,7 +23,7 @@ def run_test(test):
 	print "-----"
 	print script
 	module = scriptcompiler.compile(script)
-	rt = ScriptRuntime(None, None, None)
+	rt = ScriptRuntime(None, None, None, None)
 	try:
 		result = executeScript(rt, module, "test")
 	except AppError, e:

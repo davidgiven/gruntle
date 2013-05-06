@@ -61,3 +61,17 @@ class DBRoom(DBObject):
 				if (player.room == self):
 					player.onLook()
 
+	# Scripting interface.
+
+	def property_markup(self):
+		return Markup(
+			type=u"room",
+			title=self.title,
+			name=self.name,
+			id=self.id
+		)
+
+	def property_toString(self, rt):
+		return self.title
+
+

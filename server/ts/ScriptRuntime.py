@@ -54,7 +54,7 @@ def type_mismatch():
 	raise ScriptError("type mismatch")
 
 def unknown_property(n):
-	raise ScriptError("no such property '%s'" % (n,))
+	raise ScriptError("no such property/method '%s'" % (n,))
 
 # This is a load of foul hackery. We have to fake our own methods on system
 # types (int, float, bool, unicode, etc.) The following classes are
@@ -63,79 +63,88 @@ def unknown_property(n):
 # class found.
 
 class GenericMethods(object):
-	def Eq(self, x, y): return x == y
-	def NotEq(self, x, y): return x != y
+	def Eq(self, rt, x, y): return x == y
+	def NotEq(self, rt, x, y): return x != y
 
-	def Property(self, x, name):
-		m = getattr(self, "property_"+name)
-		if not m:
+	def Property(self, rt, x, name):
+		try:
+			m = getattr(self, "property_"+name)
+			def f(rt, *args):
+				return m(rt, x, *args)
+			return f
+		except AttributeError:
+			pass
+
+		try:
+			m = getattr(x, "property_"+name)
+			def f(rt, *args):
+				return m(rt, *args)
+			return f
+		except AttributeError:
 			unknown_property(name)
-		def f(rt, *args):
-			return m(rt, x, *args)
-		return f
 
-	def property_markup(self, rt, x): return self.Markup(x)
+	def markup(self, rt, x):
+		return self.property_markup(rt, x)
 
 class NilMethods(GenericMethods):
-	def Markup(self, x): return u"nil"
-
-	def property_toString(self, rt, x): return self.Markup(x)
+	def property_markup(self, rt, x): return u"nil"
+	def property_toString(self, rt, x): return self.markup(x)
 
 class NumberMethods(GenericMethods):
-	def Add(self, x, y): return x + checkNumber(y)
-	def Sub(self, x, y): return x - checkNumber(y)
-	def Mult(self, x, y): return x * checkNumber(y)
-	def Div(self, x, y): return x / checkNumber(y)
-	def Mod(self, x, y): return x % checkNumber(y)
+	def Add(self, rt, x, y): return x + checkNumber(y)
+	def Sub(self, rt, x, y): return x - checkNumber(y)
+	def Mult(self, rt, x, y): return x * checkNumber(y)
+	def Div(self, rt, x, y): return x / checkNumber(y)
+	def Mod(self, rt, x, y): return x % checkNumber(y)
 
-	def Neg(self, x): return -x
+	def Neg(self, rt, x): return -x
 
-	def Lt(self, x, y): return x < checkNumber(y)
-	def LtE(self, x, y): return x <= checkNumber(y)
-	def Gt(self, x, y): return x > checkNumber(y)
-	def GtE(self, x, y): return x >= checkNumber(y)
+	def Lt(self, rt, x, y): return x < checkNumber(y)
+	def LtE(self, rt, x, y): return x <= checkNumber(y)
+	def Gt(self, rt, x, y): return x > checkNumber(y)
+	def GtE(self, rt, x, y): return x >= checkNumber(y)
 
-	def Markup(self, x): return u"%g" % (x,)
-
-	def property_toString(self, rt, x): return self.Markup(x)
+	def property_markup(self, rt, x): return u"%g" % (x,)
+	def property_toString(self, rt, x): return self.markup(x)
 	def property_toInt(self, rt, x): return float(int(x))
 
 class BooleanMethods(GenericMethods):
-	def Not(self, x): return not x
+	def Not(self, rt, x): return not x
 
-	def Markup(self, x): return u"true" if x else u"false"
-
-	def property_toString(self, rt, x): return self.Markup(x)
+	def property_markup(self, rt, x): return u"true" if x else u"false"
+	def property_toString(self, rt, x): return self.markup(x)
 
 class StringMethods(GenericMethods):
-	def Add(self, x, y): return x + checkString(y)
+	def Add(self, rt, x, y): return x + checkString(y)
 
-	def Lt(self, x, y): return x < checkString(y)
-	def LtE(self, x, y): return x <= checkString(y)
-	def Gt(self, x, y): return x > checkString(y)
-	def GtE(self, x, y): return x >= checkString(y)
+	def Lt(self, rt, x, y): return x < checkString(y)
+	def LtE(self, rt, x, y): return x <= checkString(y)
+	def Gt(self, rt, x, y): return x > checkString(y)
+	def GtE(self, rt, x, y): return x >= checkString(y)
 
-	def Markup(self, x): return x
-
+	def property_markup(self, rt, x): return x
 	def property_length(self, rt, x): return len(x)
 	def property_toString(self, rt, x): return x
 
 class ListMethods(GenericMethods):
-	def Add(self, x, y): return x + checkList(y)
+	def Add(self, rt, x, y): return x + checkList(y)
 
 	def Index(self, x, y):
 		index = int(checkNumber(y))
 		return x[index]
 
-	def Eq(self, x, y): return x is y
-	def Ne(self, x, y): return not (x is y)
+	def Eq(self, rt, x, y): return x is y
+	def Ne(self, rt, x, y): return not (x is y)
 
 	def property_length(self, rt, x): return len(x)
 
 class MarkupMethods(GenericMethods):
-	def Add(self, x, y): return x + checkMarkup(y)
+	def Add(self, rt, x, y): return x + checkMarkup(y)
 
-	def Markup(self, x): return x.markup
+	def property_markup(self, rt, x): return x.markup
+
+class ObjectMethods(GenericMethods):
+	pass
 
 method_table = {
     type(None): NilMethods(),
@@ -147,13 +156,21 @@ method_table = {
 	tuple: ListMethods(),
 	list: ListMethods(),
 	Markup: MarkupMethods(),
+	"object": ObjectMethods(),
 }
 
 def makeAction(rt, markup, consequence):
 	return Action(checkMarkup(markup).markup, checkString(consequence))
 
+def findRoom(rt, name):
+	return None
+
+def findPlayer(rt, name):
+	return None
+
 class ScriptRuntime(object):
-	def __init__(self, realm, instance, room):
+	def __init__(self, player, realm, instance, room):
+		self.player = player
 		self.realm = realm
 		self.instance = instance
 		self.room = room
@@ -204,7 +221,7 @@ class ScriptRuntime(object):
 				i = i + step
 
 	def MakeMarkup(self, *elements):
-		m = [self.Markup(x) for x in elements]
+		m = [self.markup(x) for x in elements]
 		return Markup(*m)
 
 	# Any other method call gets routed through the lookup tables above.
@@ -216,11 +233,12 @@ class ScriptRuntime(object):
 
 		def attr(x, *y):
 			tx = type(x)
-			mt = method_table[tx]
 			try:
-				return getattr(mt, name)(x, *y)
+				mt = method_table[tx]
 			except KeyError:
-				raise ScriptError("type %s does not support %s", tx, name)
+				mt = method_table["object"]
+
+			return getattr(mt, name)(self, x, *y)
 
 		self.attrcache[name] = attr
 		return attr
@@ -231,6 +249,9 @@ def signalHandler(signum, frame):
 def executeScript(rt, module, name, *args):
 	signal.signal(signal.SIGALRM, signalHandler)
 
+	module["var_player"] = rt.player
+	module["var_room"] = rt.room
+
 	signal.setitimer(signal.ITIMER_REAL, 0.5)
 	try:
 		result = module["var_"+name](rt)
@@ -239,8 +260,16 @@ def executeScript(rt, module, name, *args):
 		m = re.search(r, unicode(str(e), "UTF-8"))
 		if not m:
 			logging.exception(e)
-			raise ScriptError("mysterious script error")
+			raise e
 		raise ScriptError(u"variable '%s' is not defined", m.group(1))
+	except TypeError, e:
+		r = re.compile(ur"var_(\w+)\(\) takes exactly (\d+) argument \((\d+) given\)", re.U)
+		m = re.search(r, unicode(str(e), "UTF-8"))
+		if not m:
+			logging.exception(e)
+			raise e
+		raise ScriptError(u"subroutine '%s' called with %d argument(s) when it wants %d",
+			m.group(1), int(m.group(3))-1, int(m.group(2))-1)
 	finally:
 		signal.alarm(0)
 

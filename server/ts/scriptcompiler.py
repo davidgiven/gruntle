@@ -17,6 +17,8 @@ import __builtin__
 from ts.exceptions import *
 from ts.Markup import *
 from ts.ScriptRuntime import makeAction
+from ts.ScriptRuntime import findRoom
+from ts.ScriptRuntime import findPlayer
 
 errorlog = None
 
@@ -760,6 +762,8 @@ def compile(script):
 
 	scope = {}
 	scope["var_Action"] = makeAction
+	scope["var_Room"] = findRoom
+	scope["var_Player"] = findPlayer
 	exec co in scope
 
 	endtime = time.time()
