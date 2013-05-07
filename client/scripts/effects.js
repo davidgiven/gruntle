@@ -10,7 +10,22 @@
 		var s = $([]);
 		for (var i=0; i<arguments.length; i++)
 			s = s.add(arguments[i]);
-		
+
+		return s.fadeIn(
+    			{
+    				duration: defaultduration,
+    				easing: defaulteasing
+    			}
+    		);
+	};
+
+	var showDialogue = function()
+	{
+		var s = $([]);
+		for (var i=0; i<arguments.length; i++)
+			s = s.add(arguments[i]);
+		s.moveToFront();
+
 		return s.fadeIn(
     			{
     				duration: defaultduration,
@@ -138,7 +153,7 @@
     	ShowPage: fadeInSlow,
     	HidePage: fadeOut,
     	
-    	ShowDialogue: fadeIn,
+    	ShowDialogue: showDialogue,
     	HideDialogue: fadeOut,
     	
     	NewText: fadeInSlow,

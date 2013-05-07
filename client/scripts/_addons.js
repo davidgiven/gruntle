@@ -32,6 +32,29 @@
             return self;
        	};
 
+	$.fn.moveToFront =
+		function ()
+		{
+			var self = this;
+
+			self.each(
+				function(_, e)
+				{
+					var maxz = 0;
+					$(e).parent().find(".dialogue").each(
+						function(_, p)
+						{
+							var z = parseInt($(p).css("zIndex"));
+							if (z > maxz)
+								maxz = z;
+						}
+					);
+					$(e).css("zIndex", maxz+1);
+                }
+            );
+            return self;
+        };
+
     $.fn.textWithBreaks =
     	function (newtext)
     	{
