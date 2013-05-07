@@ -491,3 +491,49 @@ HTML
     {
     }
 }
+
+#help
+{
+	left: 10%;
+	top: 4em;
+	z-index: 3000;
+
+	.resizable
+	{
+	    width: 20em;
+	    height: 30em;
+	}
+
+    .nonscrollcontainer
+    {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+
+		> TABLE
+		{
+			height: 100%;
+		}
+
+		.expandable
+		{
+			height: 100%;
+
+			TD
+			{
+				height: 100%;
+
+				IFRAME
+				{
+			        border: 1px solid black;
+			        background-color: white;
+					box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, 0.6);
+					width: 100%;
+					height: 100%;
+				}
+			}
+		}
+	}
+}
+
+

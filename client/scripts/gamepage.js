@@ -99,7 +99,7 @@
 		W.Effects.NewText(m);
 		adjustScrolling(false);
 	};
-	
+
     W.GamePage =
     {
         Show: function ()
@@ -162,7 +162,17 @@
                     $("#menulogout")
                     	.unbind()
                     	.click(W.GamePage.LogoutEvent);
-                    
+
+                    $(".helplist A").click(
+                        function()
+                        {
+                            var self = this;
+                            var helpref = $(self).attr("helpref");
+                            W.Help.Show(helpref);
+                            return false;
+                        }
+                    );
+
             		$("#page").hide();
             		W.Effects.ShowPage($("#page"))
             			.promise()

@@ -12,11 +12,24 @@
 					<span>▾</span>
 					<ul id="yourrealmlist"/>
 				</li>
-				
+
 				<li>
 					<a href="#">Warp</a>
 					<span>▾</span>
 					<ul id="specialrealmlist"/>
+				</li>
+
+				<li>
+					<a href="#">Help</a>
+					<span>▾</span>
+					<ul class="helplist">
+						<li><a href="#" helpref="help/index.html">Index</a></li>
+						<hr/>
+						<li><a href="#" helpref="help/usage.html">Basic usage</a></li>
+						<hr/>
+						<li><a href="#" helpref="help/thickbasic.html">ThickBasic reference</a></li>
+						<li><a href="#" helpref="help/api.html">API reference</a></li>
+					</ul>
 				</li>
 				
 				<li>
@@ -164,8 +177,8 @@
 			<tr>
 				<td colspan="2">
 					<p>To change your account password, enter your old password
-					for verification and your desired new password into the
-					boxes below.
+						for verification and your desired new password into the
+						boxes below.
 					</p>
 				</td>
 			</tr>
@@ -189,5 +202,29 @@
 				</td>
 			</tr>
 		</table>
+	</div>
+</div>
+
+<div id="help" class="dialogue">
+	<div class="resizable">
+		<h3 class="dialogue-title">Help</h3>
+		<div class="nonscrollcontainer">
+			<table>
+				<tbody>
+				<tr class="expandable">
+					<td colspan="2">
+						<iframe/>
+					</td>
+				</tr>
+				<tr>
+					<th/>
+					<td class='containsbuttons'>
+						<input type="button" id="helpindexbutton" value="Index"/>
+						<input type="button" id="helpclosebutton" value="Close"/>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
 	</div>
 </div>
