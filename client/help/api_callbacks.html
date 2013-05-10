@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset='UTF-8'">
+	<title>Help Index</title>
+	<link rel="stylesheet" type="text/css" href="../libraries/reset-min.css"/>
+	<link rel="stylesheet/less" type="text/css" href="help.less"/>
+	<script src="../libraries/less-1.3.3.min.js"></script>
+</head>
+<body>
+	<h1>API reference: callbacks</h1>
+
+	<p>
+		thickishstring will try to call special subroutines in your room
+		script when things happen. You can implement these to add behaviour.
+	</p>
+	<ul>
+		<li>
+			<p><a id="RoomDescription"><code>RoomDescription</code></a></p>
+			<p>
+				Returns a markup object describing the current room. This is
+				used to show the player the current room description. This
+				must be present.
+			</p>
+			<p>
+				Note that this subroutine <i>returns</i> the room description,
+				rather than directly telling the player! This subroutine should
+				have no side effects and should not actually change anything.
+			</p>
+		</li>
+
+		<li>
+			<p><a id="Actions"><code>Actions</code></a></p>
+			<p>
+				Returns a list of <a href="#Action">Action</a> objects
+				describing the actions currently available to the player.
+			</p>
+			<p>
+				This subroutine should have no side effects and should not
+				actually change anything.
+			</p>
+			<p>
+				If this is not present, no actions appear in the tab at the
+				bottom of the screen (although they can appear as links in
+				the room description).
+			</p>
+		</li>
+	</ul>
+</body>
+</html>
+

@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset='UTF-8'">
+	<title>Help Index</title>
+	<link rel="stylesheet" type="text/css" href="../libraries/reset-min.css"/>
+	<link rel="stylesheet/less" type="text/css" href="help.less"/>
+	<script src="../libraries/less-1.3.3.min.js"></script>
+</head>
+<body>
+	<h1>API reference: strings</h1>
+
+	<p>
+		ThickBasic strings are sequences of characters (including Unicode),
+		delimited with single quotes. For example:
+	</p>
+	<pre>
+'Hello, world!'
+</pre>
+	<p>
+		Special characters can be escaped with a backslash.
+	</p>
+	<pre>
+'This\'ll work'
+</pre>
+	<p>
+		They can also span multiple lines.
+	</p>
+	<pre>
+'Line 1
+Line 2'
+</pre>
+	<p>
+		Most values can be converted to a string using the
+		<code>toString</code> property:
+	</p>
+	<pre>
+s1 = true.toString
+s2 = nil.toString
+s3 = (42).toString
+</pre>
+	<p>
+		Strings are immutable. They support the standard set of comparison
+		operators, and can be concatenated with <code>+</code>. In addition
+		they support the following operations and methods:
+	</p>
+	<ul>
+		<li>
+			<p><a id="length"><i>s</i><code>.length</code></a></p>
+			<p>
+				Returns the length of the string (in Unicode code points).
+			</p>
+		</li>
+
+		<li>
+			<p><a id="markup"><i>s</i><code>.markup</code></a></p>
+			<p>
+				Returns a markup object containing this string. This is
+				equivalent to:
+			</p>
+			<pre>"{s}"</pre>
+		</li>
+	</ul>
+</body>
+</html>
+
