@@ -46,13 +46,29 @@ class DBInstance(DBObject):
 				(self.id,)
 			)
 		]
-	
+
 	def __init__(self, id=None):
 		super(DBInstance, self).__init__(id)
 		
 	def create(self, realm):
 		super(DBInstance, self).create()
 		self.realm = realm
+
+	# Finds a specific player (by name) currently in this instance.
+
+	def findPlayer(self, name):
+		# Prevent import dependency loop
+		from ts.DBPlayer import DBPlayer
+
+		c = db.sql.cursor().execute(
+			"SELECT id FROM players WHERE instance=? AND connected=1 "
+				"AND name=?",
+			(self.id, name))
+		try:
+			(id,) = c.next()
+			return DBPlayer(id)
+		except StopIteration:
+			return None
 
 	# Verifies that this object is owned by the specified player.
 	

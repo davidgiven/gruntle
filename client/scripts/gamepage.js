@@ -365,8 +365,6 @@
             		}
             	);
             	
-            	if (count == 0)
-            		list.append("<li>(There's nothing to do here.)</li>");
             	jsprettify.prettifyHtml(list[0]);
         	};
 

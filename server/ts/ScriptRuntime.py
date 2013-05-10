@@ -19,18 +19,18 @@ import ts.db as db
 def checkNumber(x):
 	if (type(x) is int) or (type(x) is float) or (type(x) is long):
 		return x
-	type_mismatch()
+	typeMismatch()
 
 def checkString(x):
 	if (type(x) is unicode):
 		return x
 	if (type(x) is str):
 		return unicode(x, "UTF-8")
-	type_mismatch()
+	typeMismatch()
 
 def checkBoolean(x):
 	if (type(x) != bool):
-		type_mismatch()
+		typeMismatch()
 	return x
 
 def checkList(x):
@@ -38,19 +38,19 @@ def checkList(x):
 		return x
 	if (type(x) is list):
 		return tuple(x)
-	type_mismatch()
+	typeMismatch()
 
 def checkMarkup(x):
 	if (isinstance(x, Markup)):
 		return x
-	type_mismatch()
+	typeMismatch()
 
 def checkAction(x):
 	if (isinstance(x, Action)):
 		return x
-	type_mismatch()
+	typeMismatch()
 
-def type_mismatch():
+def typeMismatch():
 	raise ScriptError("type mismatch")
 
 def unknown_property(n):
@@ -165,10 +165,16 @@ def makeAction(rt, markup, consequence):
 	return Action(checkMarkup(markup).markup, checkString(consequence))
 
 def findRoom(rt, name):
-	return None
+	room = rt.realm.findRoom(name)
+	if not room:
+		raise AppError("room '"+name+"' does not exist in realm")
+	return room
 
 def findPlayer(rt, name):
-	return None
+	player = rt.instance.findPlayer(name)
+	if not player:
+		raise AppError("player '"+name+"' is not in this instance")
+	return player
 
 class ScriptRuntime(object):
 	def __init__(self, player, realm, instance, room):
@@ -257,6 +263,13 @@ def executeScript(rt, module, name, *args):
 	signal.setitimer(signal.ITIMER_REAL, 0.5)
 	try:
 		result = module["var_"+name](rt)
+	except KeyError, e:
+		r = re.compile(ur"'var_(\w+)'", re.U)
+		m = re.search(r, unicode(str(e), "UTF-8"))
+		if not m:
+			logging.exception(e)
+			raise e
+		raise ScriptError(u"variable '%s' is not defined", m.group(1))
 	except NameError, e:
 		r = re.compile(ur"'var_(\w+)' is not defined", re.U)
 		m = re.search(r, unicode(str(e), "UTF-8"))

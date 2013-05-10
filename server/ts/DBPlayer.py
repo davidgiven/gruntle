@@ -412,10 +412,13 @@ endsub
 
 		try:
 			module = scriptcompiler.compile(room.script)
-			rt = ScriptRuntime(self, realm, instance, room)
-			actionso = checkList(executeScript(rt, module, "Actions"))
-			logging.debug(actionso)
-			actions = [ checkMarkup(x).markup for x in actionso ]
+			if ("var_Actions" in module):
+				rt = ScriptRuntime(self, realm, instance, room)
+				actionso = checkList(executeScript(rt, module, "Actions"))
+				logging.debug(actionso)
+				actions = [ checkMarkup(x).markup for x in actionso ]
+			else:
+				actions = []
 		except ScriptError, e:
 			logging.exception(e)
 			actions = [
@@ -589,6 +592,14 @@ endsub
 				"markup": checkMarkup(markup).markup
 			}
 		)
+
+	def property_moveTo(self, rt, dest):
+		if (type(dest) == unicode):
+			dest = findRoom(rt, dest)
+		if (type(dest) != DBRoom):
+			typeMismatch()
+
+		self.moveTo(dest)
 
 def findPlayerFromConnection(connection):
 	try:
