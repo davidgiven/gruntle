@@ -15,44 +15,17 @@ CodeMirror.defineMode("tb", function(config, parserConfig) {
 
   // long list of standard functions from lua manual
   var builtins = wordRE([
-    "_G","_VERSION","assert","collectgarbage","dofile","error","getfenv","getmetatable","ipairs","load",
-    "loadfile","loadstring","module","next","pairs","pcall","print","rawequal","rawget","rawset","require",
-    "select","setfenv","setmetatable","tonumber","tostring","type","unpack","xpcall",
-
-    "coroutine.create","coroutine.resume","coroutine.running","coroutine.status","coroutine.wrap","coroutine.yield",
-
-    "debug.debug","debug.getfenv","debug.gethook","debug.getinfo","debug.getlocal","debug.getmetatable",
-    "debug.getregistry","debug.getupvalue","debug.setfenv","debug.sethook","debug.setlocal","debug.setmetatable",
-    "debug.setupvalue","debug.traceback",
-
-    "close","flush","lines","read","seek","setvbuf","write",
-
-    "io.close","io.flush","io.input","io.lines","io.open","io.output","io.popen","io.read","io.stderr","io.stdin",
-    "io.stdout","io.tmpfile","io.type","io.write",
-
-    "math.abs","math.acos","math.asin","math.atan","math.atan2","math.ceil","math.cos","math.cosh","math.deg",
-    "math.exp","math.floor","math.fmod","math.frexp","math.huge","math.ldexp","math.log","math.log10","math.max",
-    "math.min","math.modf","math.pi","math.pow","math.rad","math.random","math.randomseed","math.sin","math.sinh",
-    "math.sqrt","math.tan","math.tanh",
-
-    "os.clock","os.date","os.difftime","os.execute","os.exit","os.getenv","os.remove","os.rename","os.setlocale",
-    "os.time","os.tmpname",
-
-    "package.cpath","package.loaded","package.loaders","package.loadlib","package.path","package.preload",
-    "package.seeall",
-
-    "string.byte","string.char","string.dump","string.find","string.format","string.gmatch","string.gsub",
-    "string.len","string.lower","string.match","string.rep","string.reverse","string.sub","string.upper",
-
-    "table.concat","table.insert","table.maxn","table.remove","table.sort"
+    "player", "room"
   ]);
-  var keywords = wordRE(["and","break","elseif","false","nil","not","or","return",
-                         "true","function", "end", "if", "then", "else", "do",
-                         "while", "repeat", "until", "for", "in", "local" ]);
+  var keywords = wordRE([
+    "sub", "endsub", "for", "next", "to", "step", "while", "endwhile",
+    "if", "then", "else", "endif", "break", "continue", "return",
+    "and", "or", "not"
+  ]);
 
-  var indentTokens = wordRE(["function", "if","repeat","do", "\\(", "{"]);
-  var dedentTokens = wordRE(["end", "until", "\\)", "}"]);
-  var dedentPartial = prefixRE(["end", "until", "\\)", "}", "else", "elseif"]);
+  var indentTokens = wordRE(["sub", "if","while","for"]);
+  var dedentTokens = wordRE(["endsub", "endif", "endwhile", "next"]);
+  var dedentPartial = prefixRE(["else", "elseif"]);
 
   function readBracket(stream) {
     var level = 0;
@@ -63,16 +36,14 @@ CodeMirror.defineMode("tb", function(config, parserConfig) {
 
   function normal(stream, state) {
     var ch = stream.next();
-    if (ch == "-" && stream.eat("-")) {
-      if (stream.eat("[") && stream.eat("["))
-        return (state.cur = bracketed(readBracket(stream), "comment"))(stream, state);
+    if (ch == "#") {
       stream.skipToEnd();
       return "comment";
     }
-    if (ch == "\"" || ch == "'")
+    if (ch == "\"")
+      return (state.cur = markup(ch))(stream, state);
+    if (ch == "'")
       return (state.cur = string(ch))(stream, state);
-    if (ch == "[" && /[\[=]/.test(stream.peek()))
-      return (state.cur = bracketed(readBracket(stream), "string"))(stream, state);
     if (/\d/.test(ch)) {
       stream.eatWhile(/[\w.%]/);
       return "number";
@@ -109,6 +80,18 @@ CodeMirror.defineMode("tb", function(config, parserConfig) {
     };
   }
 
+  function markup(quote) {
+    return function(stream, state) {
+      var escaped = false, ch;
+      while ((ch = stream.next()) != null) {
+        if (ch == quote && !escaped) break;
+        escaped = !escaped && ch == "\\";
+      }
+      if (!escaped) state.cur = normal;
+      return "markup";
+    };
+  }
+
   return {
     startState: function(basecol) {
       return {basecol: basecol || 0, indentDepth: 0, cur: normal};
@@ -137,4 +120,4 @@ CodeMirror.defineMode("tb", function(config, parserConfig) {
   };
 });
 
-CodeMirror.defineMIME("text/x-lua", "lua");
+CodeMirror.defineMIME("text/x-thickbasic", "tb");
