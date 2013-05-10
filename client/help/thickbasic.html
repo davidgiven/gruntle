@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset='UTF-8'">
+	<title>Help Index</title>
+	<link rel="stylesheet" type="text/css" href="../libraries/reset-min.css"/>
+	<link rel="stylesheet/less" type="text/css" href="help.less"/>
+	<script src="../libraries/less-1.3.3.min.js"></script>
+</head>
+<body>
+	<h1>ThickBasic</h1>
+
+	<h2>Introduction</h2>
+	<p>
+		ThickBasic is a simple Basic-like programming language used for
+		writing room scripts.
+	</p>
+	<p>
+		If you've ever used Javascript, it should be familiar. It's a
+		dynamicly typed, block-based language with a simple syntax and some
+		special features for use with thickishstring.
+	</p>
+
+	<h2>Types</h2>
+	<p>
+		Values may be:
+	</p>
+	<ul>
+		<li><p><code>nil</code>, which represents nothing.</p></li>
+		<li><p><code>true</code> and <code>false</code>, which are boolean values.</p></li>
+		<li><p>Floating-point numbers.</p></li>
+		<li><p>Strings, which are delimited with single quotes: <code>'This is a string.'</code></p></li>
+		<li><p>Markup, which are like strings but which are delimited with double quotes: <code>"This is markup."</code></p></li>
+		<li><p>Lists, which are sequences of values: <code>[1, 2, 3, 4]</code></p></li>
+		<li><p>Special objects.</p></li>
+	</ul>
+	<p>
+		No implicit conversion between types is done, in the interests of
+		sanity.
+	</p>
+
+	<h2>Statements</h2>
+	<p>
+		The usual structured Basic statements are available:
+	</p>
+	<pre>
+for x=1 to 10
+	y = y + x
+next
+
+for x=10 to 1 step -1
+	y = y + x
+next
+
+if x=1 then
+	y = 0
+elseif x=2 then
+	y = 1
+else
+	y = 2
+endif
+
+while x < 10
+	x = x + 1
+endwhile
+</pre>
+	<p>
+		In addition, single-line variants of
+		<code>if</code>...<code>then</code>...<code>else</code>
+		are available.
+	</p>
+<pre>
+if x=1 then y=0
+if x=2 then y=1 else y=2
+</pre>
+	<p>
+		<code>break</code> and <code>continue</code> work on loops.
+	</p>
+	<p>
+		Statements can be separated with a colon.
+	</p>
+<pre>
+if x=1 then y=0: z=1
+</pre>
+
+	<h2>Subroutines</h2>
+	<p>
+		A script consists of one or more subroutines. Statements can only
+		exist inside a subroutine. Subroutines are either called directly by
+		thickishstring or by other subroutines.
+	</p>
+	<pre>
+sub ThisIsASubroutine
+	AnotherSubroutine()
+endsub
+</pre>
+	<p>
+		Subroutines may take parameters and return values.
+	</p>
+	<pre>
+sub WithParameters(a, b, c)
+	return AnotherSubroutine(a+b+c)
+endsub
+</pre>
+	<p>
+		Simple variables are local to the subroutine they are defined
+		inside, like Python and Javascript. There is no need to declare them
+		specially.
+	</p>
+<pre>
+sub SumRange(low, high)
+	total = 0
+	for i = low to high
+		total = total + i
+	next
+	return total
+endsub
+</pre>
+	<p>
+		Trying to read from an uninitialised variable is an error.
+	</p>
+
+	<h2>Methods and properties</h2>
+	<p>
+		It is possible to call methods on a value.
+	</p>
+<pre>
+sub LengthOfList
+	list = [1, 2, 3, 4]
+	return list.length
+endsub
+</pre>
+	<p>
+		The most common use for this is to tell the player things.
+	</p>
+<pre>
+sub PullLever
+	player.tell("You try to pull the lever, but it's jammed.")
+endsub
+</pre>
+
+	<h2>Global variables</h2>
+	<p>
+		Variables whose name starts with a <code>$</code> are stored in the
+		database.
+	</p>
+	<pre>
+sub PressButton
+	player.tell("The machine rings a bell.")
+	$bellcount = $bellcount + 1
+endsub
+</pre>
+	<p>
+		Global variables can only store a limited set of values:
+		<code>nil</code>, booleans, numbers, strings, lists of the above
+		(including lists of lists), but they cannot store markup or special
+		objects. If you try, you'll get an error.
+	</p>
+	<p>
+		Trying to read from an uninitialised variable is <i>not</i> an error,
+		and will return <code>nil</code>. This is useful: the example above
+		should actually be written:
+	</p>
+<pre>
+sub PressButton
+	player.tell("The machine rings a bell.")
+	if $bellcount = nil then $bellcount = 0
+	$bellcount = $bellcount + 1
+endsub
+</pre>
+
+	<h2>Markup</h2>
+	<p>
+		Markup objects are special string-like things used when communicating
+		with the player. Markup can contain embedded values which are
+		rendered specially. These values are expressions delimited by
+		<code>{...}</code>.
+	</p>
+<pre>
+sub PressButton
+	player.tell("You press the button, and the machine rings a bell.")
+	room.tell("${player} presses the button, and the machine rings a bell.")
+endsub
+</pre>
+	<p>
+		(You'll be using the above idiom a lot!)
+	</p>
+	<p>
+		When the <code>${player}</code> above reaches the player, the current
+		player's name will be substituted and coloured appropriately.
+	</p>
+	<p>
+		See the page on <a href="api_markup.html">Markup</a> for more
+		information.
+	</p>
+
+	<h2>Expressions</h2>
+	<p>
+		The usual set of operators are supported. To test of equality, either
+		<code>==</code> and <code>!=</code> can be used, or <code>=</code> and
+		<code>&lt;&gt;</code>.
+	</p>
+	<p>
+		<code>not</code>, <code>and</code> and <code>or</code> work on
+		booleans. <code>and</code> and <code>or</code> are short-circuiting.
+		Values are <i>not</i> converted to booleans automatically, and
+		attempting to use a non-boolean in an <code>if</code> statement is
+		an error.
+	</p>
+</body>
+</html>
+

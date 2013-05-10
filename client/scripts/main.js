@@ -60,9 +60,17 @@
     {
         $("#page").find(".dialogue").draggable(
         	{
-        		handle: "h3.dialogue-title"
+        		handle: ".dialogue-title",
+        		delay: 100
         	}
         ).hide();
+        $("#page").find(".dialogue-title").click(
+            function()
+        	{
+        	    var self = this;
+        	    $(self).closest(".dialogue").moveToFront();
+        	}
+        );
         $("#page").find(".resizable").resizable();
     };
 }

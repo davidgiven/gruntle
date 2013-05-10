@@ -52,7 +52,7 @@ args = parser.parse_args()
 # Open and initialise the database.
 
 if not db.connect(args.filename, "server/dbinit.sql"):
-	s = open("server/dbinit.sql").read()
+	s = open("server/dbinit.sql").read().decode("UTF-8")
 	logging.info("initialising new database")
 	c = db.sql.cursor()
 	c.execute(s)
@@ -67,30 +67,11 @@ if not db.connect(args.filename, "server/dbinit.sql"):
 		setDefaultInstance(defaultinstance)
 		
 		e = defaultrealm.findRoom("entrypoint")
-		r = defaultrealm.addRoom("closet", "Broom Closet", "It's full of junk.")
-		
-		e.setActions(
-			{
-				0:
-				{
-					"description": "Head downstairs to the broom closet?",
-					"type": "room",
-					"target": "closet"
-				}
-			}
-		)
-		
-		r.setActions(
-			{
-				0:
-				{
-					"description": "It's boring here; head back upstairs.",
-					"type": "room",
-					"target": "entrypoint"
-				}
-			}
-		)
-		
+		e.script = open("server/hub/entrypoint.tb").read().decode("UTF-8")
+
+		r = defaultrealm.addRoom("closet", "Broom Closet",
+			open("server/hub/closet.tb").read().decode("UTF-8"))
+
 		thoth.instance = defaultinstance
 		thoth.room = e
 

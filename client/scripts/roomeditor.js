@@ -2,7 +2,8 @@
 {
 	"use strict";
 
-	var currentmessage;
+	var editor;
+	var room;
 	
 	var cancel_cb = function()
 	{
@@ -12,36 +13,34 @@
 	var save_cb = function()
 	{
 		/* Reload room title/description text. */
-		
-		currentmessage.name = $("#editroomid").text();
-		currentmessage.title = $("#editroomname").textWithBreaks();
-		currentmessage.description = $("#editdescription").textWithBreaks();
-		
-		/* Reload action text. */
-		
-		var actions = currentmessage.allactions;
-		$.each(actions,
-			function (id, action)
+
+		var name = $("#editroomid").text();
+		var title = $("#editroomname").textWithBreaks();
+		var script = editor.getValue();
+
+		W.Socket.Send(
 			{
-				var editor = $("#editaction-"+id);
-				action.type = editor.find(".containstype SELECT").val();
-				action.description = editor.find(".description").textWithBreaks();
-				action.target = editor.find(".target").textWithBreaks();
+				command: "setroomdata",
+				room: room,
+				name: name,
+				title: title,
+				script: script
 			}
 		);
+
+		//W.Effects.HideDialogue($("#roomeditor"));
+	};
+
+	var check_cb = function()
+	{
+		var script = editor.getValue();
 		
 		W.Socket.Send(
 			{
-				command: "editroom",
-				room: currentmessage.room,
-				name: currentmessage.name,
-				title: currentmessage.title,
-				description: currentmessage.description,
-				actions: currentmessage.allactions
+				command: "syntaxcheck",
+				script: script
 			}
 		);
-		
-		W.Effects.HideDialogue($("#roomeditor"));
 	};
 	
 	var add_new_action = function()
@@ -112,57 +111,53 @@
 	{
 		Show: function(message)
 		{
-			/* If the room editor is currently being shown, cancel it
-			 * instead. */
-			
+			/* If the room editor is currently being shown, do nothing. */
+
 			if ($("#roomeditor").is(":visible"))
-			{
-				cancel_cb();
 				return;
-			}
-			
-	    	/* Deep copy object (so we can change it without altering the 
-	    	 * copy attached to the room upstack). */
-	    	
-	    	currentmessage = $.extend(true, {}, message);
-	    	
-	    	$("#editroomid").text(currentmessage.name);
-			$("#editroomname").text(currentmessage.title);
 
-			$("#editdescription").empty()
-	    	var paras = currentmessage.description.split("\n");
-	    	for (var i = 0; i < paras.length; i++)
-	    		$("#editdescription").append($("<p/>").text(paras[i]));
+			room = message.id;
+	    	$("#editroomid").text(message.name);
+			$("#editroomname").text(message.title);
 
-	    	$("#roomeditor .action").remove();
-        	$.each(currentmessage.allactions,
-        		function (id, action)
-        		{
-        			var editor = create_action_editor(id, action);
-        			$("#editactions").before(editor);
-        		}
-        	);
-        	
-        	$("#createactionbutton")
-        		.unbind()
-        		.click(
-        			function()
-        			{
-        				add_new_action();
-        				return false;
-        			}
-        		);
+			$("#codecontainer").empty();
+			editor = CodeMirror($("#codecontainer")[0],
+				{
+					value: message.script,
+                    mode: "tb",
+                    lineWrapping: true,
+                    lineNumbers: true,
+                    tabSize: 2,
+                    indentWithTabs: 2,
+				}
+			);
 
         	$("#editcancelbutton").unbind().click(cancel_cb);
         	$("#editsavebutton").unbind().click(save_cb);
+        	$("#editcheckbutton").unbind().click(check_cb);
 
 	    	W.Effects.ShowDialogue($("#roomeditor"));
+
+	    	/* This must happen after the editor has been added to the DOM
+	    	 * tree. */
+
+	        editor.refresh();
 		},
 		
 		Cancel: function()
 		{
 			cancel_cb();
 		},
+
+		RoomChangedEvent: function(message)
+		{
+			if (message.id == room)
+			{
+				/* The player has successfully saved this room. */
+
+				W.Effects.HideDialogue($("#roomeditor"));
+			}
+		}
 	};
 }
 )();

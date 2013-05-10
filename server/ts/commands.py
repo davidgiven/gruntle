@@ -12,7 +12,13 @@ import hashlib
 from ts.DBInstance import *
 from ts.DBRoom import *
 from ts.DBRealm import *
-from ts.exceptions import InvalidObjectReference
+from ts.exceptions import *
+import ts.scriptcompiler as scriptcompiler
+
+def tounicode(s):
+	if (type(s) == unicode):
+		return s
+	return unicode(s, "UTF-8")
 
 # Functions of the form cmd_FNORD are executed when an *authenticated*
 # player tries to execute command 'FNORD'.
@@ -21,8 +27,8 @@ from ts.exceptions import InvalidObjectReference
 
 def cmd_changepassword(connection, message):
 	try:
-		oldpassword = unicode(message["oldpassword"])
-		newpassword = unicode(message["newpassword"])
+		oldpassword = tounicode(message["oldpassword"])
+		newpassword = tounicode(message["newpassword"])
 	except KeyError:
 		connection.onInvalidInput()
 		return
@@ -62,7 +68,7 @@ def cmd_warp(connection, message):
 
 def cmd_say(connection, message):
 	try:
-		text = unicode(message["text"])
+		text = tounicode(message["text"])
 	except KeyError:
 		connection.onInvalidInput()
 		return
@@ -74,8 +80,8 @@ def cmd_say(connection, message):
 def cmd_createroom(connection, message):
 	try:
 		instance = DBInstance(int(message["instance"]))
-		name = unicode(message["name"])
-		title = unicode(message["title"])
+		name = tounicode(message["name"])
+		title = tounicode(message["title"])
 	except (KeyError, InvalidObjectReference):
 		connection.onInvalidInput()
 		return
@@ -99,7 +105,7 @@ def cmd_delroom(connection, message):
 
 def cmd_createrealm(connection, message):
 	try:
-		name = unicode(message["name"])
+		name = tounicode(message["name"])
 	except KeyError:
 		connection.onInvalidInput()
 		return
@@ -111,36 +117,60 @@ def cmd_createrealm(connection, message):
 def cmd_renamerealm(connection, message):
 	try:
 		realm = DBRealm(int(message["realmid"]))
-		newname = unicode(message["newname"])
+		newname = tounicode(message["newname"])
 	except (KeyError, InvalidObjectReference):
 		connection.onInvalidInput()
 		return
 
 	realm.checkOwner(connection.player)			
 	connection.player.onRenameRealm(realm, newname)
-	
-# The player wants to edit a room.
 
-def cmd_editroom(connection, message):
+# The player wants information on a particular room.
+
+def cmd_getroomdata(connection, message):
 	try:
 		room = DBRoom(int(message["room"]))
-		name = unicode(message["name"])
-		title = unicode(message["title"])
-		description = unicode(message["description"])
-		actions = {}
-		
-		# Sanity check the list of actions.
-		
-		for k, v in message["actions"].iteritems():
-			actions[int(k)] = {
-				"type": unicode(v["type"]),
-				"description": unicode(v["description"]),
-				"target": unicode(v["target"])
-			}	
 	except (KeyError, InvalidObjectReference):
 		connection.onInvalidInput()
 		return
 
-	room.checkOwner(connection.player)			
-	connection.player.onEditRoom(room, name, title, description, actions)
+	room.checkOwner(connection.player)
+	connection.player.onGetRoomData(room)
 
+# The player wants to change a room.
+
+def cmd_setroomdata(connection, message):
+	try:
+		room = DBRoom(int(message["room"]))
+		name = tounicode(message["name"])
+		title = tounicode(message["title"])
+		script = tounicode(message["script"])
+	except (KeyError, InvalidObjectReference):
+		connection.onInvalidInput()
+		return
+
+	room.checkOwner(connection.player)
+	connection.player.onSetRoomData(room, name, title, script)
+
+# Syntax check a script.
+
+def cmd_syntaxcheck(connection, message):
+	try:
+		script = tounicode(message["script"])
+	except (KeyError):
+		connection.onInvalidInput()
+		return
+
+	errorlog = []
+	try:
+		scriptcompiler.compile(script)
+	except ScriptCompilationError, e:
+		errorlog = e.errorlog
+
+	connection.player.tell(
+		{
+			"event": "scriptcompilationfailure",
+			"id": None,
+			"errorlog": errorlog
+		}
+	)

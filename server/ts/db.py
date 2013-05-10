@@ -21,19 +21,19 @@ def connect(filename, initscript):
 	cursor = sql.cursor()
 	cursor.execute('PRAGMA synchronous = OFF')
 	(count,) = cursor.execute(
-			"SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='variables'"
+			"SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='settings'"
 		).next()
 	return (count != 0)
 	
 def getvar(name):
 	(value,) = cursor.execute(
-			"SELECT value FROM variables WHERE key = ?",
+			"SELECT value FROM settings WHERE key = ?",
 			(name,)
 		).next()
 	return value
 
 def setvar(name, value):
 	cursor.execute(
-			"INSERT OR REPLACE INTO variables VALUES (?, ?)",
+			"INSERT OR REPLACE INTO settings VALUES (?, ?)",
 			(name, value)
 		)

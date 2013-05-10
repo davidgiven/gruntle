@@ -14,6 +14,8 @@ from ts.DBRealm import DBRealm
 from ts.DBInstance import *
 from ts.DBRoom import DBRoom
 from ts.exceptions import *
+import ts.scriptcompiler as scriptcompiler
+from ts.ScriptRuntime import *
 import ts.db as db
 
 # Represents a player.
@@ -49,9 +51,12 @@ class DBPlayer(DBObject):
 		realm = DBRealm()
 		realm.create(name, self)
 		room = realm.addRoom("entrypoint", "Featureless Void",
-			"Unshaped nothingness stretches as far as you can see, "
-			"tempting you to start shaping it."
-		)
+'''
+sub RoomDescription
+	return "Unshaped nothingness stretches as far as you can see,
+		tempting you to start shaping it."
+endsub
+''')
 		room.immutable = 1
 
 		return realm
@@ -325,7 +330,20 @@ class DBPlayer(DBObject):
 			contents[player.name] = player.id
 				
 		editable = (realm.owner == self)
-		
+
+		try:
+			module = scriptcompiler.compile(room.script)
+			rt = ScriptRuntime(self, realm, instance, room)
+			descriptiono = checkMarkup(executeScript(rt, module, "RoomDescription"))
+			description = rt.markup(descriptiono)
+		except ScriptError, e:
+			logging.exception(e)
+			description = {
+				"type": "error",
+				"message": "Error in realm (please contact the realm author):",
+				"details": [unicode(e)]
+			}
+
 		msg = {
 			"event": "look",
 			"instance": instance.id,
@@ -339,15 +357,12 @@ class DBPlayer(DBObject):
 			"room": room.id,
 			"name": room.name,
 			"title": room.title,
-			"description": room.description,
+			"description": description,
 			"contents": contents,
 			"actions": self.validActionsForRoom(),
 			"editable": editable
 		}
 
-		if editable:
-			msg["allactions"] = room.getActions()
-						
 		self.tell(msg)
 		
 	# Announce what realms the player currently owns.
@@ -391,46 +406,53 @@ class DBPlayer(DBObject):
 	# Determine the actions that are currently valid for the player.
 	
 	def validActionsForRoom(self):
+		instance = self.instance
+		realm = instance.realm
 		room = self.room
-		
-		actions = {}
-		for action in room.actions:
-			 actions[action.id] = {
-			 	"description": action.description,
-				"type": action.type,
-				"target": action.target
-			}
-		 
+
+		try:
+			module = scriptcompiler.compile(room.script)
+			if ("var_Actions" in module):
+				rt = ScriptRuntime(self, realm, instance, room)
+				actionso = checkList(executeScript(rt, module, "Actions"))
+				logging.debug(actionso)
+				actions = [ checkMarkup(x).markup for x in actionso ]
+			else:
+				actions = []
+		except ScriptError, e:
+			logging.exception(e)
+			actions = [
+				{
+					"type": "error",
+					"message": "Error in realm (please contact the realm author):",
+					"details": [unicode(e)]
+				}
+			]
+
 		return actions
 	
 	# Execute a player action.
 	
 	def onAction(self, actionid):
+		instance = self.instance
+		realm = instance.realm
 		room = self.room
-		
-		try:
-			action = room.findAction(int(actionid))
-			description = action.description
-			type = action.type
-			target = action.target
-		except KeyError:
-			self.connection.onMalformed()
-			return
-			
-		if (type == "room"):
+
+		consequence = Action.getConsequenceFromId(actionid)
+		logging.debug("consequence: %s" % consequence)
+
+		if (consequence == ""):
+			raise AppError("room '"+target+"' has an invalid action consequence")
+		elif (consequence[0] == ">"):
+			target = consequence[1:]
 			targetroom = self.instance.realm.findRoom(target)
 			if not targetroom:
 				raise AppError("room '"+target+"' does not exist in realm")
 			self.moveTo(targetroom)
-		elif (type == "message"):
-			self.tell(
-				{
-					"event": "activity",
-					"message": target 
-				}
-			)
 		else:
-			pass
+			module = scriptcompiler.compile(room.script)
+			rt = ScriptRuntime(self, realm, instance, room)
+			executeScript(rt, module, consequence)
 
 	# The player has asked to warp to a new room.
 	
@@ -493,16 +515,49 @@ class DBPlayer(DBObject):
 		realm.destroyRoom(room)
 		self.onRealms()
 	
-	# The player wants to edit a room.
+	# The player wants room data.
+
+	def onGetRoomData(self, room):
+		self.tell(
+			{
+				"event": "roomdata",
+				"id": room.id,
+				"name": room.name,
+				"title": room.title,
+				"script": room.script
+			}
+		)
+
+	# The player wants to change a room.
 	
-	def onEditRoom(self, room, name, title, description, actions):
+	def onSetRoomData(self, room, name, title, script):
+		# Syntax-check the script.
+
+		try:
+			scriptcompiler.compile(script)
+		except ScriptCompilationError, e:
+			self.tell(
+				{
+					"event": "scriptcompilationfailure",
+					"id": room.id,
+					"errorlog": e.errorlog
+				}
+			)
+			return
+
 		room.name = name
 		room.title = title
-		room.description = description
-		room.setActions(actions)
+		room.script = script
+
 		room.fireChangeNotification()
 		self.onRealms()
-		
+		self.tell(
+			{
+				"event": "roomchanged",
+				"id": room.id,
+			}
+		)
+
 	# The player wants to create a realm.
 	
 	def onCreateRealm(self, name):
@@ -517,8 +572,35 @@ class DBPlayer(DBObject):
 		realm.name = newname
 		realm.fireChangeNotification()
 		self.onRealms()
-		
-	 	
+
+	# Scripting interface.
+
+	def property_markup(self, rt):
+		return Markup(
+			type=u"player",
+			name=self.name,
+			id=self.id
+		)
+
+	def property_toString(self, rt):
+		return self.name
+
+	def property_tell(self, rt, markup):
+		self.tell(
+			{
+				"event": "activity",
+				"markup": checkMarkup(markup).markup
+			}
+		)
+
+	def property_moveTo(self, rt, dest):
+		if (type(dest) == unicode):
+			dest = findRoom(rt, dest)
+		if (type(dest) != DBRoom):
+			typeMismatch()
+
+		self.moveTo(dest)
+
 def findPlayerFromConnection(connection):
 	try:
 		return DBPlayer.connections[connection]

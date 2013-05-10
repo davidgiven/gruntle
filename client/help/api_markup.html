@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset='UTF-8'">
+	<title>Help Index</title>
+	<link rel="stylesheet" type="text/css" href="../libraries/reset-min.css"/>
+	<link rel="stylesheet/less" type="text/css" href="help.less"/>
+	<script src="../libraries/less-1.3.3.min.js"></script>
+</head>
+<body>
+	<h1>API reference: markup</h1>
+
+	<p>
+		ThickBasic markup represents text that is going to be shown to the
+		player. Objects and expressions can be embedded in markup
+		which are rendered specially. For example, player names are
+		highlighted.
+	</p>
+	<p>
+		Markup look like strings, although delimited with double quotes:
+	</p>
+	<pre>
+m1 = "Hello, world!"
+</pre>
+	<p>
+		Markup can span multiple lines. If there is a blank line, that is
+		treated as a paragraph break. Otherwise, whitespace is all collapsed.
+	</p>
+	<pre>
+m2 = "This is
+  all on one
+    line.
+
+But this is another paragraph."
+</pre>
+	<p>
+		To embed an expression, use curly braces. The expression will be
+		evaluated and the value converted to a markup object.
+	</p>
+	<pre>
+count = 3
+m3 = "The number of the counting is {count}."
+</pre>
+	<p>
+		Markup can be concatenated with <code>+</code>. It is also possible
+		to embed markup inside markup. <i>m4</i> and <i>m5</i> in the
+		following are equivalent:
+	</p>
+	<pre>
+if male then greeting="Sir" else greeting="Madam"
+m4 = "Good day, {greeting}."
+m5 = "Good day, " + greeting + "."
+</pre>
+	<p>
+		Markup is immutable, and the contents cannot be read in any way.
+		(Because sometimes the content will depend on the player's browser
+		settings, and the server doesn't know those.)
+	</p>
+</body>
+</html>
+

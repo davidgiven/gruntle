@@ -70,6 +70,21 @@
     	{
 			W.GamePage.ChangePasswordResultEvent(message);
     	},
+
+    	"roomdata": function(message)
+    	{
+    	    W.GamePage.RoomDataEvent(message);
+    	},
+
+    	"scriptcompilationfailure": function(message)
+    	{
+    	    W.GamePage.ScriptCompilationFailureEvent(message);
+    	},
+
+    	"roomchanged": function(message)
+    	{
+    	    W.RoomEditor.RoomChangedEvent(message);
+    	}
     };
     
     W.OnMessageReceived = function(s)

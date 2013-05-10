@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset='UTF-8'">
+	<title>Help Index</title>
+	<link rel="stylesheet" type="text/css" href="../libraries/reset-min.css"/>
+	<link rel="stylesheet/less" type="text/css" href="help.less"/>
+	<script src="../libraries/less-1.3.3.min.js"></script>
+</head>
+<body>
+	<h1>API reference: lists</h1>
+
+	<p>
+		ThickBasic lists are sequences of other values, delimited with square
+		brackets. For example:
+	</p>
+	<pre>
+l1 = [1, 2, 3, 4]
+l2 = ['one', 'two', 'three', 'four']
+l3 = [1.1, 'string', "markup", nil]
+l4 = [[], [1], [1, 2], [1, 2, 3]]
+</pre>
+	<p>
+		Lists are immutable They can be concatenated with <code>+</code>,
+		and compared by identity (but not by value) with <code>==</code> and
+		<code>!=</code>. In addition, they support the following operations
+		and methods:
+	</p>
+	<ul>
+		<li>
+			<p><a id="__index"><i>list</i><code>[</code><i>n</i><code>]</code></a></p>
+			<p>
+				Returns the <i>n</i>th item from this list. The index is
+				truncated to an integer; out of bound accesses cause an error.
+			</p>
+		</li>
+
+		<li>
+			<p><a id="length"><i>list</i><code>.markup()</code></a></p>
+			<p>
+				Returns the number of items in this list.
+			</p>
+		</li>
+	</ul>
+</body>
+</html>
+

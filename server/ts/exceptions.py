@@ -8,8 +8,13 @@
 # the full text.
 
 class ServerUserError(RuntimeError):
-	pass
-	
+	def __eq__(self, other):
+		print type(other), self.__class__
+		return (type(other) == self.__class__) and (self.args == other.args)
+
+	def __ne__(self, other):
+		return not self.__eq__(other)
+
 class InvalidObjectReference(ServerUserError):
 	def __init__(self, arg=None):
 		self.args = (arg,)
@@ -21,4 +26,13 @@ class PermissionDenied(ServerUserError):
 class AppError(ServerUserError):
 	def __init__(self, message, *args):
 		self.args = (message % args,)
-		
+
+class ScriptError(AppError):
+	def __init__(self, message, *args):
+		self.args = (message % args,)
+
+class ScriptCompilationError(AppError):
+	def __init__(self, errorlog):
+		self.args = ("Error when compiling script",)
+		self.errorlog = errorlog
+

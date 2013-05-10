@@ -12,11 +12,23 @@
 					<span>▾</span>
 					<ul id="yourrealmlist"/>
 				</li>
-				
+
 				<li>
 					<a href="#">Warp</a>
 					<span>▾</span>
 					<ul id="specialrealmlist"/>
+				</li>
+
+				<li>
+					<a href="#">Help</a>
+					<span>▾</span>
+					<ul class="helplist">
+						<li><a href="#" helpref="help/index.html">Index</a></li>
+						<hr/>
+						<li><a href="#" helpref="help/usage.html">Basic usage</a></li>
+						<hr/>
+						<li><a href="#" helpref="help/thickbasic.html">ThickBasic</a></li>
+					</ul>
 				</li>
 				
 				<li>
@@ -60,7 +72,7 @@
 <div id="roomeditor" class="dialogue">
 	<div class="resizable">
 		<h3 class="dialogue-title">Room editor</h3>
-		<div class="container">
+		<div class="nonscrollcontainer">
 			<table>
 				<tbody>
 					<tr>
@@ -71,17 +83,15 @@
 						<th>Room title:</th>
 						<td><div id="editroomname" contenteditable="true"><br/></div></td>
 					</tr>
-					<tr>
-						<th>Description:</th>
-						<td><div id="editdescription" contenteditable="true"><br/></div></td>
+					<tr class="expandable">
+						<td colspan="2">
+							<div id="codecontainer"/>
+						</td>
 					</tr>
-				</tbody>
-				<tbody id="editactions">
 					<tr>
-						<th>
-							<a href="#" id="createactionbutton">[add action]</a>
-						</th>
+						<th/>
 						<td class='containsbuttons'>
+							<input type="button" id="editcheckbutton" value="Check"/>
 							<input type="button" id="editcancelbutton" value="Cancel"/>
 							<input type="button" id="editsavebutton" value="Save"/>
 						</td>
@@ -166,8 +176,8 @@
 			<tr>
 				<td colspan="2">
 					<p>To change your account password, enter your old password
-					for verification and your desired new password into the
-					boxes below.
+						for verification and your desired new password into the
+						boxes below.
 					</p>
 				</td>
 			</tr>
@@ -191,5 +201,29 @@
 				</td>
 			</tr>
 		</table>
+	</div>
+</div>
+
+<div id="help" class="dialogue">
+	<div class="resizable">
+		<h3 class="dialogue-title">Help</h3>
+		<div class="nonscrollcontainer">
+			<table>
+				<tbody>
+				<tr class="expandable">
+					<td colspan="2">
+						<iframe/>
+					</td>
+				</tr>
+				<tr>
+					<th/>
+					<td class='containsbuttons'>
+						<input type="button" id="helpindexbutton" value="Index"/>
+						<input type="button" id="helpclosebutton" value="Close"/>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
 	</div>
 </div>

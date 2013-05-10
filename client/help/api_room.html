@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset='UTF-8'">
+	<title>Help Index</title>
+	<link rel="stylesheet" type="text/css" href="../libraries/reset-min.css"/>
+	<link rel="stylesheet/less" type="text/css" href="help.less"/>
+	<script src="../libraries/less-1.3.3.min.js"></script>
+</head>
+<body>
+	<h1>API reference: Room objects</h1>
+
+	<p>
+		Rooms are manipulated via Room objects. These can be found using
+		the <a href="api_functions.html#Room"><code>Room()</code></a>
+		function; and the Room object for the current player's location is
+		always available as the <code>room</code> special variable.
+	</p>
+	<p>
+		Room objects may be embedded in markup, in which case the expand to
+		be the room's title. They also support the following methods:
+	</p>
+	<ul>
+		<li>
+			<p><a id="broadcast"><code>room.broadcast(message)</code></a></p>
+			<p>
+				Tells something to everyone in the room.
+			</p>
+			<p>
+				<code>message</code> must be <b>markup</b>.
+			</p>
+		</li>
+
+		<li>
+			<p><a id="tell"><code>room.tell(message)</code></a></p>
+			<p>
+				Tells something to everyone in the room <i>except</i> the
+				current player.
+			</p>
+			<p>
+				<code>message</code> must be <b>markup</b>.
+			</p>
+			<p>
+				This is most commonly used paired with
+				<a href="api_player.html#tell"><code>player.tell()</code></a>, as
+				follows:
+			</p>
+			<pre>
+sub ActionRoutine
+	player.tell("You do something.")
+	room.tell("{$player} does something.")
+endsub
+</pre>
+		</li>
+	</ul>
+</body>
+</html>
+

@@ -10,6 +10,7 @@
 from ts.DBObject import *
 from ts.DBRealm import *
 from ts.DBAction import *
+from ts.ScriptRuntime import *
 
 # Represents a room template.
 
@@ -30,23 +31,10 @@ class DBRoom(DBObject):
 		from ts.DBRealm import DBRealm
 		return DBRealm(realm)
 	
-	# Return any actions attached to this room.
-	
-	# Return the players currently in this instance.
-	
-	@property
-	def actions(self):
-		return [ DBAction(id) for (id,) in
-			db.sql.cursor().execute(
-				"SELECT id FROM actions WHERE room=?",
-				(self.id,)
-			)
-		]
-		
-	def create(self, realm, name, title, description):
+	def create(self, realm, name, title, script):
 		super(DBRoom, self).create()
-		(self.realm, self.name, self.title, self.description) = \
-			realm, name, title, description
+		(self.realm, self.name, self.title, self.script) = \
+			realm, name, title, script
 		self.immutable = 0
 		
 	# Return markup which describes the room.
@@ -74,66 +62,32 @@ class DBRoom(DBObject):
 				if (player.room == self):
 					player.onLook()
 
-	# Extract the list of actions for this room and return it as a client-
-	# manipulatable list.
+	# Scripting interface.
 
-	def getActions(self):	
-		actions = {}
-		for action in self.actions:
-			 actions[action.id] = {
-			 	"description": action.description,
-				"type": action.type,
-				"target": action.target
+	def property_markup(self):
+		return Markup(
+			type=u"room",
+			title=self.title,
+			name=self.name,
+			id=self.id
+		)
+
+	def property_toString(self, rt):
+		return self.title
+
+	def property_tell(self, rt, markup):
+		rt.instance.tell(self, rt.player,
+			{
+				"event": "activity",
+				"markup": checkMarkup(markup).markup
 			}
-		 
-		return actions
+		)
 
-	# Replace all actions on this room with the list supplied.
-	
-	def setActions(self, actions):
-		processed = {}
-		for action in self.actions:
-			processed[action.id] = action
-		
-		for id, action in actions.iteritems():
-			description = action["description"]
-			type = action["type"]
-			target = action["target"]
-			
-			newaction = None
-			if id in processed:
-				# We are updating an old action.
-				
-				newaction = processed[id]
-				del processed[id]
-				
-				newaction.description = description
-				newaction.type = type
-				newaction.target = target
-			else:
-				# We are creating a new action.
-				
-				newaction = DBAction()
-				newaction.create(self, description, type, target)
-			
-		# Any left-over actions are being deleted.
-		
-		for id in processed:
-			del self.actions[id]
-	
-	# Finds an action for this room.
-	
-	def findAction(self, actionid):
-		# Verify that this action actually exists for this room.
-		
-		(exists,) = db.cursor.execute(
-				"SELECT EXISTS (SELECT * FROM actions WHERE id=? AND room=?)",
-				(actionid, self.id)
-			).next()
-		if (exists == 0):
-			return None
-		
-		# Now we can return the action object itself.
-		
-		return DBAction(actionid)
-	
+	def property_broadcast(self, rt, markup):
+		rt.instance.tell(self, None,
+			{
+				"event": "activity",
+				"markup": checkMarkup(markup).markup
+			}
+		)
+

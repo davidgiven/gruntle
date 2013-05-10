@@ -91,7 +91,7 @@
 			if (!current_status_div)
     		return;
     	
-		var m = $("<p/>").append(W.Markup.ToDOM(markup));
+		var m = W.Markup.ToParagraphs(markup);
 		if (style)
 			m.addClass(style);
 		
@@ -99,7 +99,7 @@
 		W.Effects.NewText(m);
 		adjustScrolling(false);
 	};
-	
+
     W.GamePage =
     {
         Show: function ()
@@ -162,7 +162,17 @@
                     $("#menulogout")
                     	.unbind()
                     	.click(W.GamePage.LogoutEvent);
-                    
+
+                    $(".helplist A").click(
+                        function()
+                        {
+                            var self = this;
+                            var helpref = $(self).attr("helpref");
+                            W.Help.Show(helpref);
+                            return false;
+                        }
+                    );
+
             		$("#page").hide();
             		W.Effects.ShowPage($("#page"))
             			.promise()
@@ -208,12 +218,9 @@
             	
             	var header = $("<h1/>").text(message.title);
             	var body = $("<div/>");
-    
-            	var paras = message.description.split("\n");
-            	for (var i = 0; i < paras.length; i++)
-            		body.append($("<p/>").text(paras[i]));
-            	jsprettify.prettifyHtml(body[0]);
-            	
+
+                W.Markup.ToParagraphs(message.description).appendTo(body);
+
             	current_text_div.empty();
             	
             	if (message.editable)
@@ -226,7 +233,12 @@
         				.click(
         					function()
         					{
-        						W.RoomEditor.Show(message);
+                        		W.Socket.Send(
+                        			{
+                        			 	command: "getroomdata",
+                        			 	room: W.CurrentRoom
+                        			}
+                        		);
         						return false;
         					}
         				);
@@ -280,9 +292,7 @@
                 			m.push(" are here.");
                 		}
 
-        				var s = $("<p/>")
-        				W.Markup.ToDOM(m).appendTo(s);
-        				s.appendTo(current_status_div);
+        				W.Markup.ToParagraphs(m).appendTo(current_status_div);
             		}
             		
             		shown_user_list = true;
@@ -327,7 +337,12 @@
         				.click(
         					function()
         					{
-        						W.RoomEditor.Show(message);
+                        		W.Socket.Send(
+                        			{
+                        			 	command: "getroomdata",
+                        			 	room: W.CurrentRoom
+                        			}
+                        		);
         						return false;
         					}
         				);
@@ -342,42 +357,14 @@
             	$.each(message.actions,
             		function (id, action)
             		{
-                		var e = $("<a href='#'/>");
-                		e.text(action.description);
-                		
-                		e.click(
-                			function()
-                    		{
-					show_simple_markup(
-						[
-							"> ",
-							action.description
-						],
-						"action"
-					);
-
-                    			W.Socket.Send(
-                    				{
-                    				 	command: "action",
-                    				 	actionid: id
-                    				}
-                    			);
-                    			
-                    			updateScrollPosition();
-                    			return false;
-                    		}
-                		);
-                		
                 		var li = $("<li/>");
-                		li.append(e);
+            		    W.Markup.ToParagraphs(action).appendTo(li);
                 		list.append(li);
                 		
                 		count++;
             		}
             	);
             	
-            	if (count == 0)
-            		list.append("<li>(There's nothing to do here.)</li>");
             	jsprettify.prettifyHtml(list[0]);
         	};
 
@@ -396,7 +383,32 @@
         	else
         		show_actions();
         },
-        
+
+		RoomDataEvent: function(message)
+		{
+			W.RoomEditor.Show(message);
+		},
+
+        PerformActionConsequence: function(markup, id)
+        {
+            show_simple_markup(
+                [
+                    "> ",
+                    markup
+                ],
+                "action"
+            );
+
+            W.Socket.Send(
+                {
+                    command: "action",
+                    actionid: id
+                }
+            );
+
+            updateScrollPosition();
+        },
+
         ArrivedEvent: function(message)
         {
         	show_simple_markup(message.markup);
@@ -429,10 +441,8 @@
         
         ActivityEvent: function(message)
         {
-        	var m = $("<div/>");
-        	m.textWithBreaks(message.message);
+            var m = W.Markup.ToParagraphs(message.markup)
         	m.hide();
-        	jsprettify.prettifyHtml(m[0]);
         	current_status_div.append(m);
         	W.Effects.NewText(m);
         	adjustScrolling(false);
@@ -440,23 +450,40 @@
         
         ErrorEvent: function(message)
         {
-        	var m = $("<p class='realmerror'/>")
-        		.text(message.message);
-        	var bq = $("<blockquote/>")
-        	$.each(message.details,
-        		function (_, s)
-        		{
-        			$("<div/>").text(s).appendTo(bq)
-        		}
-        	);
-        	m.append(bq);
+            W.GamePage.ActivityEvent(message);
+        },
+
+        ScriptCompilationFailureEvent: function(message)
+        {
+            var errorlog = message.errorlog;
+
+            var m;
+            if (errorlog.length == 0)
+            {
+                m = $("<p class='realmerror'/>")
+                    .text("Script compiles successfully.");
+            }
+            else
+            {
+				m = $("<p class='realmerror'/>")
+					.text("Error when compiling script:");
+				var bq = $("<blockquote/>")
+				$.each(message.errorlog,
+					function (_, e)
+					{
+						var s = "Line "+e.lineno+": "+e.message;
+						$("<div/>").text(s).appendTo(bq);
+					}
+				);
+				m.append(bq);
+			}
         	m.hide();
         	jsprettify.prettifyHtml(m[0]);
         	current_status_div.append(m);
         	W.Effects.NewText(m);
         	adjustScrolling(false);
         },
-        	
+
         RealmsEvent: function(message)
         {
        		realms = message;

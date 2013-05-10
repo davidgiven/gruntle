@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset='UTF-8'">
+	<title>Help Index</title>
+	<link rel="stylesheet" type="text/css" href="../libraries/reset-min.css"/>
+	<link rel="stylesheet/less" type="text/css" href="help.less"/>
+	<script src="../libraries/less-1.3.3.min.js"></script>
+</head>
+<body>
+	<h1>Editing rooms</h1>
+
+	<h2>Introduction</h2>
+	<p>
+		Rooms are where all the action is in thickishstring. Er, literally.
+	</p>
+	<p>
+		Rooms can be created via the Realm Editor window. Just click on the
+        <b>[add room]</b> button and you'll get a new room. To destroy a
+		room, click on the red X next to the room name. (Important! This will
+		destroy <i>everything</i> in the room, without asking, and you won't
+		be able to get it back.)
+	</p>
+	<p>
+		Each room has a <i>title</i>, which is the name shown to players; and
+		it has a <i>name</i>, which is a short name used by the system to
+		identify the room. The realm editor shows names. Names are <i>not</i>
+		shown to the player. You can change the name and the title as much as
+		you like, and they don't need to be anything like each other. You
+		can even have multiple rooms in a realm with the same name but it's
+		not recommended.
+	</p>
+	<p>
+		The room called <code>entrypoint</code> is special; you can't delete
+		it or change its name (but you can change its title). This is the
+		entrance to your realm, and is where players will go if they warp
+		in. Players can't warp anywhere else in your realm. To get to other
+		rooms, they have to walk.
+	</p>
+
+	<h2>Room scripts</h2>
+	<p>
+		To make a room actually do something, you need to write a script
+		describing the room's behaviour. This uses a simple dialect of Basic
+		called ThickBasic. See <a href="thickbasic.html">the ThickBasic
+		help page</a> for details. It's a proper programming language, so
+		your rooms can be quite complicated. However, your code does get a
+		set amount of time in which to run. If your script takes to long, it
+		will be terminated, to prevent abuse of the server.
+	</p>
+	<p>
+		Each script defines a number of subroutines which return information
+		about the room. When players move around or perform actions, these
+		subroutines are called to actually do the work. See
+		<a href="api_callbacks.html">the API reference</a> for a description
+		of these.
+	</p>
+	<p>
+		It is intended that there will be a simple editor available for
+		people who don't need complex behaviour, and just want to write
+		rooms that consist of a room description and some simple actions.
+		Unfortunately this isn't ready yet. Sorry.
+	</p>
+	<p>
+		It's possible for scripts to store variables in the thickishstring
+		server itself; this allows persistent state (such as whether a lever
+		has been pulled, and that sort of thing). These variables are shared
+		among all rooms in an instance. They are <i>not</i> shared between
+		multiple instances of a realm.
+	</p>
+</body>
+</html>
+
