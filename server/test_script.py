@@ -18,12 +18,23 @@ import sys
 
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
+class TestRuntime(ScriptRuntime):
+	def __init__(self):
+		self.globals = {}
+		ScriptRuntime.__init__(self, None, None, None, None)
+
+	def SetGlobal(self, k, v):
+		self.globals[k] = v
+
+	def GetGlobal(self, k):
+		return self.globals[k]
+
 def run_test(test):
 	(script, desiredresult) = test
 	print "-----"
 	print script
 	module = scriptcompiler.compile(script)
-	rt = ScriptRuntime(None, None, None, None)
+	rt = TestRuntime()
 	try:
 		result = executeScript(rt, module, "test")
 	except AppError, e:
@@ -556,6 +567,27 @@ scripts = [
 		endsub
 	''',
 	((1,),)),
+
+	(ur'''
+		sub test
+			return '4.4'.toInt()
+		endsub
+	''',
+	4),
+
+	(ur'''
+		sub test
+			return '4.4'.toNumber()
+		endsub
+	''',
+	4.4),
+
+	(ur'''
+		sub test
+			return (4.4).toString()
+		endsub
+	''',
+	u"4.4"),
 
 	(ur'''
 		sub test

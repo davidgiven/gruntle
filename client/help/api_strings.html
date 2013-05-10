@@ -47,19 +47,42 @@ s3 = (42).toString
 	</p>
 	<ul>
 		<li>
-			<p><a id="length"><i>s</i><code>.length</code></a></p>
+			<p><a id="length"><i>s</i><code>.length()</code></a></p>
 			<p>
 				Returns the length of the string (in Unicode code points).
 			</p>
 		</li>
 
 		<li>
-			<p><a id="markup"><i>s</i><code>.markup</code></a></p>
+			<p><a id="markup"><i>s</i><code>.markup()</code></a></p>
 			<p>
 				Returns a markup object containing this string. This is
 				equivalent to:
 			</p>
 			<pre>"{s}"</pre>
+		</li>
+
+		<li>
+			<p><a id="toInt"><i>s</i><code>.toInt()</code></a></p>
+			<p>
+				Returns a number containing the integer value of this string.
+				Produces an error if the string is not a valid number.
+			</p>
+		</li>
+
+		<li>
+			<p><a id="toNumber"><i>s</i><code>.toNumber()</code></a></p>
+			<p>
+				Returns a number containing the value of this string.
+				Produces an error if the string is not a valid number.
+			</p>
+		</li>
+
+		<li>
+			<p><a id="toString"><i>s</i><code>.toString()</code></a></p>
+			<p>
+				Returns the string itself.
+			</p>
 		</li>
 	</ul>
 </body>

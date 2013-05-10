@@ -105,7 +105,7 @@ class NumberMethods(GenericMethods):
 	def GtE(self, rt, x, y): return x >= checkNumber(y)
 
 	def property_markup(self, rt, x): return u"%g" % (x,)
-	def property_toString(self, rt, x): return self.markup(x)
+	def property_toString(self, rt, x): return self.markup(rt, x)
 	def property_toInt(self, rt, x): return float(int(x))
 
 class BooleanMethods(GenericMethods):
@@ -125,11 +125,13 @@ class StringMethods(GenericMethods):
 	def property_markup(self, rt, x): return x
 	def property_length(self, rt, x): return len(x)
 	def property_toString(self, rt, x): return x
+	def property_toNumber(self, rt, x): return float(x)
+	def property_toInt(self, rt, x): return int(float(x))
 
 class ListMethods(GenericMethods):
 	def Add(self, rt, x, y): return x + checkList(y)
 
-	def Index(self, x, y):
+	def Index(self, rt, x, y):
 		index = int(checkNumber(y))
 		return x[index]
 
