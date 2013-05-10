@@ -148,6 +148,16 @@
 		{
 			cancel_cb();
 		},
+
+		RoomChangedEvent: function(message)
+		{
+			if (message.id == room)
+			{
+				/* The player has successfully saved this room. */
+
+				W.Effects.HideDialogue($("#roomeditor"));
+			}
+		}
 	};
 }
 )();

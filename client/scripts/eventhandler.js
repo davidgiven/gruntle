@@ -79,6 +79,11 @@
     	"scriptcompilationfailure": function(message)
     	{
     	    W.GamePage.ScriptCompilationFailureEvent(message);
+    	},
+
+    	"roomchanged": function(message)
+    	{
+    	    W.RoomEditor.RoomChangedEvent(message);
     	}
     };
     

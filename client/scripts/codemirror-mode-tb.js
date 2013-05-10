@@ -13,9 +13,8 @@ CodeMirror.defineMode("tb", function(config, parserConfig) {
   }
   var specials = wordRE(parserConfig.specials || []);
 
-  // long list of standard functions from lua manual
   var builtins = wordRE([
-    "player", "room"
+    "player", "room", "true", "false", "nil"
   ]);
   var keywords = wordRE([
     "sub", "endsub", "for", "next", "to", "step", "while", "endwhile",
