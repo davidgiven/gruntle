@@ -262,30 +262,40 @@ def executeScript(rt, module, name, *args):
 
 	signal.setitimer(signal.ITIMER_REAL, 0.5)
 	try:
-		result = module["var_"+name](rt)
-	except KeyError, e:
-		r = re.compile(ur"'var_(\w+)'", re.U)
-		m = re.search(r, unicode(str(e), "UTF-8"))
-		if not m:
-			logging.exception(e)
-			raise e
-		raise ScriptError(u"variable '%s' is not defined", m.group(1))
-	except NameError, e:
-		r = re.compile(ur"'var_(\w+)' is not defined", re.U)
-		m = re.search(r, unicode(str(e), "UTF-8"))
-		if not m:
-			logging.exception(e)
-			raise e
-		raise ScriptError(u"variable '%s' is not defined", m.group(1))
-	except TypeError, e:
-		r = re.compile(ur"var_(\w+)\(\) takes exactly (\d+) argument \((\d+) given\)", re.U)
-		m = re.search(r, unicode(str(e), "UTF-8"))
-		if not m:
-			logging.exception(e)
-			raise e
-		raise ScriptError(u"subroutine '%s' called with %d argument(s) when it wants %d",
-			m.group(1), int(m.group(3))-1, int(m.group(2))-1)
-	finally:
-		signal.alarm(0)
+		try:
+			result = module["var_"+name](rt)
+		except KeyError, e:
+			r = re.compile(ur"'var_(\w+)'", re.U)
+			m = re.search(r, unicode(str(e), "UTF-8"))
+			if not m:
+				raise e
+			raise ScriptError(u"variable '%s' is not defined", m.group(1))
+		except NameError, e:
+			r = re.compile(ur"'var_(\w+)' is not defined", re.U)
+			m = re.search(r, unicode(str(e), "UTF-8"))
+			if not m:
+				raise e
+			raise ScriptError(u"variable '%s' is not defined", m.group(1))
+		except TypeError, e:
+			r = re.compile(ur"var_(\w+)\(\) takes exactly (\d+) argument \((\d+) given\)", re.U)
+			m = re.search(r, unicode(str(e), "UTF-8"))
+			if m:
+				raise ScriptError(u"subroutine '%s' called with %d argument(s) when it wants %d",
+					m.group(1), int(m.group(3))-1, int(m.group(2))-1)
+
+			r = re.compile(ur"object is not callable", re.U)
+			m = re.search(r, unicode(str(e), "UTF-8"))
+			if m:
+				raise ScriptError(u"attempt to call non-callable value")
+		except ZeroDivisionError:
+			raise ScriptError(u"division by zero")
+		finally:
+			signal.alarm(0)
+	except ScriptError as e:
+		raise e
+	except Exception as e:
+		logging.error("Unhandled exception: %s", e.__class__.__name__)
+		logging.exception(e)
+		raise ScriptError(u"internal error: %s", e)
 
 	return result
