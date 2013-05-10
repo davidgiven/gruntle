@@ -91,3 +91,6 @@ class DBRoom(DBObject):
 			}
 		)
 
+	def property_refreshActions(self, rt):
+		self.fireChangeNotification()
+
