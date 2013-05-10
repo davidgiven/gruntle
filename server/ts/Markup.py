@@ -39,7 +39,7 @@ class Markup(object):
 					v += [unicode(i, "UTF-8")]
 				elif (type(i) == dict):
 					v += [i]
-				elif (type(i) == Markup):
+				elif (isinstance(i, Markup)):
 					v += [i.markup]
 				else:
 					raise TypeError()
@@ -78,19 +78,30 @@ class Markup(object):
 	def type(self):
 		return self.markup["type"]
 
+	def property_markup(self, rt):
+		return self
+
 # The big table of action IDs (to avoid sending the consequence string to
 # the client).
 
 actionidtable = {}
+actionid = 0
 
 class Action(Markup):
 	def __init__(self, markup, consequence):
-		c = intern(consequence.encode("UTF-8"))
-		actionidtable[id(c)] = consequence
+		global actionid
+
+		if (consequence in actionidtable):
+			id = actionidtable[consequence]
+		else:
+			id = actionid
+			actionid = actionid + 1
+			actionidtable[id] = consequence
+			actionidtable[consequence] = id
 
 		super(Action, self).__init__(
 			type=u"action",
-			id=id(c),
+			id=id,
 			markup=markup)
 
 	@staticmethod
