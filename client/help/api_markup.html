@@ -24,22 +24,33 @@
 m1 = "Hello, world!"
 </pre>
 	<p>
+		Markup can span multiple lines. If there is a blank line, that is
+		treated as a paragraph break. Otherwise, whitespace is all collapsed.
+	</p>
+	<pre>
+m2 = "This is
+  all on one
+    line.
+
+But this is another paragraph."
+</pre>
+	<p>
 		To embed an expression, use curly braces. The expression will be
 		evaluated and the value converted to a markup object.
 	</p>
 	<pre>
 count = 3
-m2 = "The number of the counting is {count}."
+m3 = "The number of the counting is {count}."
 </pre>
 	<p>
 		Markup can be concatenated with <code>+</code>. It is also possible
-		to embed markup inside markup. <i>m3</i> and <i>m4</i> in the
+		to embed markup inside markup. <i>m4</i> and <i>m5</i> in the
 		following are equivalent:
 	</p>
 	<pre>
 if male then greeting="Sir" else greeting="Madam"
-m3 = "Good day, {greeting}."
-m4 = "Good day, " + greeting + "."
+m4 = "Good day, {greeting}."
+m5 = "Good day, " + greeting + "."
 </pre>
 	<p>
 		Markup is immutable, and the contents cannot be read in any way.

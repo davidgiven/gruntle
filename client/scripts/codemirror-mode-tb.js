@@ -41,9 +41,9 @@ CodeMirror.defineMode("tb", function(config, parserConfig) {
       return "comment";
     }
     if (ch == "\"")
-      return (state.cur = markup(ch))(stream, state);
+      return (state.cur = markup())(stream, state);
     if (ch == "'")
-      return (state.cur = string(ch))(stream, state);
+      return (state.cur = string())(stream, state);
     if (/\d/.test(ch)) {
       stream.eatWhile(/[\w.%]/);
       return "number";
@@ -68,26 +68,37 @@ CodeMirror.defineMode("tb", function(config, parserConfig) {
     };
   }
 
-  function string(quote) {
+  function string() {
     return function(stream, state) {
       var escaped = false, ch;
-      while ((ch = stream.next()) != null) {
-        if (ch == quote && !escaped) break;
+      while ((ch = stream.next()) != null)
+      {
+        if (ch == "'" && !escaped)
+        {
+            state.cur = normal;
+            return "string";
+        }
         escaped = !escaped && ch == "\\";
       }
-      if (!escaped) state.cur = normal;
       return "string";
     };
   }
 
-  function markup(quote) {
+  function markup() {
     return function(stream, state) {
       var escaped = false, ch;
-      while ((ch = stream.next()) != null) {
-        if (ch == quote && !escaped) break;
+      while ((ch = stream.next()) != null)
+      {
+        if (!escaped)
+        {
+            if (ch == '"')
+			{
+				state.cur = normal;
+				return "markup";
+			}
+		}
         escaped = !escaped && ch == "\\";
       }
-      if (!escaped) state.cur = normal;
       return "markup";
     };
   }
