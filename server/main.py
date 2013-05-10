@@ -67,10 +67,10 @@ if not db.connect(args.filename, "server/dbinit.sql"):
 		setDefaultInstance(defaultinstance)
 		
 		e = defaultrealm.findRoom("entrypoint")
-		e.script = open("server/entrypoint.tb").read().decode("UTF-8")
+		e.script = open("server/hub/entrypoint.tb").read().decode("UTF-8")
 
 		r = defaultrealm.addRoom("closet", "Broom Closet",
-			open("server/closet.tb").read().decode("UTF-8"))
+			open("server/hub/closet.tb").read().decode("UTF-8"))
 
 		thoth.instance = defaultinstance
 		thoth.room = e

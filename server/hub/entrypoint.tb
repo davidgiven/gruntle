@@ -1,0 +1,21 @@
+# This is the entrance room for The Hub. It's
+# where players appear when they join the game,
+# and the default warp location when they
+# leave a realm. As such, it's fairly important.
+
+sub RoomDescription
+	return "A featureless white plane stretches
+		off in all directions, under a flat grey
+		sky. It looks suspiciously as if nobody
+		has put any effort into it at all.
+
+		A bare wooden door stands in the middle
+		of nowhere. A sign hanging skew from it
+		says 'Cleaning Supplies'."
+endsub
+
+sub Actions
+	return [
+		Action("Try the door.", '>closet')
+	]
+endsub
