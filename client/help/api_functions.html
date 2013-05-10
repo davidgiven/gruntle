@@ -25,15 +25,23 @@
 				<code>description</code> must be <b>markup</b>.
 			</p>
 			<p>
-				<code>consequence</code> must be a <b>string</b>.
+				<code>consequence</code> controls what happens when the
+				player activates the link, and may be:
 			</p>
-			<p>
-				<code>consequence</code> may either be the name of a
-				subroutine in this room, in which case the action will call
-				the subroutine, or else it may be a string of the form
-				<code>&gt;roomname</code>, in which case the action will
-				automatically move the player to the specified room.
-			</p>
+			<ul>
+				<li>
+					a <b>function</b> to be called;
+				</li>
+				<li>
+					a <a href="api_room.html">Room object</a> that the
+					player should be moved to (or alternatively a <b>string</b>
+					containing the name of the room);
+				</li>
+				<li>
+					or <a href="api_markup.html">markup</a> to be shown to
+					the user.
+				</li>
+			</ul>
 			<p>
 				It is possible to embed an Action object inside another
 				Action object's markup, but it doesn't do anything useful.

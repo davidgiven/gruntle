@@ -266,6 +266,7 @@ endsub
 			}
 		)
 
+		Action.clearActionCache(self)
 		self.onLook()
 		self.onRealms()
 
@@ -274,6 +275,7 @@ endsub
 	def onLogout(self):
 		logging.info("player %s logged out", self.name)
 		self.connected = 0
+		Action.clearActionCache(self)
 		
 		self.instance.tell(self.room, self,
 			{
@@ -415,7 +417,6 @@ endsub
 			if ("var_Actions" in module):
 				rt = ScriptRuntime(self, realm, instance, room)
 				actionso = checkList(executeScript(rt, module, "Actions"))
-				logging.debug(actionso)
 				actions = [ checkMarkup(x).markup for x in actionso ]
 			else:
 				actions = []
@@ -438,17 +439,18 @@ endsub
 		realm = instance.realm
 		room = self.room
 
-		consequence = Action.getConsequenceFromId(actionid)
+		consequence = Action.getConsequenceFromId(self, actionid)
 		logging.debug("consequence: %s" % consequence)
 
-		if (consequence == ""):
-			raise AppError("room '"+target+"' has an invalid action consequence")
-		elif (consequence[0] == ">"):
-			target = consequence[1:]
-			targetroom = self.instance.realm.findRoom(target)
-			if not targetroom:
-				raise AppError("room '"+target+"' does not exist in realm")
-			self.moveTo(targetroom)
+		if isinstance(consequence, DBRoom):
+			self.moveTo(consequence)
+		elif isinstance(consequence, Markup):
+			self.tell(
+				{
+					"event": "activity",
+					"markup": consequence.markup
+				}
+			)
 		else:
 			module = scriptcompiler.compile(room.script)
 			rt = ScriptRuntime(self, realm, instance, room)

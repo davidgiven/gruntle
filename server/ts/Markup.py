@@ -81,33 +81,34 @@ class Markup(object):
 	def property_markup(self, rt):
 		return self
 
-# The big table of action IDs (to avoid sending the consequence string to
-# the client).
+# As we have no way of knowing when the client no longer cares about an
+# action, we have to keep action IDs (and therefore the actions) around for
+# pretty much ever. So we associate them with the player who asked for them
+# and wipe them from the cache when the player logs out.
 
 actionidtable = {}
-actionid = 0
 
 class Action(Markup):
-	def __init__(self, markup, consequence):
+	def __init__(self, player, markup, consequence):
 		global actionid
 
-		if (consequence in actionidtable):
-			id = actionidtable[consequence]
-		else:
-			id = actionid
-			actionid = actionid + 1
-			actionidtable[id] = consequence
-			actionidtable[consequence] = id
+		p = actionidtable[player.id]
+		p[id(consequence)] = consequence
 
 		super(Action, self).__init__(
 			type=u"action",
-			id=id,
+			id=id(consequence),
 			markup=markup)
 
 	@staticmethod
-	def getConsequenceFromId(id):
+	def getConsequenceFromId(player, id):
 		try:
-			return actionidtable[id]
+			return actionidtable[player.id][id]
 		except KeyError:
 			raise PermissionDenied()
+
+	@staticmethod
+	def clearActionCache(player):
+		actionidtable[player.id] = {}
+
 

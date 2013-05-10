@@ -11,6 +11,7 @@ import math
 import signal
 import re
 import anyjson as json
+import types
 
 from ts.exceptions import *
 from ts.Markup import *
@@ -162,7 +163,23 @@ method_table = {
 }
 
 def makeAction(rt, markup, consequence):
-	return Action(checkMarkup(markup).markup, checkString(consequence))
+	# Prevent import dependency loop.
+	from ts.DBRoom import DBRoom
+
+	if isinstance(consequence, types.StringTypes):
+		consequence = findRoom(rt, consequence)
+	if isinstance(consequence, types.FunctionType):
+		consequence = consequence.__name__
+		if not consequence.startswith("var_"):
+			typeMismatch()
+		consequence = consequence[4:]
+
+	if not isinstance(consequence, DBRoom) and \
+	   not isinstance(consequence, Markup) and \
+	   not isinstance(consequence, types.StringTypes):
+		typeMismatch()
+
+	return Action(rt.player, checkMarkup(markup).markup, consequence)
 
 def findRoom(rt, name):
 	room = rt.realm.findRoom(name)
@@ -264,19 +281,19 @@ def executeScript(rt, module, name, *args):
 	try:
 		try:
 			result = module["var_"+name](rt)
-		except KeyError, e:
-			r = re.compile(ur"'var_(\w+)'", re.U)
+		except KeyError as e:
+			r = re.compile(ur"var_(\w+)", re.U)
 			m = re.search(r, unicode(str(e), "UTF-8"))
-			if not m:
-				raise e
-			raise ScriptError(u"variable '%s' is not defined", m.group(1))
-		except NameError, e:
+			if m:
+				raise ScriptError(u"variable '%s' is not defined", m.group(1))
+			raise
+		except NameError as e:
 			r = re.compile(ur"'var_(\w+)' is not defined", re.U)
 			m = re.search(r, unicode(str(e), "UTF-8"))
 			if not m:
-				raise e
+				raise
 			raise ScriptError(u"variable '%s' is not defined", m.group(1))
-		except TypeError, e:
+		except TypeError as e:
 			r = re.compile(ur"var_(\w+)\(\) takes exactly (\d+) argument \((\d+) given\)", re.U)
 			m = re.search(r, unicode(str(e), "UTF-8"))
 			if m:
@@ -287,12 +304,14 @@ def executeScript(rt, module, name, *args):
 			m = re.search(r, unicode(str(e), "UTF-8"))
 			if m:
 				raise ScriptError(u"attempt to call non-callable value")
+
+			raise
 		except ZeroDivisionError:
 			raise ScriptError(u"division by zero")
 		finally:
 			signal.alarm(0)
 	except ScriptError as e:
-		raise e
+		raise
 	except Exception as e:
 		logging.error("Unhandled exception: %s", e.__class__.__name__)
 		logging.exception(e)

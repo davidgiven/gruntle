@@ -157,7 +157,7 @@ def t_error(t):
 	errorlog += (
 		{
 			"message": u"Illegal character '%s'" % t.value[0],
-			"lineno": p.lineno
+			"lineno": t.lexer.lineno
 		},
 	)
 	t.lexer.skip(1)
