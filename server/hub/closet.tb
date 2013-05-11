@@ -8,6 +8,6 @@ endsub
 sub Actions
 	return [
 		Action("Leave before you spill bleach on
-			yourself.", '>entrypoint')
+			yourself.", 'entrypoint')
 	]
 endsub

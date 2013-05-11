@@ -1,0 +1,14 @@
+# This is a boilerplate room for use as a starting
+# point in writing your own. For more examples,
+# see the help index via the menu in the top-right
+# corner of the screen.
+
+sub RoomDescription
+	return "Unshaped nothingness stretches as
+		far as you can see, tempting you to
+		start shaping it."
+endsub
+
+sub Actions
+	return []
+endsub

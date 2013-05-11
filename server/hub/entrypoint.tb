@@ -16,6 +16,6 @@ endsub
 
 sub Actions
 	return [
-		Action("Try the door.", '>closet')
+		Action("Try the door.", 'closet')
 	]
 endsub

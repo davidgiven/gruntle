@@ -50,13 +50,8 @@ class DBPlayer(DBObject):
 	def addRealm(self, name):
 		realm = DBRealm()
 		realm.create(name, self)
-		room = realm.addRoom("entrypoint", "Featureless Void",
-'''
-sub RoomDescription
-	return "Unshaped nothingness stretches as far as you can see,
-		tempting you to start shaping it."
-endsub
-''')
+		script = open("server/defaultroom.tb").read().decode("UTF-8")
+		room = realm.addRoom("entrypoint", "Featureless Void", script)
 		room.immutable = 1
 
 		return realm
