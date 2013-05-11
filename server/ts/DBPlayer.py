@@ -361,12 +361,38 @@ endsub
 			"title": room.title,
 			"description": description,
 			"contents": contents,
+			"editable": editable
+		}
+
+		self.tell(msg)
+		self.announceActions()
+
+	# Announce the actions in this room to the player.
+
+	def announceActions(self):
+		instance = self.instance
+		realm = instance.realm
+		room = self.room
+
+		editable = (realm.owner == self)
+
+		msg = {
+			"event": "actions",
+			"instance": instance.id,
+			"realm":
+				{
+					"id": realm.id,
+					"name": realm.name,
+					"user": realm.owner.name,
+					"uid": realm.owner.id
+				},
+			"room": room.id,
 			"actions": self.validActionsForRoom(),
 			"editable": editable
 		}
 
 		self.tell(msg)
-		
+
 	# Announce what realms the player currently owns.
 	
 	def onRealms(self):

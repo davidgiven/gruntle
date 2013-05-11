@@ -15,10 +15,10 @@
     	{
     		W.GamePage.LookEvent(message);
     	},
-    	
-    	"allactions": function(message)
+
+    	"actions": function(message)
     	{
-    		W.GamePage.AllActionsEvent(message);
+    		W.GamePage.ActionsEvent(message);
     	},
     	
     	"arrived": function(message)

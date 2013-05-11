@@ -7,6 +7,7 @@
 	
 	var content;
 	var pending_look;
+	var pending_actions;
 	var waiting_for_room_description;
 	var shown_user_list;
 	var realms;
@@ -22,6 +23,7 @@
 	{
     	content = null;
     	pending_look = null;
+    	pending_actions = null;
     	realms = null;
     	waiting_for_room_description = true;
     	shown_user_list = false;
@@ -63,6 +65,8 @@
 	{
 		if (pending_look)
 			W.GamePage.LookEvent(pending_look);
+		if (pending_actions)
+			W.GamePage.ActionsEvent(pending_actions);
 		if (realms)
 			W.GamePage.RealmsEvent(realms);
 	};
@@ -205,24 +209,24 @@
         	}
         	else
         		pending_look = null;
-        	
+
         	var update_text = function()
         	{
             	W.CurrentInstance = message.instance;
             	W.CurrentRealm = message.realm;
             	W.CurrentRoom = message.room;
-            	
+
             	$("#realmname").text(W.CurrentRealm.name);
             	$("#realmowner").text(W.CurrentRealm.user);
             	$("#instance").text(W.CurrentInstance);
-            	
+
             	var header = $("<h1/>").text(message.title);
             	var body = $("<div/>");
 
                 W.Markup.ToParagraphs(message.description).appendTo(body);
 
             	current_text_div.empty();
-            	
+
             	if (message.editable)
             	{
         			edit_button = $("#editbutton")
@@ -242,16 +246,16 @@
         						return false;
         					}
         				);
-        			
+
         			W.Effects.ShowButton(edit_button);
             	}
 
             	current_text_div.append(header, body);
-            	
+
             	if (!shown_user_list)
             	{
             		var players = [];
-            		
+
             		$.each(message.contents,
             			function(name, uid)
             			{
@@ -265,13 +269,13 @@
             					);
             			}
             		);
-            		
+
             		players.sort();
-            		
+
             		if (players.length > 0)
             		{
             			var m = [];
-                		
+
                 		for (var i=0; i<(players.length-1); i++)
         				{
                 			m.push(players[i]);
@@ -279,7 +283,7 @@
         						m.push(",");
         					m.push(" ");
         				}
-                        		
+
         				if (players.length == 1)
         				{
         					m.push(players[i]);
@@ -294,21 +298,21 @@
 
         				W.Markup.ToParagraphs(m).appendTo(current_status_div);
             		}
-            		
+
             		shown_user_list = true;
             	}
-            	
+
             	update_realm_map();
         	};
-        	
+
         	if (waiting_for_room_description)
         	{
         		waiting_for_room_description = false;
-        		
+
         		current_text_div = $("<div class='room'/>")
         			.hide()
         			.appendTo(content);
-            	
+
         		current_status_div = $("<div class='status'/>")
         			.hide()
         			.appendTo(content);
@@ -326,6 +330,17 @@
         			}
         		);
         	}
+        },
+
+        ActionsEvent: function(message)
+        {
+        	if (!content)
+        	{
+        		pending_actions = message;
+        		return;
+        	}
+        	else
+        		pending_actions = null;
         	
         	var update_actions = function()
         	{

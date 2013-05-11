@@ -54,13 +54,22 @@ class DBRoom(DBObject):
 			raise PermissionDenied
 
 	# Something in this room has changed.
-	
+
 	def fireChangeNotification(self):
 		realm = self.realm
 		for instance in realm.instances:
 			for player in instance.players:
 				if (player.room == self):
 					player.onLook()
+
+	# Actions (but not room descriptions) in this room have changed.
+	
+	def actionsChangeNotification(self):
+		realm = self.realm
+		for instance in realm.instances:
+			for player in instance.players:
+				if (player.room == self):
+					player.announceActions()
 
 	# Scripting interface.
 
@@ -92,5 +101,5 @@ class DBRoom(DBObject):
 		)
 
 	def property_refreshActions(self, rt):
-		self.fireChangeNotification()
+		self.actionsChangeNotification()
 
