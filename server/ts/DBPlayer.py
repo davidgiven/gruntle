@@ -461,7 +461,6 @@ class DBPlayer(DBObject):
 		room = self.room
 
 		consequence = Action.getConsequenceFromId(self, actionid)
-		logging.debug("consequence: %s" % consequence)
 
 		if isinstance(consequence, DBRoom):
 			self.moveTo(consequence)
