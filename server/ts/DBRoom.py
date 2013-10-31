@@ -9,7 +9,6 @@
 
 from ts.DBObject import *
 from ts.DBRealm import *
-from ts.DBAction import *
 from ts.ScriptRuntime import *
 
 # Represents a room template.
