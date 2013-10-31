@@ -39,7 +39,13 @@
     
     W.OnSocketError = function(event)
     {
-    	document.write("error!<br/>");
+		W.Dialogue(
+			{
+				message: "A WebSocket error occurred connecting to "+
+					"the server. This probably means a configuration "+
+					"error somewhere."
+			}
+		);
     };
     
     /* Main entry point. */

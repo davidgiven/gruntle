@@ -77,6 +77,21 @@ working!
 
 
 
+TROUBLESHOOTING
+===============
+
+If the client connects and then immediately disconnects, then check the
+Javascript log. If you see a message like this:
+
+WebSocket connection to 'ws://cowlark.com:8086/' failed:
+Error during WebSocket handshake: Sec-WebSocket-Protocol mismatch
+
+...then that means that your copy of python-ws4py is too old and doesn't
+support the current WebSocket standards. You'll have to upgrade it, I'm
+afraid.
+
+
+
 ADMINISTRATION
 ==============
 
