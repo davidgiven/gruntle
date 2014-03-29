@@ -9,8 +9,8 @@
 
 import gevent
 
-from ws4py.server.geventserver import WebSocketServer
-from ws4py.websocket import EchoWebSocket
+from ws4py.server.geventserver import WSGIServer
+from ws4py.server.wsgiutils import WebSocketWSGIApplication
 
 import sys
 import argparse
@@ -81,9 +81,9 @@ db.sql.cursor().execute("UPDATE players SET connected = 0")
 # Create and start the server.
 
 logging.info("opening socket")
-server = WebSocketServer(
+server = WSGIServer(
 	('0.0.0.0', args.port),
-	websocket_class=Connection
+	WebSocketWSGIApplication(handler_cls=Connection)
 )
 
 logging.info("listening...")
