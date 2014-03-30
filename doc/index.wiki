@@ -16,9 +16,21 @@ to let you log in, move around, talk to other players, create your own realms
 and let other players play them.
 
 This is where the source code and what we shall try to laughingly call 'the
-documentation' is stored. If you want to actually <i>try</i> it, you probably
-want <a href="http://cowlark.com/~dg/thickishstring">the test server</a>
-instead. It may even be running.
+documentation' is stored.
+
+<h3>How do I play it?</h3>
+
+Right now thickishstring is definitely a tech demo; but there is a test server,
+which is up intermittently. Any content created there may be deleted without
+warning.
+
+<blockquote class='link'>
+<a href='http://cowlark.com/~dg/thickishstring'>
+  <img class='link-link' height='22' width='20' alt='[LINK]' src='//cowlark.com/link.png'>
+</a>
+<a href='http://cowlark.com/~dg/thickishstring'>The test server</a>
+<p>It might even be running.</p>
+</blockquote>
 
 <h3>Where can I get it?</h3>
 
