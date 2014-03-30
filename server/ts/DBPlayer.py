@@ -515,10 +515,8 @@ class DBPlayer(DBObject):
 
 	def onCreateRoom(self, instance, name, title):
 		realm = instance.realm
-		room = realm.addRoom(name, title,
-			"Unshaped nothingness stretches as far as you can see, " +
-			"tempting you to start shaping it."
-		)
+		script = open("server/defaultroom.tb").read().decode("UTF-8")
+		room = realm.addRoom(name, title, script)
 		room.immutable = False
 		
 		self.onWarp(instance, room)
