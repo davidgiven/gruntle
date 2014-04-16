@@ -1,2 +1,103 @@
-This is a data file.
+{
+	function leftop(left, rights)
+	{
+		for (var i=0; i<rights.length; i++)
+		{
+			var r = rights[i];
+			var op = r[1];
+			var e = r[3];
+			left = {
+				type: op,
+				left: left,
+				right: e
+			}
+		}
+		return left;
+	}
+}
+
+ws
+	= [ \t\n\r]*
+
+number
+	= digits:[0-9]+
+		{
+			var v = digits.join("");
+			return {
+				type: "number",
+				value: v
+			};
+		}
+
+leaf
+	= ws number:number
+		{ return number; }
+	/ "(" ws expr:expression ws ")"
+		{ return expr; }
+
+
+expression7
+	= left:leaf rights:(ws "." ws leaf)*
+		{
+			return leftop(left, rights);
+		}
+	/ leaf
+
+expression6
+	= expression7
+
+e5unaryop = "-" / "not"
+expression5
+	= ws op:e5unaryop ws left:expression6
+		{
+			return {
+				type: "unary:"+op,
+				left: left
+			}
+		}
+	/ expression6
+
+e4binop = "*" / "/" / "%"
+expression4
+	= left:expression5 rights:(ws e4binop ws expression5)*
+		{
+			return leftop(left, rights);
+		}
+	/ expression5
+
+e3binop = "+" / "-"
+expression3
+	= left:expression4 rights:(ws e3binop ws expression4)*
+		{
+			return leftop(left, rights);
+		}
+	/ expression4
+
+e2binop
+	= "==" / "!=" / "<=" / "<" / ">=" / ">="
+	/ "=" { return "==" }
+	/ "<>" { return "!=" }
+expression2
+	= left:expression3 rights:(ws e2binop ws expression3)*
+		{
+			return leftop(left, rights);
+		}
+	/ expression3
+
+expression1
+	= left:expression2 rights:(ws "and" ws expression2)*
+		{
+			return leftop(left, rights);
+		}
+	/ expression2
+
+expression0
+	= left:expression1 rights:(ws "or" ws expression1)*
+		{
+			return leftop(left, rights);
+		}
+	/ expression1
+
+expression
+	= expression0 ws
 

@@ -5,7 +5,13 @@
 
 	var init = function(pegtext)
 	{
-		parser = PEG.buildParser(pegtext);
+		parser = PEG.buildParser(pegtext,
+			{
+				allowedStartRules: ["expression"]
+			}
+		);
+		var o = parser.parse("1*2+-3");
+		document.write(o);
 	};
 
 	var getpegtext = function(tag)
