@@ -10,7 +10,7 @@
 				allowedStartRules: ["expression"]
 			}
 		);
-		var o = parser.parse("1*2+-3");
+		var o = parser.parse("foo+1");
 		document.write(o);
 	};
 

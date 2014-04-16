@@ -19,6 +19,10 @@
 ws
 	= [ \t\n\r]*
 
+/* -------------------------------------------------------------------------- */
+/*                                 EXPRESSIONS                                */
+/* -------------------------------------------------------------------------- */
+
 number
 	= digits:[0-9]+
 		{
@@ -29,12 +33,53 @@ number
 			};
 		}
 
+escapedchar = "\\" c:.
+	{ return c }
+string
+	= "'" cs:([^'\\] / escapedchar)* "'"
+		{
+			return {
+				type: "string",
+				value: cs.join("")
+			}
+		}
+
+id
+	= id1:[A-Za-z$_] id2:[A-Za-z0-9$_]*
+		{
+			return {
+				type: "id",
+				value: id1 + id2.join("")
+			}
+		}
+
+global
+	= "$" global:global
+		{
+			return {
+				type: "global",
+				id: global
+			}
+		}
+
+primitive = "nil" / "true" / "false"
 leaf
 	= ws number:number
 		{ return number; }
 	/ "(" ws expr:expression ws ")"
 		{ return expr; }
-
+	/ s:primitive
+		{
+			return {
+				type: s
+			}
+		}
+	/ ws global:global
+		{ return global; }
+	/ ws string:string
+		{ return string; }
+	/ ws id:id
+		{ return id; }
 
 expression7
 	= left:leaf rights:(ws "." ws leaf)*
