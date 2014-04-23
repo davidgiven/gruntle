@@ -16,8 +16,9 @@
 	}
 }
 
-ws
-	= [ \t\n\r]*
+nl = [ \t\r]* "\n"
+wsnonl = [ \t\r]*
+ws = [ \t\n\r]*
 
 /* -------------------------------------------------------------------------- */
 /*                                 EXPRESSIONS                                */
@@ -144,5 +145,79 @@ expression0
 	/ expression1
 
 expression
-	= expression0 ws
+	= expression0
 
+/* -------------------------------------------------------------------------- */
+/*                                 STATEMENTS                                 */
+/* -------------------------------------------------------------------------- */
+
+statement_expr
+	= e:expression
+		{
+			return {
+				type: "leafexpr",
+				value: e
+			}
+		}
+
+statement_return
+	= "return" e:expression?
+		{
+			return {
+				type: "return",
+				value: e
+			}
+		}
+
+statement_simple
+	= s:("break" / "continue")
+		{
+			return {
+				type: s
+			}
+		}
+			
+statement
+	= statement_simple
+	/ statement_return
+	/ statement_expr
+
+singlelinestatements
+	= s:statement wsnonl ":" ss:statements
+		{
+			ss.value.unshift(0);
+			ss.value[0] = s;
+			return ss;
+		}
+	/ s:statement
+		{
+			return {
+				type: "seq",
+				value: [s]
+			}
+		}
+
+statements
+	= s:statement wsnonl ":"+ ss:statements
+		{
+			ss.value.unshift(0);
+			ss.value[0] = s;
+			return ss;
+		}
+	/ s:statement nl+ ss:statements
+		{
+			ss.value.unshift(0);
+			ss.value[0] = s;
+			return ss;
+		}
+	/ s:statement
+		{
+			return {
+				type: "seq",
+				value: [s]
+			}
+		}
+
+block
+	= s:statements ws { return s; }
+	

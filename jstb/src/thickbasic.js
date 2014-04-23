@@ -3,18 +3,7 @@
 	"use strict";
 	var parser;
 
-	var init = function(pegtext)
-	{
-		parser = PEG.buildParser(pegtext,
-			{
-				allowedStartRules: ["expression"]
-			}
-		);
-		var o = parser.parse("foo+1");
-		document.write(o);
-	};
-
-	var getpegtext = function(tag)
+	var loadscripttext = function(tag, cb)
 	{
 		if (tag.src)
 		{
@@ -22,28 +11,51 @@
 			req.onload = function()
 				{
 					var data = this.responseText;
-					init(data);
+					cb(data);
 				};
 			req.open("get", tag.src, true);
 			req.send();
 		}
 		else
-			init(tag.innerText);
+			cb(tag.innerText);
 	};
 
-	/* Find the script tag with our parser in it. */
-
-	var es = document.getElementsByTagName("SCRIPT");
-	for (var i=0; i<es.length; i++)
+	var findscripts = function(mimetype, cb, compulsory)
 	{
-		var e = es[i];
-		if (e.type == "application/x-thickbasic-peg")
+		var es = document.getElementsByTagName("SCRIPT");
+		for (var i=0; i<es.length; i++)
 		{
-			getpegtext(e);
-			return;
+			var e = es[i];
+			if (e.type == mimetype)
+			{
+				loadscripttext(e, cb);
+				if (compulsory)
+					return;
+			}
 		}
+		if (compulsory)
+			throw "thickbasic: could not find "+mimetype+" script";
 	}
-	throw "thickbasic: could not find peg script";
+
+	var init = function(pegtext)
+	{
+		parser = PEG.buildParser(pegtext,
+			{
+				allowedStartRules: ["block"]
+			}
+		);
+
+		findscripts("application/x-thickbasic",
+			function(text)
+			{
+				var o = parser.parse(text);
+				document.write(o);
+			},
+			false
+		);
+	};
+
+	findscripts("application/x-thickbasic-peg", init, true);
 }
 )()
 
