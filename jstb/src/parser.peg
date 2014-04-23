@@ -177,9 +177,33 @@ statement_simple
 			}
 		}
 			
+statement_singleline_if_else
+	= "if" e:expression ws "then" ontrue:singlelinestatements ws
+			"else" onfalse:singlelinestatements
+		{
+			return {
+				type: "if",
+				value: e,
+				ontrue: ontrue,
+				onfalse: onfalse
+			}
+		}
+
+statement_singleline_if
+	= "if" e:expression ws "then" ontrue:singlelinestatements
+		{
+			return {
+				type: "if",
+				value: e,
+				ontrue: ontrue
+			}
+		}
+
 statement
 	= statement_simple
 	/ statement_return
+	/ statement_singleline_if_else
+	/ statement_singleline_if
 	/ statement_expr
 
 singlelinestatements

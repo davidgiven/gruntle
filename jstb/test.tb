@@ -1,3 +1,2 @@
-foo:bar
-return
+if true then foo:bar else baz
 
