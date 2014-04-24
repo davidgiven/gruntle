@@ -1,2 +1,6 @@
-if true then foo:bar else baz
+while true: return: endwhile
+while 7
+	return
+endwhile
+
 

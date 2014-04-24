@@ -19,6 +19,7 @@
 nl = [ \t\r]* "\n"
 wsnonl = [ \t\r]*
 ws = [ \t\n\r]*
+sep = wsnonl ["\n:"] wsnonl
 
 /* -------------------------------------------------------------------------- */
 /*                                 EXPRESSIONS                                */
@@ -65,7 +66,7 @@ global
 
 primitive = "nil" / "true" / "false"
 leaf
-	= ws number:number
+	= wsnonl number:number
 		{ return number; }
 	/ "(" ws expr:expression ws ")"
 		{ return expr; }
@@ -75,11 +76,11 @@ leaf
 				type: s
 			}
 		}
-	/ ws global:global
+	/ wsnonl global:global
 		{ return global; }
-	/ ws string:string
+	/ wsnonl string:string
 		{ return string; }
-	/ ws id:id
+	/ wsnonl id:id
 		{ return id; }
 
 expression7
@@ -94,7 +95,7 @@ expression6
 
 e5unaryop = "-" / "not"
 expression5
-	= ws op:e5unaryop ws left:expression6
+	= wsnonl op:e5unaryop ws left:expression6
 		{
 			return {
 				type: "unary:"+op,
@@ -151,17 +152,8 @@ expression
 /*                                 STATEMENTS                                 */
 /* -------------------------------------------------------------------------- */
 
-statement_expr
-	= e:expression
-		{
-			return {
-				type: "leafexpr",
-				value: e
-			}
-		}
-
 statement_return
-	= "return" e:expression?
+	= "return" wsnonl e:expression?
 		{
 			return {
 				type: "return",
@@ -199,47 +191,59 @@ statement_singleline_if
 			}
 		}
 
+statement_while
+	= "while" e:expression s:statements sep "endwhile"
+		{
+			return {
+				type: "while",
+				value: e,
+				block: s
+			}
+		}
+
 statement
 	= statement_simple
 	/ statement_return
 	/ statement_singleline_if_else
 	/ statement_singleline_if
-	/ statement_expr
+	/ statement_while
 
 singlelinestatements
-	= s:statement wsnonl ":" ss:statements
+	= wsnonl s:statement ss:singlelinestatements
 		{
 			ss.value.unshift(0);
 			ss.value[0] = s;
 			return ss;
 		}
-	/ s:statement
+	/ wsnonl s:statement
 		{
 			return {
 				type: "seq",
 				value: [s]
 			}
+		}
+	/ wsnonl ":"+ ss:singlelinestatements
+		{
+			return ss;
 		}
 
 statements
-	= s:statement wsnonl ":"+ ss:statements
+	= ws s:statement ss:statements
 		{
 			ss.value.unshift(0);
 			ss.value[0] = s;
 			return ss;
 		}
-	/ s:statement nl+ ss:statements
-		{
-			ss.value.unshift(0);
-			ss.value[0] = s;
-			return ss;
-		}
-	/ s:statement
+	/ ws s:statement
 		{
 			return {
 				type: "seq",
 				value: [s]
 			}
+		}
+	/ ws ss:singlelinestatements
+		{
+			return ss;
 		}
 
 block
