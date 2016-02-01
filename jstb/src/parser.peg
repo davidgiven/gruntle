@@ -56,7 +56,7 @@ id
 		}
 
 global
-	= "$" global:global
+	= "$" global:id
 		{
 			return {
 				type: "global",
@@ -245,7 +245,27 @@ statements
 		{
 			return ss;
 		}
+	/ ws
+		{
+			return {
+				type: "seq",
+				value: []
+			}
+		}
 
 block
 	= s:statements ws { return s; }
 	
+subroutine
+	= ws "sub" ws id:id ws "(" ws ")" ws statements:statements ws "endsub"
+		{
+			return {
+				type: "sub",
+				id: id,
+				body: statements
+			}
+		}
+
+program
+	= subroutine ws
+

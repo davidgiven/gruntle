@@ -2,10 +2,10 @@ hide = @
 OBJ = .obj
 
 TESTS = \
-	tests/empty.js
+	tests/empty.js \
+	tests/expression.js \
 
 LIBS = \
-	lib/peg-0.9.0.min.js \
 	gen/parser.js \
 	src/thickbasic.js \
 	src/thickbasic-node.js \
@@ -22,8 +22,12 @@ $(OBJ)/%.test: %.js $(LIBS)
 	$(hide) nodejs $<
 	$(hide) touch $@
 
-gen/parser.js: src/parser.peg
+gen/parser.js: src/parser.peg Makefile
 	@echo PEGJS $<
 	@mkdir -p $(dir $@)
-	$(hide) pegjs -e TBParser --track-line-and-column $< $@
+	$(hide) pegjs \
+		-e TBParser \
+		--allowed-start-rules program \
+		--cache \
+		$< $@
 

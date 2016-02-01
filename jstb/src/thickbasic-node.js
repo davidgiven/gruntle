@@ -6,7 +6,6 @@ function include(path) {
 	vm.runInThisContext(code, path);
 } 
 
-include("lib/peg-0.9.0.min.js");
 include("gen/parser.js");
 include("src/thickbasic.js");
 
