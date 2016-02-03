@@ -83,7 +83,7 @@ db.sql.cursor().execute("UPDATE players SET connected = 0")
 logging.info("opening socket")
 server = WSGIServer(
 	('0.0.0.0', args.port),
-	WebSocketWSGIApplication(handler_cls=Connection)
+	WebSocketWSGIApplication(protocols=['binary'], handler_cls=Connection)
 )
 
 logging.info("listening...")

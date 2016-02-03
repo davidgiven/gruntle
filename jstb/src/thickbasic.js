@@ -1,4 +1,4 @@
-import parser from "thickbasic-parser";
+import * as parser from "thickbasic-parser";
 
 export function compile(text) {
 	return parser.parse(text);

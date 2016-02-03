@@ -1,5 +1,5 @@
+import {deindent} from "./testsuite";
 import * as thickbasic from "thickbasic";
-import {deindent} from "test-helpers";
 
 describe(__filename, () => {
 	it("parses empty subroutines correctly", () => {
@@ -7,7 +7,7 @@ describe(__filename, () => {
 			deindent(`
 				sub test()
 				endsub
-			`))
+			`));
 
 		expect(ast).toEqual(
 			{
