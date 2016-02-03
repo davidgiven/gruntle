@@ -1,4 +1,4 @@
-import {deindent} from "./testsuite";
+import {deindent, delocate} from "./testsuite";
 import * as thickbasic from "thickbasic";
 
 describe(__filename, () => {
@@ -17,7 +17,32 @@ describe(__filename, () => {
 				body: {
 					type: "seq",
 					value: []
-				}
+				},
+				parameters: [],
+			}
+		);
+	});
+
+	it("parses subroutines with parameters correctly", () => {
+		let ast = thickbasic.compile(
+			deindent(`
+				sub test(a, b, c)
+				endsub
+			`));
+
+		expect(delocate(ast)).toEqual(
+			{
+				type: "sub",
+				id: "test",
+				body: {
+					type: "seq",
+					value: []
+				},
+				parameters: [
+					{ type: "id", value: "a" },
+					{ type: "id", value: "b" },
+					{ type: "id", value: "c" }
+				]
 			}
 		);
 	});

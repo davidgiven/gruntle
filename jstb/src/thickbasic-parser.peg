@@ -257,14 +257,30 @@ statements
 block
 	= s:statements ws { return s; }
 	
+parameters
+	= ws p:id ws "," ws ps:parameters
+		{
+			return [p, ...ps];
+		}
+	/ ws p:id
+		{
+			return [p];
+		}
+	/ ws
+		{
+			return [];
+		}
+
 subroutine
-	= ws p:pos "sub" ws id:id ws "(" ws ")" ws statements:statements ws "endsub"
+	= ws p:pos "sub" ws id:id ws "(" ps:parameters ws ")" 
+			ws statements:statements ws "endsub"
 		{
 			return {
 				location: p,
 				type: "sub",
 				id: id.value,
-				body: statements
+				body: statements,
+				parameters: ps
 			}
 		}
 

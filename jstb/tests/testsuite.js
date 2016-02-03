@@ -12,3 +12,20 @@ export function deindent(s) {
 	return (indent > 0) ? s.replace(re, "") : s;
 }
 
+export function delocate(ast) {
+	/* Cheap and nasty deep copy. */
+
+	let newast = JSON.parse(JSON.stringify(ast));
+
+	let prune = (o) => {
+		if ((o !== null) && (typeof(o) == "object")) {
+			delete o.location;
+			for (let k in o)
+				prune(o[k]);
+		}
+	};
+
+	prune(newast);
+	return newast;
+}
+
