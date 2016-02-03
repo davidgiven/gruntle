@@ -1,11 +1,6 @@
-var TB = {};
-(function() {
-	"use strict";
+import parser from "thickbasic-parser";
 
-	var parser = TBParser;
-
-	TB.compile = function(text) {
-		return parser.parse(text);
-	};
-})();
+export function compile(text) {
+	return parser.parse(text);
+}
 

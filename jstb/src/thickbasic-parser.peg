@@ -20,6 +20,7 @@ nl = [ \t\r]* "\n"
 wsnonl = [ \t\r]*
 ws = [ \t\n\r]*
 sep = wsnonl ["\n:"] wsnonl
+pos = &. { return location().start; }
 
 /* -------------------------------------------------------------------------- */
 /*                                 EXPRESSIONS                                */
@@ -257,15 +258,19 @@ block
 	= s:statements ws { return s; }
 	
 subroutine
-	= ws "sub" ws id:id ws "(" ws ")" ws statements:statements ws "endsub"
+	= ws p:pos "sub" ws id:id ws "(" ws ")" ws statements:statements ws "endsub"
 		{
 			return {
+				location: p,
 				type: "sub",
-				id: id,
+				id: id.value,
 				body: statements
 			}
 		}
 
 program
-	= subroutine ws
+	= s:subroutine ws
+		{
+			return s;
+		}
 
