@@ -6,9 +6,11 @@ import eslint from "gulp-eslint";
 import glob from "glob";
 import gulp from "gulp";
 import jasmine from "gulp-jasmine";
+import less from "gulp-less";
 import peg from "gulp-peg";
 import rename from "gulp-rename";
 import sourcemaps from "gulp-sourcemaps";
+import uglify from "gulp-uglify";
 import vinylBuffer from "vinyl-buffer";
 import vinylSource from "vinyl-source-stream";
 
@@ -38,6 +40,10 @@ gulp.task("lint", ["parser"], () => {
 					"semi": 2,
 					"no-unexpected-multiline": 2,
 					"prefer-spread": 2,
+				},
+				env: {
+					"browser": true,
+					"commonjs": true
 				}
 			}
 		))
@@ -48,7 +54,10 @@ gulp.task("lint", ["parser"], () => {
 gulp.task("build-code", ["parser"], () => {
 	let b = browserify(
 		{
-			entries: ["src/main.js"],
+			entries: [
+				require.resolve("babel-polyfill"),
+				"src/main.js"
+			],
 			debug: true,
 			paths: ["src", "gen"]
 		}
@@ -59,9 +68,22 @@ gulp.task("build-code", ["parser"], () => {
 		.pipe(vinylSource('main.js'))
 		.pipe(vinylBuffer())
 		.pipe(sourcemaps.init({ loadMaps: true }))
+		//.pipe(uglify())
 		.pipe(sourcemaps.write("."))
 		.pipe(gulp.dest("dist"));
 });
 
-gulp.task("default", ["lint", "run-tests", "build-code"]);
+gulp.task("build-styles", () => {
+	return gulp.src("src/styles.less")
+		.pipe(less())
+		.pipe(gulp.dest("dist"));
+});
+
+gulp.task("build-html", () => {
+	return gulp.src("src/index.html")
+		.pipe(gulp.dest("dist"));
+});
+
+gulp.task("default",
+	["lint", "run-tests", "build-code", "build-styles", "build-html"]);
 
