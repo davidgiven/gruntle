@@ -1,6 +1,4 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/google-signin/google-signin.html">
-<link rel="import" href="../bower_components/google-signin/google-signin-aware.html">
 <link rel="import" href="ts-document.html">
 
 <dom-module id="ts-application">
@@ -12,10 +10,6 @@
 	</style>
 
 
-	<google-signin id="account"
-		client-id="513414562039-vqfsh4i9jl0ethpti9ihm3ptkuj9s966.apps.googleusercontent.com"
-		signed-in="{{signedIn}}"
-		></google-signin>
 	<ts-document id="doc"
 		on-connected="onDocumentConnected"
 		on-connection-error="onServerError"
@@ -41,6 +35,10 @@ Polymer({
 
 	onDocumentConnected: function() {
 		console.log("connected");
+		console.log("get:", this.$.doc.hub.getRoot().get("test message").text);
+		this.$.doc.hub.getRoot().set(
+			"test message",
+			this.$.doc.hub.createString("Hello, world!"));
 	},
 
 	onDocumentDisconnected: function() {

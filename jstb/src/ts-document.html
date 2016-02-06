@@ -1,6 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/google-apis/google-js-api.html">
-<link rel="import" href="../bower_components/google-signin/google-signin.html">
 <link rel="import" href="ts-document.html">
 
 <dom-module id="ts-document">
@@ -12,15 +11,16 @@
 	</style>
 
 	<google-js-api id="api"></google-js-api>
-	<google-signin-aware id="account"
-		scopes="https://www.googleapis.com/auth/drive.file"
-		on-google-signin-aware-success="_onSignIn"
-		on-google-signin-aware-signed-out="_onSignOut"
-		></google-signin>
 </template>
 <script>
 (function () {
 "use strict";
+
+const MIME_TYPE = "application/vnd.google-apps.drive-sdk";
+const CLIENT_ID = "513414562039-vqfsh4i9jl0ethpti9ihm3ptkuj9s966.apps.googleusercontent.com";
+const SCOPES = [
+	"https://www.googleapis.com/auth/drive.file"
+];
 
 Polymer({
 	is: "ts-document",
@@ -28,7 +28,7 @@ Polymer({
 		userDocument: String,
 		hubDocument: String
 	},
-		
+
 	ready: function() {
 		this.apiLoadPromise = new Promise(
 			(pass, fail) =>
@@ -36,7 +36,7 @@ Polymer({
 		).then(
 			() => new Promise(
 				(pass, fail) =>
-					gapi.load("auth:client,drive-realtime,drive-share", pass, fail)
+					gapi.load("auth:client,drive-realtime", pass, fail)
 			)
 		).catch(
 			this._onConnectionError
@@ -44,26 +44,51 @@ Polymer({
 			() => console.log("api loaded")
 		);
 
-		this.signInPromise = new Promise(
-			(pass, fail) => {
-				this._onSignIn = pass;
-			}
-		);
 	},
 
 	connect: function() {
-		Promise.all(
-			[this.apiLoadPromise, this.signInPromise]
-		).then(
+		this.apiLoadPromise
+		.then(
 			() => new Promise(
 				(pass, fail) => {
-					console.log("connected and signed in");
-					gapi.drive.realtime.load("thickishString test document",
-						pass, null, fail);
+					function auth(immediate) {
+						gapi.auth.authorize(
+							{
+								client_id: CLIENT_ID,
+								scope: SCOPES,
+								immediate: immediate
+							},
+							(r) => {
+								if (r)
+									pass();
+								else
+									auth(false);
+							}
+						);
+					}
+
+					auth(true);
 				}
 			)
 		).then(
-			() => console.log("document loaded")
+			() => console.log("connected and signed in")
+		).then(
+			(r) => new Promise(
+				(pass, fail) =>
+					gapi.drive.realtime.load(
+						"0ByWQADzU1i2wa3N1VmVweS1EOE0",
+						(hubDoc) => {
+							this.hub = hubDoc.getModel();
+							pass();
+						},
+						null,
+						fail)
+			)
+		).then(
+			() => {
+				console.log("document loaded");
+				this.fire("connected");
+			}
 		);
 	},
 
