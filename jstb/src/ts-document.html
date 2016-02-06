@@ -30,6 +30,8 @@ Polymer({
 	},
 
 	ready: function() {
+		this.people = new Map();
+
 		this.apiLoadPromise = new Promise(
 			(pass, fail) =>
 				this.$.api.addEventListener("js-api-load", pass)
@@ -38,6 +40,8 @@ Polymer({
 				(pass, fail) =>
 					gapi.load("auth:client,drive-realtime", pass, fail)
 			)
+		).then(
+			() => gapi.client.load("drive", "v2")
 		).catch(
 			this._onConnectionError
 		).then(
@@ -74,20 +78,44 @@ Polymer({
 		);
 		
 		this.loginPromise.then(
-			() => new Promise(
-				(pass, fail) =>
-					gapi.drive.realtime.load(
-						this.hubDocument,
-						(hubDoc) => {
-							this.hub = hubDoc.getModel();
-							pass();
-						},
-						null,
-						fail)
+			() => Promise.all(
+				[
+					new Promise(
+						(pass, fail) =>
+							gapi.drive.realtime.load(
+								this.hubDocument,
+								(hubDoc) => {
+									this.hub = hubDoc;
+									pass();
+								},
+								null,
+								fail)
+					),
+
+					new Promise(
+						(pass, fail) =>
+							gapi.drive.realtime.load(
+								this.worldDocument,
+								(worldDoc) => {
+									this.world = worldDoc;
+									pass();
+								},
+								null,
+								fail)
+					)
+				]
 			)
 		).then(
 			() => {
 				console.log("document loaded");
+				
+				this.world.addEventListener(
+					gapi.drive.realtime.EventType.COLLABORATOR_JOINED,
+					() => this._onCollaboratorsChanged());
+				this.world.addEventListener(
+					gapi.drive.realtime.EventType.COLLABORATOR_LEFT,
+					() => this._onCollaboratorsChanged());
+
 				this.fire("connected");
 			}
 		);
@@ -95,8 +123,6 @@ Polymer({
 
 	createFile: function(filename) {
 		return this.loginPromise.then(
-			() => gapi.client.load("drive", "v2")
-		).then(
 			() => gapi.client.drive.files.insert(
 				{
 					mimeType: MIME_TYPE,
@@ -108,6 +134,18 @@ Polymer({
 		);
 	},
 
+	getFile: function(id, json) {
+		return this.loginPromise.then(
+			() => gapi.client.drive.realtime.get(
+				{
+					fileId: id
+				}
+			)
+		).then(
+			(r) => r
+		);
+	},
+		
 	_onConnectionError: function(e) {
 		console.log("connection error " + e);
 		this.fire("connection-error", e);
@@ -116,6 +154,61 @@ Polymer({
 	_onSignOut: function(e) {
 		console.log("signout");
 		this.fire("disconnected", e);
+	},
+
+	_onCollaboratorsChanged: function() {
+		/* Get the uniquified list of people. */
+
+		let people = {};
+		for (let c of this.world.getCollaborators()) {
+			people[c.userId] = c;
+		}
+
+		let arriving = Object.keys(people).filter(p => !(p in this.people));
+		let departing = Object.keys(this.people).filter(p => !(p in people));
+
+		if ((arriving.length > 0) || (departing.length > 0)) {
+			this.people = people;
+			this.fire("arrivals-departures",
+				{
+					arriving: arriving,
+					departing: departing
+				});
+		}
+	},
+	
+	makeWorld: function() {
+		const world = this.world;
+		const S = (t) => world.getModel().createString(t);
+		const M = (v) => world.getModel().createMap(v);
+
+		world.getModel().getRoot().set("rooms",
+			M({
+				"backstage": M({
+					title: S("Backstage"),
+					text: 
+S(`There's still several weeks to go until opening night, and most of the scenery is still unfinished. The flats show incomplete city scenes next to fragments of last year's musical; bags of nails and odd-shaped pieces of wood promise to become props. The leading lady's flying chariot still thinks it's a bandstand. Scaffolding is everywhere.
+
+A sign saying 'MEN AT WORK' is leaning against a palm tree to which someone has unaccountably been stapling paper oak leaves. Hanging from it by a piece of string is an envelope, addressed to you.
+
+The stage trapdoor is open, and there's a ladder leading down into the gloom below the stage. A sign taped to the top of the ladder reads {'FOR HELP GO THIS WAY'}>library.
+
+- {Read the note in the envelope.}:ReadNote
+- {Make your way into the properties storage. Maybe there's something interesting in there.}>storeroom
+- {Climb up a nearby rope ladder into the files.}>flies
+- {Push through the curtain to the front of the stage.}>frontstage
+- {Head off to the Green Room.}>greenroom
+- {Exit through the stage door, in search of fresh air.}>alley
+- {Climb down the ladder is search of the HELP THIS WAY.}>library
+`)
+				}),
+			})
+		);
+
+		world.getModel().getRoot().set("config",
+			M({
+				"entrypoint": "backstage"
+			}));
 	}
 });
 

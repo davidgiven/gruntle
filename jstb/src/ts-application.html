@@ -1,4 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../bower_components/paper-styles/typography.html">
 <link rel="import" href="ts-document.html">
 
 <dom-module id="ts-application">
@@ -15,7 +17,11 @@
 		on-connected="onDocumentConnected"
 		on-connection-error="onServerError"
 		on-disconnected="onDocumentDisconnected"
-		></ts-document>
+		on-arrivals-departures="onArrivalsDepartures"
+		>
+	</ts-document>
+
+	<paper-spinner active></paper-spinner>
   </template>
 </template>
 <script>
@@ -38,14 +44,15 @@ Polymer({
 		const $ = this.$;
 
 		console.log("connected");
-		console.log("get:", $.doc.hub.getRoot().get("test message").text);
-		$.doc.hub.getRoot().set(
-			"test message",
-			this.$.doc.hub.createString("Hello, world!"));
+		//$.doc.makeWorld();
 	},
 
 	onDocumentDisconnected: function() {
 		console.log("disconnected");
+	},
+
+	onArrivalsDepartures: function(e, changes) {
+		console.log("arriving/departing", changes);
 	}
 });
 
