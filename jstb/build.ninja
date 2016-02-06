@@ -3,6 +3,9 @@ O = .obj
 rule babel
   command = $$(npm bin)/babel $
     --presets es2015 $
+    --source-maps false $
+    --compact false $
+    --no-comments $
     $in -o $out
 
 rule crisper
