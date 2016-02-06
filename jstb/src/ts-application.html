@@ -9,8 +9,9 @@
 	  }
 	</style>
 
-
 	<ts-document id="doc"
+		hub-document="0ByWQADzU1i2wa3N1VmVweS1EOE0"
+		world-document="0ByWQADzU1i2wampHaEZ0OEJLOVk"
 		on-connected="onDocumentConnected"
 		on-connection-error="onServerError"
 		on-disconnected="onDocumentDisconnected"
@@ -34,9 +35,11 @@ Polymer({
 	},
 
 	onDocumentConnected: function() {
+		const $ = this.$;
+
 		console.log("connected");
-		console.log("get:", this.$.doc.hub.getRoot().get("test message").text);
-		this.$.doc.hub.getRoot().set(
+		console.log("get:", $.doc.hub.getRoot().get("test message").text);
+		$.doc.hub.getRoot().set(
 			"test message",
 			this.$.doc.hub.createString("Hello, world!"));
 	},

@@ -25,7 +25,7 @@ const SCOPES = [
 Polymer({
 	is: "ts-document",
 	properties: {
-		userDocument: String,
+		worldDocument: String,
 		hubDocument: String
 	},
 
@@ -47,8 +47,7 @@ Polymer({
 	},
 
 	connect: function() {
-		this.apiLoadPromise
-		.then(
+		this.loginPromise = this.apiLoadPromise.then(
 			() => new Promise(
 				(pass, fail) => {
 					function auth(immediate) {
@@ -72,11 +71,13 @@ Polymer({
 			)
 		).then(
 			() => console.log("connected and signed in")
-		).then(
-			(r) => new Promise(
+		);
+		
+		this.loginPromise.then(
+			() => new Promise(
 				(pass, fail) =>
 					gapi.drive.realtime.load(
-						"0ByWQADzU1i2wa3N1VmVweS1EOE0",
+						this.hubDocument,
 						(hubDoc) => {
 							this.hub = hubDoc.getModel();
 							pass();
@@ -89,6 +90,21 @@ Polymer({
 				console.log("document loaded");
 				this.fire("connected");
 			}
+		);
+	},
+
+	createFile: function(filename) {
+		return this.loginPromise.then(
+			() => gapi.client.load("drive", "v2")
+		).then(
+			() => gapi.client.drive.files.insert(
+				{
+					mimeType: MIME_TYPE,
+					title: filename
+				}
+			)
+		).then(
+			(r) => r.result.id
 		);
 	},
 
