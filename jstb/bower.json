@@ -1,0 +1,24 @@
+{
+  "name": "thickishstring",
+  "description": "CYOA WWW MMORPG",
+  "main": "",
+  "authors": [
+    "dg@cowlark.com"
+  ],
+  "license": "MIT",
+  "moduleType": [],
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.2.0",
+    "google-apis": "GoogleWebComponents/google-apis#^1.1.4",
+    "google-signin": "GoogleWebComponents/google-signin#^1.2.0"
+  }
+}

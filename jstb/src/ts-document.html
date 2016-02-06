@@ -1,0 +1,84 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/google-apis/google-js-api.html">
+<link rel="import" href="../bower_components/google-signin/google-signin.html">
+<link rel="import" href="ts-document.html">
+
+<dom-module id="ts-document">
+<template>
+	<style>
+	  :host {
+		display: none;
+	  }
+	</style>
+
+	<google-js-api id="api"></google-js-api>
+	<google-signin-aware id="account"
+		scopes="https://www.googleapis.com/auth/drive.file"
+		on-google-signin-aware-success="_onSignIn"
+		on-google-signin-aware-signed-out="_onSignOut"
+		></google-signin>
+</template>
+<script>
+(function () {
+"use strict";
+
+Polymer({
+	is: "ts-document",
+	properties: {
+		userDocument: String,
+		hubDocument: String
+	},
+		
+	ready: function() {
+		this.apiLoadPromise = new Promise(
+			(pass, fail) =>
+				this.$.api.addEventListener("js-api-load", pass)
+		).then(
+			() => new Promise(
+				(pass, fail) =>
+					gapi.load("auth:client,drive-realtime,drive-share", pass, fail)
+			)
+		).catch(
+			this._onConnectionError
+		).then(
+			() => console.log("api loaded")
+		);
+
+		this.signInPromise = new Promise(
+			(pass, fail) => {
+				this._onSignIn = pass;
+			}
+		);
+	},
+
+	connect: function() {
+		Promise.all(
+			[this.apiLoadPromise, this.signInPromise]
+		).then(
+			() => new Promise(
+				(pass, fail) => {
+					console.log("connected and signed in");
+					gapi.drive.realtime.load("thickishString test document",
+						pass, null, fail);
+				}
+			)
+		).then(
+			() => console.log("document loaded")
+		);
+	},
+
+	_onConnectionError: function(e) {
+		console.log("connection error " + e);
+		this.fire("connection-error", e);
+	},
+
+	_onSignOut: function(e) {
+		console.log("signout");
+		this.fire("disconnected", e);
+	}
+});
+
+})();
+</script>
+</dom-module>
+

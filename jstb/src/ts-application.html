@@ -1,0 +1,54 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/google-signin/google-signin.html">
+<link rel="import" href="../bower_components/google-signin/google-signin-aware.html">
+<link rel="import" href="ts-document.html">
+
+<dom-module id="ts-application">
+<template>
+	<style>
+	  :host {
+		display: block;
+	  }
+	</style>
+
+
+	<google-signin id="account"
+		client-id="513414562039-vqfsh4i9jl0ethpti9ihm3ptkuj9s966.apps.googleusercontent.com"
+		signed-in="{{signedIn}}"
+		></google-signin>
+	<ts-document id="doc"
+		on-connected="onDocumentConnected"
+		on-connection-error="onServerError"
+		on-disconnected="onDocumentDisconnected"
+		></ts-document>
+  </template>
+</template>
+<script>
+(function () {
+"use strict";
+
+Polymer({
+	is: "ts-application",
+
+	ready: function() {
+		this.message = "Loading";
+		this.$.doc.connect();
+	},
+
+	onServerError: function(e) {
+		console.log("server error!", e);
+	},
+
+	onDocumentConnected: function() {
+		console.log("connected");
+	},
+
+	onDocumentDisconnected: function() {
+		console.log("disconnected");
+	}
+});
+
+
+})();
+</script>
+</dom-module>

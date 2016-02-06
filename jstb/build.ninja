@@ -1,0 +1,33 @@
+O = .obj
+
+rule babel
+  command = $$(npm bin)/babel $
+    --presets es2015 $
+    $in -o $out
+
+rule crisper
+  # JS file must be first, HTML file must be second.
+  command = $$(npm bin)/crisper $
+    --source $in $
+    $$(set -- $out; echo --js $$1 --html $$2)
+
+rule vulcanize
+  command = $$(npm bin)/vulcanize $
+    --inline-scripts $
+    --inline-css $
+    $in --out-html $out
+
+rule cp
+  command = cp $in $out
+
+build dist/index.js: babel $O/index.js
+build dist/index.html: cp $O/index.html
+
+build $O/index.js $O/index.html: crisper $O/combined.html
+
+build $O/combined.html: vulcanize src/index.html | $
+  src/elements.html $
+  src/ts-application.html $
+  src/ts-document.html
+
+# vim: set ts=2 sw=2 expandtab:
