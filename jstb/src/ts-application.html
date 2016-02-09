@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/paper-styles/typography.html">
 <link rel="import" href="ts-document.html">
@@ -6,23 +7,38 @@
 <dom-module id="ts-application">
 <template>
 	<style>
-	  :host {
+
+	:host {
+		@apply(--layout-fit);
 		display: block;
-	  }
+	}
+
+	#loading {
+		@apply(--layout-fit);
+		@apply(--layout-center-center);
+		@apply(--layout-vertical);
+	}
 	</style>
 
 	<ts-document id="doc"
 		hub-document="0ByWQADzU1i2wa3N1VmVweS1EOE0"
 		world-document="0ByWQADzU1i2wampHaEZ0OEJLOVk"
-		on-connected="onDocumentConnected"
+		on-player-visible="onDocumentConnected"
 		on-connection-error="onServerError"
 		on-disconnected="onDocumentDisconnected"
 		on-arrivals-departures="onArrivalsDepartures"
 		>
 	</ts-document>
 
-	<paper-spinner active></paper-spinner>
-  </template>
+	<iron-pages id="page">
+		<div id="loading">
+			<paper-spinner active></paper-spinner>
+		</div>
+
+		<div id="game" class="layout horizontal">
+			<p>Hello, world!</p>
+		</div>
+	</iron-pages>
 </template>
 <script>
 (function () {
@@ -43,8 +59,58 @@ Polymer({
 	onDocumentConnected: function() {
 		const $ = this.$;
 
-		console.log("connected");
-		//$.doc.makeWorld();
+		this.userState = $.doc.getHub($.doc.worldDocument, $.doc.myself.userId);
+		this.worldConfig = $.doc.getWorld("config");
+		this.useName = $.doc.myself.displayName;
+
+		if (!this.userState.has("location"))
+			this.userState.set("location", this.worldConfig.get("entrypoint"));
+
+		this.userState.addEventListener(
+			gapi.drive.realtime.EventType.VALUE_CHANGED,
+			(e) => { if (e.property == "location") this._onPlayerLocationChanged(e); }
+		);
+		this._onPlayerLocationChanged(
+			{
+				oldValue: null,
+				newValue: $.doc.myself.displayName
+			}
+		);
+	},
+
+	_onPlayerLocationChanged: function(e) {
+		const $ = this.$;
+
+		let oldRoom = e.oldValue ? $.doc.getWorld("rooms", e.oldValue) : null;
+		let newRoom = e.newValue ? $.doc.getWorld("rooms", e.newValue) : null;
+
+		if (e.oldRoom) {
+			this._announce(`@NAME@ leaves for ${newRoom.get("title")}.`);
+			this._tellMe(`You leave for ${newRoom.get("title")}.`);
+		}
+		this.room = newRoom;
+		if (e.newRoom) {
+			this._announce(`@NAME@ arrives from ${oldRoom.get("title")}.`);
+		} else {
+			this._announce(`@NAME@ teleports in.`);
+		}
+	},
+
+	_announce: function(s) {
+		const $ = this.$;
+
+		s = s.replace(/@NAME@/g, $.useName);
+		console.log(`${this.room.get("title")} announce: ${s}`);
+	},
+
+	_tellMe: function(s) {
+		const $ = this.$;
+
+		console.log(`${this.room.get("title")} tell ${$.useName}: ${s}`);
+	},
+
+	onDocumentDisconnected: function() {
+		console.log("disconnected");
 	},
 
 	onDocumentDisconnected: function() {

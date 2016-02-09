@@ -22,6 +22,18 @@ const SCOPES = [
 	"https://www.googleapis.com/auth/drive.file"
 ];
 
+function getmulti(model, node, keys) {
+	for (let k of keys) {
+		let newnode = node.get(k);
+		if (!newnode) {
+			newnode = model.createMap();
+			node.set(k, newnode);
+		}
+		node = newnode;
+	}
+	return node;
+}
+
 Polymer({
 	is: "ts-document",
 	properties: {
@@ -42,8 +54,6 @@ Polymer({
 			)
 		).then(
 			() => gapi.client.load("drive", "v2")
-		).catch(
-			this._onConnectionError
 		).then(
 			() => console.log("api loaded")
 		);
@@ -145,7 +155,17 @@ Polymer({
 			(r) => r
 		);
 	},
-		
+	
+	getHub: function(...keys) {
+		return getmulti(
+			this.hub.getModel(), this.hub.getModel().getRoot(), keys);
+	},
+
+	getWorld: function(...keys) {
+		return getmulti(
+			this.world.getModel(), this.world.getModel().getRoot(), keys);
+	},
+
 	_onConnectionError: function(e) {
 		console.log("connection error " + e);
 		this.fire("connection-error", e);
@@ -162,6 +182,11 @@ Polymer({
 		let people = {};
 		for (let c of this.world.getCollaborators()) {
 			people[c.userId] = c;
+			if (c.isMe && !this.myself)
+			{
+				this.myself = c;
+				this.fire("player-visible", c);
+			}
 		}
 
 		let arriving = Object.keys(people).filter(p => !(p in this.people));

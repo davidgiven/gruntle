@@ -31,6 +31,7 @@ build $O/index.js $O/index.html: crisper $O/combined.html
 build $O/combined.html: vulcanize src/index.html | $
   src/elements.html $
   src/ts-application.html $
-  src/ts-document.html
+  src/ts-auth.html $
+  src/ts-document.html $
 
 # vim: set ts=2 sw=2 expandtab:
