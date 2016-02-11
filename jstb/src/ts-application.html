@@ -3,6 +3,7 @@
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/paper-styles/typography.html">
 <link rel="import" href="ts-document.html">
+<link rel="import" href="ts-transcript.html">
 
 <dom-module id="ts-application">
 <template>
@@ -18,6 +19,11 @@
 		@apply(--layout-center-center);
 		@apply(--layout-vertical);
 	}
+
+	#game {
+		@apply(--layout-fit);
+		@apply(--layout-center);
+	}
 	</style>
 
 	<ts-document id="doc"
@@ -30,13 +36,13 @@
 		>
 	</ts-document>
 
-	<iron-pages id="page">
+	<iron-pages id="page" selected="0">
 		<div id="loading">
 			<paper-spinner active></paper-spinner>
 		</div>
 
 		<div id="game" class="layout horizontal">
-			<p>Hello, world!</p>
+			<ts-transcript id="transcript"></ts-transcript>
 		</div>
 	</iron-pages>
 </template>
@@ -44,12 +50,103 @@
 (function () {
 "use strict";
 
+let $ = null;
+let hub = null;
+let world = null;
+let worldConfig = null;
+let playerState = null;
+let rooms = null;
+let player = null;
+
+class Player {
+	constructor() {
+		this.cachedLocation = null;
+		this.cachedLocationName = null;
+	}
+
+	get location() {
+		let name = playerState.get("location");
+		if (!name)
+			return null;
+
+		if (!this.cachedLocation || (this.cachedLocationName != name)) {
+			this.cachedLocationName = name;
+			this.cachedLocation = new Room(name);
+		}
+		return this.cachedLocation;
+	}
+
+	set location(v) {
+		this.cachedLocationName = v.id;
+		this.cachedLocation = v;
+		playerState.set("location", v.id);
+	}
+
+	get name() {
+		return playerState.get("useName");
+	}
+
+	set name(v) {
+		playerState.set("useName", v);
+	}
+
+	get userId() {
+		return $.doc.myself.userId;
+	}
+}
+
+class Room {
+	constructor(id) {
+		this.id = id;
+		this.node = rooms.get(id);
+	}
+
+	get title() {
+		return this.node.get("title");
+	}
+
+	get text() {
+		return this.node.get("text");
+	}
+	
+	tell(player, text) {
+		console.log(`tell: ${player.name} in ${this.title}: ${text}`);
+	}
+
+	tellOthers(player, text) {
+		console.log(`tellOthers: ${player.name} in ${this.title}: ${text}`);
+	}
+
+	broadcast(text) {
+		console.log(`broadcast: ${this.title}: ${text}`);
+	}
+}
+
+function ensureMap(doc, node, name) {
+	let v = node.get(name);
+	if (!v) {
+		v = doc.getModel().createMap();
+		node.set(name, v);
+	}
+	return v
+}
+
+function ensureList(doc, node, name) {
+	let v = node.get(name);
+	if (!v) {
+		v = doc.getModel().createList();
+		node.set(name, v);
+	}
+	return v
+}
+
 Polymer({
 	is: "ts-application",
 
 	ready: function() {
 		this.message = "Loading";
-		this.$.doc.connect();
+		$ = this.$;
+		$.doc.connect();
 	},
 
 	onServerError: function(e) {
@@ -57,56 +154,67 @@ Polymer({
 	},
 
 	onDocumentConnected: function() {
-		const $ = this.$;
+		hub = ensureMap($.doc.hub, $.doc.hub.getModel().getRoot(), $.doc.worldDocument);
+		playerState = ensureMap($.doc.hub, hub, $.doc.myself.userId);
 
-		this.userState = $.doc.getHub($.doc.worldDocument, $.doc.myself.userId);
-		this.worldConfig = $.doc.getWorld("config");
-		this.useName = $.doc.myself.displayName;
+		worldConfig = $.doc.worldRoot.get("config");
+		rooms = $.doc.worldRoot.get("rooms");
 
-		if (!this.userState.has("location"))
-			this.userState.set("location", this.worldConfig.get("entrypoint"));
+		player = new Player;
+		if (!player.name)
+			player.name = $.doc.myself.displayName;
 
-		this.userState.addEventListener(
-			gapi.drive.realtime.EventType.VALUE_CHANGED,
-			(e) => { if (e.property == "location") this._onPlayerLocationChanged(e); }
-		);
+		if (!player.location)
+		{
+			let entrypoint = this.worldConfig.get("entrypoint");
+			player.location = new Room(entrypoint);
+		}
+
 		this._onPlayerLocationChanged(
 			{
 				oldValue: null,
-				newValue: $.doc.myself.displayName
+				newValue: player.location.id
+			}
+		);
+
+		playerState.addEventListener(
+			gapi.drive.realtime.EventType.VALUE_CHANGED,
+			(e) => {
+				if (e.isLocal || (e.oldValue == e.newValue))
+					return;
+
+				switch (e.property) {
+					case "location": return this._onPlayerLocationChanged(e);
+				}
 			}
 		);
 	},
 
 	_onPlayerLocationChanged: function(e) {
-		const $ = this.$;
+		let oldRoom = e.oldValue ? new Room(e.oldValue) : null;
+		let newRoom = player.location;
 
-		let oldRoom = e.oldValue ? $.doc.getWorld("rooms", e.oldValue) : null;
-		let newRoom = e.newValue ? $.doc.getWorld("rooms", e.newValue) : null;
+		/* If this is a bad room name, put the player back at the entrypoint. */
 
-		if (e.oldRoom) {
-			this._announce(`@NAME@ leaves for ${newRoom.get("title")}.`);
-			this._tellMe(`You leave for ${newRoom.get("title")}.`);
+		if (!newRoom.node) {
+			if (oldRoom) {
+				oldRoom.tellOthers(player, `${player.name} shimmers weirdly and vanishes. That can't be right.`);
+				oldRoom.tell(player, `The world shimmers weirdly around you and dissolves. That can't be right.`);
+			}
+
+			let entrypoint = worldConfig.get("entrypoint");
+			oldRoom = null;
+			newRoom = player.location = new Room(entrypoint);
 		}
-		this.room = newRoom;
-		if (e.newRoom) {
-			this._announce(`@NAME@ arrives from ${oldRoom.get("title")}.`);
-		} else {
-			this._announce(`@NAME@ teleports in.`);
+
+		/* Announce arrival/departure. */
+
+		if (oldRoom) {
+			oldRoom.tellOthers(player, `${player.name} departs for ${newRoom.title}.`);
+			newRoom.tellOthers(player, `${player.name} arrives from ${oldRoom.title}.`);
 		}
-	},
-
-	_announce: function(s) {
-		const $ = this.$;
-
-		s = s.replace(/@NAME@/g, $.useName);
-		console.log(`${this.room.get("title")} announce: ${s}`);
-	},
-
-	_tellMe: function(s) {
-		const $ = this.$;
-
-		console.log(`${this.room.get("title")} tell ${$.useName}: ${s}`);
+		if (!oldRoom)
+			newRoom.tellOthers(player, `${player.name} teleports in.`);
 	},
 
 	onDocumentDisconnected: function() {
@@ -118,6 +226,7 @@ Polymer({
 	},
 
 	onArrivalsDepartures: function(e, changes) {
+		const $ = this.$;
 		console.log("arriving/departing", changes);
 	}
 });

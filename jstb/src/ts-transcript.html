@@ -1,0 +1,79 @@
+<dom-module id="ts-transcript">
+<template>
+	<style>
+
+	:host {
+		@apply(--layout-vertical);
+		display: block;
+		min-height: 100%;
+
+		font-family: 'IM Fell DW Pica', serif;
+	}
+
+	.title
+	{
+		font-size: 150%;
+		font-weight: bold;
+		margin-top: 0.5em;
+		margin-bottom: 0.25em;
+	}
+
+	.prologue, .body, .choices
+	{
+		font-size: 130%;
+	}
+
+	</style>
+
+	<div id="container">
+	</div>
+</template>
+<script>
+(function () {
+"use strict";
+
+function divWithClass(c) {
+	let e = document.createElement("DIV");
+	Polymer.dom(e).setAttribute("class", c);
+	return e;
+}
+
+Polymer({
+	is: "ts-transcript",
+
+	ready: function() {
+		this._room = null;
+		this._prologue = null;
+		this._title = null;
+		this._body = null;
+		this._choices = null;
+		this._transcript = null;
+
+		this.transcript = [];
+	},
+
+	newRoom: function(title, body, choices) {
+		let $ = this.$;
+
+		this._room = divWithClass("room");
+		this._prologue = divWithClass("prologue");
+		this._title = divWithClass("title");
+		this._body = divWithClass("body");
+		this._choices = divWithClass("choices");
+		this._transcript = divWithClass("body");
+
+		$.container.appendChild(this._room);
+		Polymer.dom(this._room).appendChild(this._prologue);
+		Polymer.dom(this._room).appendChild(this._title);
+		Polymer.dom(this._room).appendChild(this._body);
+		Polymer.dom(this._room).appendChild(this._choices);
+		Polymer.dom(this._room).appendChild(this._transcript);
+
+		this._title.setAttribute("textContent", title);
+	}
+});
+
+})();
+</script>
+</dom-module>
+
