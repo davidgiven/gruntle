@@ -2,6 +2,8 @@
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/paper-styles/typography.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
+<link rel="import" href="../bower_components/paper-styles/shadow.html">
 <link rel="import" href="ts-document.html">
 <link rel="import" href="ts-transcript.html">
 
@@ -21,9 +23,20 @@
 	}
 
 	#game {
-		@apply(--layout-fit);
-		@apply(--layout-center);
+		@apply(--layout-horizontal);
+		min-height: 100vh;
+		background-color: var(--paper-brown-50);
 	}
+
+	#game ts-transcript {
+		@apply(--shadow-elevation-4dp);
+		max-width: 800px;
+		margin-left: auto;
+		margin-right: auto;
+		background-color: white;
+		padding: 2em;
+	}
+
 	</style>
 
 	<ts-document id="doc"
@@ -41,7 +54,7 @@
 			<paper-spinner active></paper-spinner>
 		</div>
 
-		<div id="game" class="layout horizontal">
+		<div id="game">
 			<ts-transcript id="transcript"></ts-transcript>
 		</div>
 	</iron-pages>
@@ -90,15 +103,31 @@ class Player {
 		playerState.set("useName", v);
 	}
 
-	get userId() {
+	get id() {
 		return $.doc.myself.userId;
 	}
+}
+
+function postEvent(room, kind, player, text) {
+	let e = {
+		kind: kind,
+		player: player ? player.id : null,
+		text: text,
+		time: $.doc.hub.getModel().serverRevision
+	};
+
+	if (room.log.length > 20)
+		room.log.removeRange(0, room.log.length-20);
+	room.log.push(e);
+
+	console.log(`${e.time}: ${kind} in ${room.title}: ${player ? player.name : 'null'}: ${text}`);
 }
 
 class Room {
 	constructor(id) {
 		this.id = id;
 		this.node = rooms.get(id);
+		this.log = ensureList($.doc.hub, hub, this.id);
 	}
 
 	get title() {
@@ -110,15 +139,15 @@ class Room {
 	}
 	
 	tell(player, text) {
-		console.log(`tell: ${player.name} in ${this.title}: ${text}`);
+		postEvent(this, "tell", player, text);
 	}
 
 	tellOthers(player, text) {
-		console.log(`tellOthers: ${player.name} in ${this.title}: ${text}`);
+		postEvent(this, "tellOthers", player, text);
 	}
 
 	broadcast(text) {
-		console.log(`broadcast: ${this.title}: ${text}`);
+		postEvent(this, "broadcast", null, text);
 	}
 }
 
@@ -154,6 +183,8 @@ Polymer({
 	},
 
 	onDocumentConnected: function() {
+		console.log("connected");
+
 		hub = ensureMap($.doc.hub, $.doc.hub.getModel().getRoot(), $.doc.worldDocument);
 		playerState = ensureMap($.doc.hub, hub, $.doc.myself.userId);
 
@@ -188,6 +219,8 @@ Polymer({
 				}
 			}
 		);
+
+		$.page.selected = 1;
 	},
 
 	_onPlayerLocationChanged: function(e) {
@@ -215,10 +248,10 @@ Polymer({
 		}
 		if (!oldRoom)
 			newRoom.tellOthers(player, `${player.name} teleports in.`);
-	},
 
-	onDocumentDisconnected: function() {
-		console.log("disconnected");
+		/* Update the transcript. */
+
+		$.transcript.newRoom(newRoom.title, newRoom.text, "");
 	},
 
 	onDocumentDisconnected: function() {
@@ -226,7 +259,6 @@ Polymer({
 	},
 
 	onArrivalsDepartures: function(e, changes) {
-		const $ = this.$;
 		console.log("arriving/departing", changes);
 	}
 });

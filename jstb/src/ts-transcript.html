@@ -1,26 +1,32 @@
+<link href='https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic' rel='stylesheet' type='text/css'>
+<link rel="import" href="../bower_components/paper-styles/typography.html">
+
 <dom-module id="ts-transcript">
 <template>
 	<style>
 
 	:host {
 		@apply(--layout-vertical);
+		@apply(--paper-font-common-expensive-kerning);
 		display: block;
 		min-height: 100%;
+		text-align: justify;
 
-		font-family: 'IM Fell DW Pica', serif;
+		font-family: 'Merriweather', serif;
 	}
 
 	.title
 	{
 		font-size: 150%;
 		font-weight: bold;
-		margin-top: 0.5em;
-		margin-bottom: 0.25em;
+		margin-top: 0.75em;
+		margin-bottom: 0.5em;
 	}
 
-	.prologue, .body, .choices
+	.chunk
 	{
-		font-size: 130%;
+		font-size: 110%;
+		line-height: 150%;
 	}
 
 	</style>
@@ -43,33 +49,26 @@ Polymer({
 
 	ready: function() {
 		this._room = null;
-		this._prologue = null;
 		this._title = null;
 		this._body = null;
 		this._choices = null;
-		this._transcript = null;
-
-		this.transcript = [];
 	},
 
 	newRoom: function(title, body, choices) {
 		let $ = this.$;
 
 		this._room = divWithClass("room");
-		this._prologue = divWithClass("prologue");
 		this._title = divWithClass("title");
-		this._body = divWithClass("body");
-		this._choices = divWithClass("choices");
-		this._transcript = divWithClass("body");
+		this._body = divWithClass("chunk");
+		this._choices = divWithClass("chunk");
 
-		$.container.appendChild(this._room);
-		Polymer.dom(this._room).appendChild(this._prologue);
+		Polymer.dom($.container).appendChild(this._room);
 		Polymer.dom(this._room).appendChild(this._title);
 		Polymer.dom(this._room).appendChild(this._body);
 		Polymer.dom(this._room).appendChild(this._choices);
-		Polymer.dom(this._room).appendChild(this._transcript);
 
-		this._title.setAttribute("textContent", title);
+		this._title.innerHTML = title;
+		this._body.innerHTML = body;
 	}
 });
 
