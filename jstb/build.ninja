@@ -16,6 +16,7 @@ rule crisper
 
 rule vulcanize
   command = $$(npm bin)/vulcanize $
+    --add-import polyfill.min.js $
     --inline-scripts $
     --inline-css $
     $in --out-html $out
@@ -25,6 +26,7 @@ rule cp
 
 build dist/index.js: babel $O/index.js
 build dist/index.html: cp $O/index.html
+build dist/polyfill.min.js: cp node_modules/babel-polyfill/dist/polyfill.min.js
 
 build $O/index.js $O/index.html: crisper $O/combined.html
 

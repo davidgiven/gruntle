@@ -1,12 +1,3 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
-<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
-<link rel="import" href="../bower_components/paper-styles/typography.html">
-<link rel="import" href="../bower_components/paper-styles/color.html">
-<link rel="import" href="../bower_components/paper-styles/shadow.html">
-<link rel="import" href="ts-document.html">
-<link rel="import" href="ts-transcript.html">
-
 <dom-module id="ts-application">
 <template>
 	<style>
@@ -23,9 +14,10 @@
 	}
 
 	#game {
-		@apply(--layout-horizontal);
 		min-height: 100vh;
 		background-color: var(--paper-brown-50);
+		overflow-y: scroll;
+		height: 0;
 	}
 
 	#game ts-transcript {
@@ -35,6 +27,17 @@
 		margin-right: auto;
 		background-color: white;
 		padding: 2em;
+	}
+
+	#game > paper-fab-speed-dial {
+		position: fixed;
+		top: 20px;
+		right: 20px;
+	}
+
+	#game > paper-fab-speed-dial paper-fab {
+		--paper-fab-background: var(--paper-light-blue-300);
+		--paper-fab-keyboard-focus-background: var(--paper-light-blue-500);
 	}
 
 	</style>
@@ -55,6 +58,14 @@
 		</div>
 
 		<div id="game">
+			<paper-fab-speed-dial direction="bottom">
+				<paper-fab icon="menu" class="dropdown-trigger"></paper-fab>
+				<div class="dropdown-content">
+					<paper-fab mini icon="settings"></paper-fab>
+					<paper-fab mini hidden="{{!author}}" icon="create"></paper-fab>
+					<paper-fab mini hidden="{{!author}}" icon="explore"></paper-fab>
+				</div>
+			</paper-fab-speed-dial>
 			<ts-transcript id="transcript"></ts-transcript>
 		</div>
 	</iron-pages>
@@ -176,6 +187,8 @@ Polymer({
 		this.message = "Loading";
 		$ = this.$;
 		$.doc.connect();
+
+		this.author = false;
 	},
 
 	onServerError: function(e) {
@@ -220,6 +233,7 @@ Polymer({
 			}
 		);
 
+		this.author = !$.doc.world.getModel.isReadOnly;
 		$.page.selected = 1;
 	},
 
