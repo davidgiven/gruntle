@@ -11,6 +11,7 @@
     "browserify": "^13.0.0",
     "crisper": "^2.0.1",
     "html-minifier": "^1.1.1",
+    "http-server": "^0.8.5",
     "uglify-js": "^2.6.1",
     "vulcanize": "^1.14.5"
   },

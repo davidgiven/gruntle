@@ -46,33 +46,36 @@ Polymer({
 
 	},
 
-	connect: function() {
+	authenticate: function(silent) {
+		if (silent == null)
+			silent = true;
+
 		this.loginPromise = this.apiLoadPromise.then(
 			() => new Promise(
 				(pass, fail) => {
-					function auth(immediate) {
-						gapi.auth.authorize(
-							{
-								client_id: CLIENT_ID,
-								scope: SCOPES,
-								immediate: immediate
-							},
-							(r) => {
-								if (r)
-									pass();
-								else
-									auth(false);
-							}
-						);
-					}
-
-					auth(true);
+					gapi.auth.authorize(
+						{
+							client_id: CLIENT_ID,
+							scope: SCOPES,
+							immediate: silent
+						},
+						(r) => {
+							if (r && !r.error)
+								pass();
+							else
+								fail(r);
+						}
+					);
 				}
 			)
 		).then(
-			() => console.log("connected and signed in")
+			() => this.fire("auth-success")
+		).catch(
+			(e) => this.fire("auth-failure", e)
 		);
+	},
 		
+	connect: function() {
 		this.loginPromise.then(
 			() => Promise.all(
 				[
@@ -119,6 +122,8 @@ Polymer({
 				this.fire("connected");
 				this._onCollaboratorsChanged();
 			}
+		).catch(
+			(e) => console.log(e)
 		);
 	},
 

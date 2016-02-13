@@ -77,6 +77,8 @@
 		hub-document="0ByWQADzU1i2wa3N1VmVweS1EOE0"
 		world-document="0ByWQADzU1i2wampHaEZ0OEJLOVk"
 		on-player-visible="onDocumentConnected"
+		on-auth-success="onDocumentAuthSuccess"
+		on-auth-failure="onDocumentAuthFailure"
 		on-connection-error="onServerError"
 		on-disconnected="onDocumentDisconnected"
 		on-arrivals-departures="onArrivalsDepartures"
@@ -304,13 +306,21 @@ Polymer({
 
 	ready: function() {
 		$ = this.$;
-		$.doc.connect();
+		$.doc.authenticate();
 
 		this.author = false;
 	},
 
 	onServerError: function(e) {
 		console.log("server error!", e);
+	},
+
+	onDocumentAuthSuccess: function() {
+		$.doc.connect();
+	},
+
+	onDocumentAuthFailure: function(e, f) {
+		console.log(e, f);
 	},
 
 	onDocumentConnected: function() {
