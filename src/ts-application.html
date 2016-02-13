@@ -35,7 +35,8 @@
 		margin-left: auto;
 		margin-right: auto;
 		background-color: white;
-		padding: 2em;
+		padding-left: 2em;
+		padding-right: 2em;
 	}
 
 	#game > paper-fab-speed-dial {
@@ -47,6 +48,22 @@
 	#game > paper-fab-speed-dial paper-fab {
 		--paper-fab-background: var(--paper-light-blue-300);
 		--paper-fab-keyboard-focus-background: var(--paper-light-blue-500);
+	}
+
+	#talkboxContainer {
+		position: fixed;
+		bottom: 1em;
+		left: 0;
+		right: 0;
+	}
+
+	#talkbox {
+		max-width: 800px;
+		margin-left: auto;
+		margin-right: auto;
+		--paper-input-container-input: {
+        	font-size: 140%;
+		};
 	}
 
 	#editorDialogue {
@@ -79,13 +96,22 @@
 			<paper-fab-speed-dial direction="bottom">
 				<paper-fab icon="menu" class="dropdown-trigger"></paper-fab>
 				<div class="dropdown-content">
-					<paper-fab mini icon="settings"></paper-fab>
+					<paper-fab mini icon="settings" id="settingsButton"></paper-fab>
 					<paper-fab mini hidden="{{!author}}" icon="create"
 						on-click="onEditButton"></paper-fab>
 					<paper-fab mini hidden="{{!author}}" icon="explore"></paper-fab>
 				</div>
 			</paper-fab-speed-dial>
-			<ts-transcript id="transcript"></ts-transcript>
+			<ts-transcript id="transcript">
+			</ts-transcript>
+			<div id="talkboxContainer">
+				<paper-input id="talkbox"
+					label="Type here to talk"
+					on-keydown="onTalkBoxKeydown"
+					autofocus
+					>
+				</paper-input>
+			</div>
 		</div>
 	</iron-pages>
 </template>
@@ -334,6 +360,15 @@ Polymer({
 	onEditButton: function() {
 		$.editor.room = player.location;
 		$.editorDialogue.open();
+	},
+
+	onTalkBoxKeydown: function(e) {
+		if (e.keyCode == 13) {
+			let s = $.talkbox.value;
+			player.location.tellOthers(player, `${player.name} says, "${s}".`);
+			player.location.tell(player, `You say "${s}".`);
+			$.talkbox.value = "";
+		}
 	},
 
 	onDocumentDisconnected: function() {

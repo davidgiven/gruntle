@@ -30,19 +30,31 @@
 		font-size: 110%;
 	}
 
-	.title
-	{
+	.title {
 		@apply(--transcript-title);
 	}
 
-	.chunk
-	{
+	.chunk {
 	}
 
+	#container {
+		@apply(--layout-flex)
+	}
+
+	#blank {
+		height: 100vh;
+	}
+
+	#textbox {
+		position: fixed;
+		bottom: 1em;
+		left: 1em;
+		right: 1em;
+	}
 	</style>
 
-	<div id="container">
-	</div>
+	<div id="container"></div>
+	<div id="blank"></div>
 </template>
 <script>
 (function () {
