@@ -6,13 +6,13 @@ rule babel
     --source-maps false $
     --compact false $
     --no-comments $
-    --blacklist strict $
     $in -o $out
 
 rule crisper
   # JS file must be first, HTML file must be second.
   command = $$(npm bin)/crisper $
     --source $in $
+    --script-in-head=false $
     $$(set -- $out; echo --js $$1 --html $$2)
 
 rule vulcanize
@@ -21,19 +21,51 @@ rule vulcanize
     --inline-css $
     $in --out-html $out
 
+rule uglify
+  command = $$(npm bin)/uglifyjs $
+    $in -o $out
+
+rule htmlminifier
+  command = $$(npm bin)/html-minifier $
+    --custom-attr-assign [\"/\\\\$$=/\"] $
+    --remove-comments $
+    --collapse-whitespace $
+    --lint $
+    --minify-css $
+    -o $out $in
+
 rule cp
   command = cp $in $out
 
-build dist/index.js: babel $O/index.js
-build dist/index.html: cp $O/index.html
-build dist/polyfill.min.js: cp node_modules/babel-polyfill/dist/polyfill.min.js
+build $O/5/ts-application.js $O/5/ts-application.html: crisper src/ts-application.html
+build $O/5/ts-document.js    $O/5/ts-document.html:    crisper src/ts-document.html
+build $O/5/ts-editor.js      $O/5/ts-editor.html:      crisper src/ts-editor.html
+build $O/5/ts-transcript.js  $O/5/ts-transcript.html:  crisper src/ts-transcript.html
 
-build $O/index.js $O/index.html: crisper $O/combined.html
+build $O/ts-application.js: babel $O/5/ts-application.js
+build $O/ts-document.js:    babel $O/5/ts-document.js
+build $O/ts-editor.js:      babel $O/5/ts-editor.js
+build $O/ts-transcript.js:  babel $O/5/ts-transcript.js
 
-build $O/combined.html: vulcanize src/index.html | $
-  src/elements.html $
-  src/ts-application.html $
-  src/ts-auth.html $
-  src/ts-document.html $
+build $O/ts-application.html: cp $O/5/ts-application.html
+build $O/ts-document.html:    cp $O/5/ts-document.html
+build $O/ts-editor.html:      cp $O/5/ts-editor.html
+build $O/ts-transcript.html:  cp $O/5/ts-transcript.html
+
+build $O/index.html: cp src/index.html
+build $O/combined.html: vulcanize $O/index.html | $
+  $O/ts-application.html $
+  $O/ts-application.js $
+  $O/ts-document.html $
+  $O/ts-document.js $
+  $O/ts-editor.html $
+  $O/ts-editor.js $
+  $O/ts-transcript.html $
+  $O/ts-transcript.js $
+
+build $O/combined/index.js $O/combined/index.html: crisper $O/combined.html
+
+build dist/index.js: uglify $O/combined/index.js
+build dist/index.html: htmlminifier $O/combined/index.html
 
 # vim: set ts=2 sw=2 expandtab:
