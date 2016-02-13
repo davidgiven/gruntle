@@ -1,133 +1,53 @@
-                            thickishstring v0.2
-                            ===================
+                               gruntle v0.1
+                               ============     
 
-                        Copyright © 2013 David Given
+                      Copyright © 2013-2016 David Given
 
 
 
 INTRODUCTION
 ============
 
-thickishstring is a text-based MMORPG engine with a lightweight web-browser
-client.
+gruntle, previously known as thickishstring, is a text-based MMORPG engine
+based on Google Drive.
 
-The client uses Javascript/HTML with a WebSockets connection to the server
-so it's fast and responsive --- if you're used to accessing AJAX websites
-you'll be astounded at how fast it is. The server is written in Python using
-SQLite as the database backend; it's fast, lightweight, and should be very
-portable. 
+It uses Google Drive's real-time collaboration features for communication
+between users --- a world is just a file in your drive account; share it
+with your friends and they can play. It allows multiple authors, any number
+of players, and doesn't require you to run a backend server to make it all
+work.
 
-Right now it's in an incredibly rough prototype stage, but there's enough here
-to let you log in, move around, talk to other players, create your own realms
-and let other players play them.
+Right now it's in an incredibly rough prototype stage.
 
 
 
-INSTALLATION
-============
+TO BUILD
+========
 
-You will need:
+It uses ninja to build and npm and bower for the Javascript toolchain. To
+build it:
 
- - The following Python modules:
- 
-      python-ws4py
-      python-gevent
-      python-greenlet
-      python-anyjson
-      python-ply
+      npm install
+	  ninja
 
+...and the distribution package will be in the dist directory.
 
-
-Step 1. Running the server
---------------------------
-
-Currently there's no installation phase; the server is run directly from the
-distribution.
-
-    python server/main.py
-
-This will launch the server. By default, it will listen on port 8086 and use
-the file 'test.db' as the database. These can be changed using command line
-options; try --help for the list.
-
-If the database file does not exist, it will be created and initialised with
-a very basic realm and one instance. The realm is owned by the user Thoth,
-with default password 'testpassword'. You will want to change this. (The
-option's in the 'Account' menu at the top right of the client screen.)
-
-The server can be safely shut down by ^C-ing it.
-
-
-Step 2. Configuring the web client
-----------------------------------
-
-The web client lives in the client directory. Copy the whole directory onto
-your web server, then edit:
-
-  client/scripts/main.js
-
-Near the top of the file W.URL will be set to a websocket URL. Change this to
-point at the machine you're running WebSockify on. The default setting is
-port 8086 of the same machine the client is served from (the host is
-autodetected).
-
-Now if you load the web client in a browser, a connection should be set up and
-you'll be presented with the thickishstring login screen. That means it's
-working!
+On the other hand, if you have a web browser with ES6 support, you can just
+load src/index.html in a web browser and it'll just work.
 
 
 
 TROUBLESHOOTING
 ===============
 
-If the client connects and then immediately disconnects, then check the
-Javascript log. If you see a message like this:
-
-WebSocket connection to 'ws://cowlark.com:8086/' failed:
-Error during WebSocket handshake: Sec-WebSocket-Protocol mismatch
-
-...then that means that your copy of python-ws4py is too old and doesn't
-support the current WebSocket standards. You'll have to upgrade it, I'm
-afraid.
-
-
-
-ADMINISTRATION
-==============
-
-Okay, er... there is no admin interface. In order to do things like change
-other people's passwords, delete users, adjust server settings etc, you'll
-need to directly manipulate the database using the sqlite3 command line tool.
-This is unsatisfactory. Sorry.
-
-There is one special user, Thoth, who owns the default instance and
-The Hub. In all other respects Thoth is just an ordinary user. To
-change the default instance, modify the 'defaultinstance' entry of
-the 'variables' table to contain the id of the instance you want.
-This is where new players will appear and where players go when they're
-kicked out of an instance. For example:
-
-    update variable set value=1234 where key='defaultinstance';
-
-To change a user's password, modify the 'password' field in the
-'players' table. The value is the hex SHA256 hash of the password.
-This can be calculated with the following Python code:
-
-    import hashlib
-    print hashlib.sha256('new password').hexdigest()
-
-The field can then be changed with:
-
-    update players set password='hex digest here' where user='username';
-
-It is safe to modify the database while the server is running.
+The Google Drive Realtime debugger is your friend.
 
 
 
 MORE INFORMATION
 ================
 
-thickishstring's home is at http://cowlark.com/thickishstring. There's
+gruntle's home is at http://cowlark.com/thickishstring. There's
 currently not much there except the source repository.
 
 
@@ -135,7 +55,7 @@ currently not much there except the source repository.
 THE AUTHOR
 ==========
 
-thickishstring was written by me, David Given. You may contact me at
+gruntle and thickishstring were written by me, David Given. You may contact me at
 dg@cowlark.com, or visit my website at http://www.cowlark.com. There may or may
 not be anything interesting there.
 
@@ -144,21 +64,6 @@ not be anything interesting there.
 LICENSING
 =========
 
-thickishstring is licensed under the Simplified BSD license. See COPYING for
+gruntle is licensed under the Simplified BSD license. See COPYING for
 the full text.
 
-The Javascript client embeds copies of:
-
-- jquery-json; MIT licensed, see https://code.google.com/p/jquery-json/
-- jquery-scrollTo; MIT/GPL dual licensed, see http://flesler.blogspot.co.uk/2007/10/jqueryscrollto.html
-- jquery-cookie: MIT licensed, see https://github.com/carhartl/jquery-cookie
-- LESS; Apache 2 licensed, see http://lesscss.org/
-- Yahoo's reset-min; BSD licensed, see http://developer.yahoo.com/yui/license.html
-- jsprettify; Apache 2 licensed, see https://code.google.com/p/jsprettify.
-- codemirror; MIT licensed; see http://codemirror.net/
-
-The Python server embeds copies of:
-
-- a modified version of unparse, which is one of the standard Python demo
-  scripts; Python Software Foundation License 2, I assume.
-  http://svn.python.org/projects/python/trunk/Demo/parser/unparse.py
