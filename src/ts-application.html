@@ -270,6 +270,35 @@ function ensureList(doc, node, name) {
 	return v
 }
 
+function roomEventListener(e) {
+	let values = e.values.slice(0);
+	values.sort(
+		(a, b) => a.time - b.time
+	);
+
+	for (let e of values) {
+		switch (e.kind) {
+			case "tellOthers":
+				if (e.player != player.id)
+					$.transcript.append(e);
+				break;
+
+			case "tell":
+				if (e.player == player.id)
+					$.transcript.append(e);
+				break;
+
+			case "broadcast":
+				$.transcript.append(e);
+				break;
+
+			default:
+				console.log("unhandled event", e);
+				break;
+		}
+	}
+}
+
 Polymer({
 	is: "ts-application",
 
@@ -355,6 +384,17 @@ Polymer({
 		/* Update the transcript. */
 
 		$.transcript.newRoom(newRoom.title, newRoom.text, "");
+
+		/* Watch for events in this room. */
+
+		if (oldRoom)
+			hub.get(oldRoom.id).removeEventListener(
+				gapi.drive.realtime.EventType.VALUES_ADDED,
+				roomEventListener);
+
+		hub.get(newRoom.id).addEventListener(
+			gapi.drive.realtime.EventType.VALUES_ADDED,
+			roomEventListener);
 	},
 
 	onEditButton: function() {
@@ -365,8 +405,8 @@ Polymer({
 	onTalkBoxKeydown: function(e) {
 		if (e.keyCode == 13) {
 			let s = $.talkbox.value;
-			player.location.tellOthers(player, `${player.name} says, "${s}".`);
-			player.location.tell(player, `You say "${s}".`);
+			player.location.tellOthers(player, `${player.name} says, "${s}"`);
+			player.location.tell(player, `You say "${s}"`);
 			$.talkbox.value = "";
 		}
 	},

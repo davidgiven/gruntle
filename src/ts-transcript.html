@@ -7,6 +7,7 @@
 			font-family: 'Merriweather', serif;
 			text-align: justify;
 			line-height: 1.8em;
+			margin-top: 0.5em;
 		};
 
 		--transcript-title: {
@@ -24,17 +25,18 @@
 
 	:host {
 		@apply(--layout-vertical);
-		@apply(--transcript-text);
 		display: block;
 		min-height: 100%;
 		font-size: 110%;
 	}
 
 	.title {
+		@apply(--transcript-text);
 		@apply(--transcript-title);
 	}
 
 	.chunk {
+		@apply(--transcript-text);
 	}
 
 	#container {
@@ -91,6 +93,13 @@ Polymer({
 
 		this._title.innerHTML = title;
 		this._body.innerHTML = body;
+	},
+
+	append: function(event) {
+		let t = divWithClass("chunk");
+		let n = document.createTextNode(event.text);
+		t.appendChild(n);
+		Polymer.dom(this._room).appendChild(t);
 	}
 });
 
