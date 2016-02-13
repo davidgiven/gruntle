@@ -1,6 +1,0 @@
-while true: return: endwhile
-while 7
-	return
-endwhile
-
-
