@@ -1,3 +1,22 @@
+<link href='https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic' rel='stylesheet' type='text/css'>
+
+<style is="custom-style">
+	:root {
+		--transcript-text: {
+			@apply(--paper-font-common-expensive-kerning);
+			font-family: 'Merriweather', serif;
+			text-align: justify;
+			line-height: 1.8em;
+		};
+
+		--transcript-title: {
+			font-size: 120%;
+			font-weight: bold;
+			margin-top: 0.75em;
+			margin-bottom: 0.5em;
+		}
+	}
+</style>
 
 <dom-module id="ts-transcript">
 <template>
@@ -5,26 +24,19 @@
 
 	:host {
 		@apply(--layout-vertical);
-		@apply(--paper-font-common-expensive-kerning);
+		@apply(--transcript-text);
 		display: block;
 		min-height: 100%;
-		text-align: justify;
-
-		font-family: 'Merriweather', serif;
+		font-size: 110%;
 	}
 
 	.title
 	{
-		font-size: 150%;
-		font-weight: bold;
-		margin-top: 0.75em;
-		margin-bottom: 0.5em;
+		@apply(--transcript-title);
 	}
 
 	.chunk
 	{
-		font-size: 110%;
-		line-height: 150%;
 	}
 
 	</style>

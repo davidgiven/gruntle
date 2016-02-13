@@ -6,6 +6,7 @@ rule babel
     --source-maps false $
     --compact false $
     --no-comments $
+    --blacklist strict $
     $in -o $out
 
 rule crisper
@@ -16,7 +17,6 @@ rule crisper
 
 rule vulcanize
   command = $$(npm bin)/vulcanize $
-    --add-import polyfill.min.js $
     --inline-scripts $
     --inline-css $
     $in --out-html $out

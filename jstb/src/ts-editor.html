@@ -1,0 +1,164 @@
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="ts-transcript.html">
+
+<dom-module id="ts-editor">
+<style>
+	:host {
+		@apply(--layout-fit);
+		@apply(--layout-vertical);
+	}
+
+	.editorPane {
+		@apply(--layout-flex);
+		overflow-y: scroll;
+	}
+
+	.previewPane {
+		@apply(--layout-flex);
+		@apply(--transcript-text);
+	}
+
+	#titlePreview {
+		@apply(--transcript-title);
+	}
+</style>
+
+<template>
+	<h2>Editing room: {{roomId}}</h2>
+	<div class="layout horizontal flex">
+		<div class="editorPane">
+			<paper-input id="titleEditor" label="Name visible to players" value="{{titleContent}}"></paper-input>
+			<paper-textarea id="textEditor" label="Room content" value="{{textContent}}"></paper-textarea>
+		</div>
+		<div class="previewPane">
+			<p class="titlePreview">Rendered room title here</p>
+			<p class="bodyPreview">Rendered body text here</p>
+			<p class="choicesPreview">Rendered choices here</p>
+		</div>
+	</div>
+	<div class="buttons">
+		<paper-button on-click="onRevert">Revert changes</paper-button>
+		<paper-button dialog-confirm on-click="onPublish">Publish</paper-button>
+		<paper-button dialog-dismiss>Close</paper-button>
+	</div>
+</template>
+<script>
+(function () {
+"use strict";
+
+class Binding {
+	constructor(node, input) {
+		this.node = node;
+		this.input = input;
+
+		input.value = node.getText();
+
+		node.addEventListener(
+			gapi.drive.realtime.EventType.VALUE_CHANGED,
+			(e) => {
+				if (!e.isLocal) {
+					input.value = e.newValue;
+				}
+			}
+		);
+	}
+}
+
+Polymer({
+	is: "ts-editor",
+	properties: {
+		room: {
+			observer: "onRoomChanged"
+		},
+
+		titleContent: {
+			type: String,
+			observer: "onTitleChangedByUI"
+		},
+
+		textContent: {
+			type: String,
+			observer: "onTextChangedByUI"
+		},
+	},
+
+	ready: function() {
+		this.onTitleChangedByOther = (e) => {
+			this.titleContent = this.room.pendingTitle.getText();
+		};
+
+		this.onTextChangedByOther = (e) => {
+			this.textContent = this.room.pendingText.getText();
+		};
+	},
+
+	bind: function() {
+		this.titleContent = this.room.pendingTitle.getText();
+		this.textContent = this.room.pendingText.getText();
+
+		this.room.pendingTitle.addEventListener(
+			gapi.drive.realtime.EventType.TEXT_INSERTED,
+			this.onTitleChangedByOther);
+		this.room.pendingTitle.addEventListener(
+			gapi.drive.realtime.EventType.TEXT_DELETED,
+			this.onTitleChangedByOther);
+
+		this.room.pendingText.addEventListener(
+			gapi.drive.realtime.EventType.TEXT_INSERTED,
+			this.onTextChangedByOther);
+		this.room.pendingText.addEventListener(
+			gapi.drive.realtime.EventType.TEXT_DELETED,
+			this.onTextChangedByOther);
+	},
+
+	unbind: function() {
+		this.room.pendingTitle.removeEventListener(
+			gapi.drive.realtime.EventType.TEXT_INSERTED,
+			this.onTitleChangedByOther);
+		this.room.pendingTitle.removeEventListener(
+			gapi.drive.realtime.EventType.TEXT_DELETED,
+			this.onTitleChangedByOther);
+
+		this.room.pendingText.removeEventListener(
+			gapi.drive.realtime.EventType.TEXT_INSERTED,
+			this.onTextChangedByOther);
+		this.room.pendingText.removeEventListener(
+			gapi.drive.realtime.EventType.TEXT_DELETED,
+			this.onTextChangedByOther);
+	},
+
+	onRoomChanged: function() {
+		this.unbind();
+
+		if (this.room)
+			this.bind();
+	},
+
+	onTitleChangedByUI: function(s) {
+		if (this.room)
+			this.room.pendingTitle.setText(s);
+	},
+
+	onTextChangedByUI: function(s) {
+		if (this.room)
+			this.room.pendingText.setText(s);
+	},
+
+	onPublish: function() {
+		if (this.room)
+			this.room.commitPending();
+	},
+
+	onRevert: function() {
+		if (this.room)
+			this.room.revertPending();
+	},
+});
+
+
+})();
+</script>
+</dom-module>
+

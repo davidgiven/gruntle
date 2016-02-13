@@ -1,3 +1,12 @@
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-fab-transitions/paper-fab-speed-dial.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="ts-document.html">
+<link rel="import" href="ts-editor.html">
+<link rel="import" href="ts-transcript.html">
+
 <dom-module id="ts-application">
 <template>
 	<style>
@@ -40,6 +49,11 @@
 		--paper-fab-keyboard-focus-background: var(--paper-light-blue-500);
 	}
 
+	#editorDialogue {
+		width: 90%;
+		height: 90%;
+	}
+
 	</style>
 
 	<ts-document id="doc"
@@ -52,6 +66,10 @@
 		>
 	</ts-document>
 
+	<paper-dialog id="editorDialogue" modal="true">
+		<ts-editor id="editor"></ts-editor>
+	</paper-dialog>
+
 	<iron-pages id="page" selected="0">
 		<div id="loading">
 			<paper-spinner active></paper-spinner>
@@ -62,7 +80,8 @@
 				<paper-fab icon="menu" class="dropdown-trigger"></paper-fab>
 				<div class="dropdown-content">
 					<paper-fab mini icon="settings"></paper-fab>
-					<paper-fab mini hidden="{{!author}}" icon="create"></paper-fab>
+					<paper-fab mini hidden="{{!author}}" icon="create"
+						on-click="onEditButton"></paper-fab>
 					<paper-fab mini hidden="{{!author}}" icon="explore"></paper-fab>
 				</div>
 			</paper-fab-speed-dial>
@@ -76,7 +95,6 @@
 
 let $ = null;
 let hub = null;
-let world = null;
 let worldConfig = null;
 let playerState = null;
 let rooms = null;
@@ -141,6 +159,10 @@ class Room {
 		this.log = ensureList($.doc.hub, hub, this.id);
 	}
 
+	get model() {
+		return $.doc.world.getModel();
+	}
+
 	get title() {
 		return this.node.get("title");
 	}
@@ -149,6 +171,48 @@ class Room {
 		return this.node.get("text");
 	}
 	
+	get pendingTitle() {
+		return this._ensurePending("title", "pendingTitle");
+	}
+
+	get pendingText() {
+		return this._ensurePending("text", "pendingText");
+	}
+	
+	_ensurePending(original, pending) {
+		let p = this.node.get(pending);
+		if (!p) {
+			p = $.doc.world.getModel().createString();
+			this.node.set(pending, p);
+
+			let s = this.node.get(original).getText();
+			p.setText(s);
+		}
+		return p;
+	}
+
+	_commitPending(original, pending) {
+		let p = this.node.get(pending);
+		if (p)
+			this.node.get(original).setText(p.getText());
+	}
+
+	commitPending() {
+		this._commitPending("title", "pendingTitle");
+		this._commitPending("text", "pendingText");
+	}
+
+	_revertPending(original, pending) {
+		let p = this.node.get(pending);
+		if (p)
+			p.setText(this.node.get(original).getText());
+	}
+
+	revertPending() {
+		this._revertPending("title", "pendingTitle");
+		this._revertPending("text", "pendingText");
+	}
+
 	tell(player, text) {
 		postEvent(this, "tell", player, text);
 	}
@@ -268,13 +332,19 @@ Polymer({
 		$.transcript.newRoom(newRoom.title, newRoom.text, "");
 	},
 
+	onEditButton: function() {
+		$.editor.room = player.location;
+		$.editorDialogue.open();
+	},
+
 	onDocumentDisconnected: function() {
 		console.log("disconnected");
 	},
 
 	onArrivalsDepartures: function(e, changes) {
 		console.log("arriving/departing", changes);
-	}
+	},
+
 });
 
 

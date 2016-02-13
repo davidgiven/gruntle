@@ -1,3 +1,4 @@
+<link rel="import" href="../bower_components/google-apis/google-js-api.html">
 
 <dom-module id="ts-document">
 <template>
@@ -116,6 +117,7 @@ Polymer({
 					() => this._onCollaboratorsChanged());
 
 				this.fire("connected");
+				this._onCollaboratorsChanged();
 			}
 		);
 	},
