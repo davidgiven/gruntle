@@ -1,0 +1,122 @@
+<dom-module id="ts-parser">
+<style>
+</style>
+<template>
+</template>
+<script>
+(function () {
+"use strict";
+
+class ParsedText {
+	constructor(source, playerName) {
+		let dom = document.createElement("div");
+		let actions = [];
+		let currentParagraph = document.createElement("P");
+		let currentAction = null;
+
+		function pushParagraph() {
+			dom.appendChild(currentParagraph);
+			currentParagraph = document.createElement("P");
+		}
+
+		function appendTextNode(paragraph, text) {
+			let t = document.createTextNode(text);
+			paragraph.appendChild(t);
+		}
+
+		function appendActionNode(paragraph, text) {
+			let a = document.createElement("a");
+			a.setAttribute("href", "#");
+			appendTextNode(a, text);
+			paragraph.appendChild(a);
+			return a;
+		}
+
+		function appendErrorNode(paragraph, text) {
+			let span = document.createElement("span");
+			span.className = "error";
+			appendTextNode(span, text);
+			paragraph.appendChild(span);
+		}
+
+		function parseAndAppend(paragraph, text) {
+			const re = /((?:\${)|{)([^}]*)}/g;
+			let link = null;
+			let start = 0;
+			for (;;) {
+				let result = re.exec(text);
+				if (!result) {
+					appendTextNode(paragraph, text.slice(start));
+					break;
+				} else
+					appendTextNode(paragraph, text.slice(start, result.index));
+				start = re.lastIndex;
+
+				switch (result[1]) {
+					case '{':
+						link = appendActionNode(paragraph, result[2]);
+						break;
+
+					case '${':
+					{
+						let varname = result[2];
+						switch (varname) {
+							case 'name':
+								appendTextNode(paragraph, playerName);
+								break;
+
+							default:
+								appendErrorNode(paragraph, `unrecognised variable '${varname}'`);
+								break;
+						}
+						break;
+					}
+				}
+			}
+			return link;
+		}
+
+		source += '\n';
+		for (let line of source.match(/([^\r\n]*)[\r\n]/g)) {
+			line = line.trim();
+			if (line.match(/^\s*$/)) {
+				pushParagraph();
+				continue;
+			}
+
+			let actionresult = line.match(/^#(\w+)\s+(.*)$/);
+			if (actionresult) {
+			} else {
+				let link = parseAndAppend(currentParagraph, line);
+				if (link != null) {
+					let action = currentAction = [];
+					actions.push(currentAction);
+					link.onclick = () => {
+						this.onAction(action);
+					};
+				}
+			}
+		}
+		pushParagraph();
+
+		this.dom = dom;
+		this.actions = actions;
+	}
+
+	onAction(action) {
+		console.log("action", action);
+	}
+}
+
+Polymer({
+	is: "ts-parser",
+
+	parse: function(text, playerName) {
+		return new ParsedText(text, playerName);
+	}
+});
+
+})()
+</script>
+</dom-module>
+

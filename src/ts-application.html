@@ -5,8 +5,9 @@
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="ts-document.html">
 <link rel="import" href="ts-editor.html">
-<link rel="import" href="ts-transcript.html">
 <link rel="import" href="ts-login.html">
+<link rel="import" href="ts-parser.html">
+<link rel="import" href="ts-transcript.html">
 
 <dom-module id="ts-application">
 <template>
@@ -89,6 +90,8 @@
 		on-arrivals-departures="onArrivalsDepartures"
 		>
 	</ts-document>
+
+	<ts-parser id="parser"></ts-parser>
 
 	<paper-dialog id="editorDialogue" modal="true">
 		<ts-editor id="editor"></ts-editor>
@@ -405,9 +408,11 @@ Polymer({
 			newRoom = player.location = new Room(entrypoint);
 		}
 
-		/* Update the transcript. */
+		/* Parse the room text and update the transcript. */
 
-		$.transcript.newRoom(newRoom.title, newRoom.text, "");
+		let parsed = $.parser.parse(newRoom.text, player.name);
+		parsed.onAction = (action) => this.onAction(action);
+		$.transcript.newRoom(newRoom.title, parsed.dom, "");
 
 		/* Watch for events in this room. */
 
@@ -422,6 +427,7 @@ Polymer({
 	},
 
 	onEditButton: function() {
+		$.editor.playerName = player.name;
 		$.editor.room = player.location;
 		$.editorDialogue.open();
 	},
@@ -443,6 +449,8 @@ Polymer({
 		console.log("arriving/departing", changes);
 	},
 
+	onAction: function(action) {
+	},
 });
 
 

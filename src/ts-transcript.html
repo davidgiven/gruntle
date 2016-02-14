@@ -80,7 +80,7 @@ Polymer({
 		this._choices = null;
 	},
 
-	newRoom: function(title, body, choices) {
+	newRoom: function(title, bodyDom, choices) {
 		let $ = this.$;
 
 		this._room = divWithClass("room");
@@ -94,7 +94,7 @@ Polymer({
 		Polymer.dom(this._room).appendChild(this._choices);
 
 		this._title.innerHTML = title;
-		this._body.innerHTML = body;
+		Polymer.dom(this._body).appendChild(bodyDom);
 	},
 
 	append: function(event) {

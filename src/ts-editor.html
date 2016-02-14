@@ -1,7 +1,12 @@
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
-<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
 <link rel="import" href="ts-transcript.html">
+<link rel="import" href="ts-parser.html">
 
 <dom-module id="ts-editor">
 <style>
@@ -10,33 +15,115 @@
 		@apply(--layout-vertical);
 	}
 
-	.editorPane {
+	.columns {
 		@apply(--layout-flex);
-		overflow-y: scroll;
+		@apply(--layout-horizontal);
+		margin-top: 1em;
 	}
 
-	.previewPane {
+	.left {
+		margin-right: 0.5em;
+	}
+
+	.right {
+		margin-left: 0.5em;
+	}
+
+	.scrollable {
 		@apply(--layout-flex);
+		overflow-y: scroll;
+		padding: 0.5em;
+	}
+
+	.tabPane {
+		@apply(--layout-flex);
+		@apply(--layout-vertical);
+	}
+		
+	.previewPane {
 		@apply(--transcript-text);
 	}
 
 	#titlePreview {
 		@apply(--transcript-title);
 	}
-</style>
+
+	paper-tabs {
+        background-color: var(--paper-blue-900);
+        color: #fff;
+	}
+
+	</style>
 
 <template>
+	<ts-parser id="parser"></ts-parser>
+
 	<h2>Editing room: {{roomId}}</h2>
-	<div class="layout horizontal flex">
-		<div class="editorPane">
-			<paper-input id="titleEditor" label="Name visible to players" value="{{titleContent}}"></paper-input>
-			<paper-textarea id="textEditor" label="Room content" value="{{textContent}}"></paper-textarea>
-		</div>
-		<div class="previewPane">
-			<p class="titlePreview">Rendered room title here</p>
-			<p class="bodyPreview">Rendered body text here</p>
-			<p class="choicesPreview">Rendered choices here</p>
-		</div>
+	<div class="columns">
+		<paper-material class="tabPane left">
+			<paper-tabs selected="{{leftPanePage}}">
+				<paper-tab>Source</paper-tab>
+			</paper-tabs>
+				
+			<iron-pages class="scrollable" selected="{{leftPanePage}}">
+				<div class="editorPane">
+					<paper-input id="titleEditor" label="Name visible to players" value="{{titleContent}}"></paper-input>
+					<paper-textarea id="textEditor" label="Room content" value="{{textContent}}"></paper-textarea>
+				</div>
+			</iron-pages>
+		</paper-material>
+		<paper-material class="tabPane right">
+			<paper-tabs selected="{{rightPanePage}}">
+				<paper-tab>Preview</paper-tab>
+				<paper-tab>Help</paper-tab>
+			</paper-tabs>
+				
+			<iron-pages class="scrollable" selected="{{rightPanePage}}">
+				<div class="previewPane">
+					<div id="titlePreview"></div>
+					<div id="bodyPreview"></div>
+					<div id="choicesPreview"></div>
+				</div>
+				<div class="helpPane">
+					<p>Herewith is a very quick reference to the markup
+					language. This is all provisional and subject to change
+					without notice.</p>
+
+					<p><b>Blank lines separate paragraphs.</b> Newlines are
+					otherwise ignored.</p>
+
+					<p><b>Curly braces make links.</b> You can have as many as
+					you like. It's recommended that you only have one per
+					source line, however, because...</p>
+
+					<p><b>A line beginning with <code>#</code> adds an action
+					to the most recent link.</b> You can have as many actions
+					per link as you like (although having multiple
+					<code>#goto</code> actions prodably isn't useful).</p>
+
+					<p><b>A line beginning with <code>-</code> adds an entry to
+					the 'What would you like to do?' list.</b> This probably
+					wants to be a link with actions.</p>
+
+					<p>Actions include:</p>
+
+					<p><b><code>#goto</code></b>: moves the player to the named
+					room.</p>
+
+					<p><b><code>#tellPlayer</code></b>: tells the player, and
+					only the player, something.</p>
+
+					<p><b><code>#tellOthers</code></b>: tells everybody
+					<i>except</i> the player something.</p>
+
+					<p><b><code>#tellAll</code></b>: tells everybody, including
+					the player, something.</p>
+
+					<p>In addition: <b><code>${name}</code> expands to the
+					current player's name</b> everywhere.</p>
+				</div>
+			</iron-pages>
+		</paper-material>
 	</div>
 	<div class="buttons">
 		<paper-button on-click="onRevert">Revert changes</paper-button>
@@ -47,6 +134,15 @@
 <script>
 (function () {
 "use strict";
+
+function empty(element) {
+	for (;;) {
+		let child = Polymer.dom(element).firstChild;
+		if (!child)
+			break;
+		Polymer.dom(element).removeChild(child);
+	}
+}
 
 Polymer({
 	is: "ts-editor",
@@ -74,6 +170,9 @@ Polymer({
 		this.onTextChangedByOther = (e) => {
 			this.textContent = this.room.pendingText.getText();
 		};
+
+		this.leftPanePage = 0;
+		this.rightPanePage = 0;
 	},
 
 	bind: function() {
@@ -121,11 +220,13 @@ Polymer({
 	onTitleChangedByUI: function(s) {
 		if (this.room)
 			this.room.pendingTitle.setText(s);
+		this.updatePreview();
 	},
 
 	onTextChangedByUI: function(s) {
 		if (this.room)
 			this.room.pendingText.setText(s);
+		this.updatePreview();
 	},
 
 	onPublish: function() {
@@ -137,6 +238,32 @@ Polymer({
 		if (this.room)
 			this.room.revertPending();
 	},
+
+	updatePreview: function() {
+		if (!this.room)
+			return;
+
+		let title = this.room.pendingTitle.getText();
+		empty(this.$.titlePreview);
+		Polymer.dom(this.$.titlePreview).appendChild(
+			document.createTextNode(title)
+		);
+
+		let parsed = this.$.parser.parse(
+			this.room.pendingText.getText(),
+			this.playerName
+		);
+
+		let body = this.$.bodyPreview;
+		for (;;) {
+			let child = Polymer.dom(body).firstChild;
+			if (!child)
+				break;
+			Polymer.dom(body).removeChild(child);
+		}
+
+		Polymer.dom(body).appendChild(parsed.dom);
+	}
 });
 
 
