@@ -48,24 +48,6 @@
 (function () {
 "use strict";
 
-class Binding {
-	constructor(node, input) {
-		this.node = node;
-		this.input = input;
-
-		input.value = node.getText();
-
-		node.addEventListener(
-			gapi.drive.realtime.EventType.VALUE_CHANGED,
-			(e) => {
-				if (!e.isLocal) {
-					input.value = e.newValue;
-				}
-			}
-		);
-	}
-}
-
 Polymer({
 	is: "ts-editor",
 	properties: {

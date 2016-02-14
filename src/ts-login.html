@@ -1,0 +1,31 @@
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="ts-gruntle.html">
+
+<dom-module id="ts-login">
+	<template>
+		<paper-card>
+			<ts-gruntle></ts-gruntle>
+			<div class="helptext">
+				Gruntle stores its files on Google Drive, so you need
+				to log in to continue.
+			</div>
+			<paper-button icon="google" on-click="onClick">Sign in with Google</paper-button>
+		</paper-card>
+	</template>
+<script>
+(function () {
+"use strict";
+
+Polymer({
+	is: "ts-login",
+
+	onClick: function() {
+		this.fire("login");
+	},
+});
+
+})()
+</script>
+</dom-module>
+

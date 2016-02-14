@@ -6,6 +6,7 @@
 <link rel="import" href="ts-document.html">
 <link rel="import" href="ts-editor.html">
 <link rel="import" href="ts-transcript.html">
+<link rel="import" href="ts-login.html">
 
 <dom-module id="ts-application">
 <template>
@@ -14,6 +15,7 @@
 	:host {
 		@apply(--layout-fit);
 		display: block;
+		background-color: var(--paper-brown-100);
 	}
 
 	#loading {
@@ -24,7 +26,6 @@
 
 	#game {
 		min-height: 100vh;
-		background-color: var(--paper-brown-50);
 		overflow-y: scroll;
 		height: 0;
 	}
@@ -115,6 +116,10 @@
 				</paper-input>
 			</div>
 		</div>
+
+		<ts-login id="login"
+			on-click="doExplicitLogin"
+			></ts-login>
 	</iron-pages>
 </template>
 <script>
@@ -306,9 +311,19 @@ Polymer({
 
 	ready: function() {
 		$ = this.$;
-		$.doc.authenticate();
-
 		this.author = false;
+
+		this.doImplicitLogin();
+	},
+
+	doImplicitLogin: function() {
+		$.page.selected = 0;
+		$.doc.authenticate(true);
+	},
+
+	doExplicitLogin: function() {
+		$.page.selected = 0;
+		$.doc.authenticate(false);
 	},
 
 	onServerError: function(e) {
@@ -321,6 +336,7 @@ Polymer({
 
 	onDocumentAuthFailure: function(e, f) {
 		console.log(e, f);
+		$.page.selected = 2;
 	},
 
 	onDocumentConnected: function() {
