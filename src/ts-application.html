@@ -15,10 +15,10 @@
 	:host {
 		@apply(--layout-fit);
 		display: block;
-		background-color: var(--paper-brown-100);
+		background-color: var(--paper-blue-grey-100);
 	}
 
-	#loading {
+	#loading, #login {
 		@apply(--layout-fit);
 		@apply(--layout-center-center);
 		@apply(--layout-vertical);
@@ -365,6 +365,8 @@ Polymer({
 			}
 		);
 
+		player.location.tellOthers(player, `${player.name} teleports in.`);
+
 		playerState.addEventListener(
 			gapi.drive.realtime.EventType.VALUE_CHANGED,
 			(e) => {
@@ -397,15 +399,6 @@ Polymer({
 			oldRoom = null;
 			newRoom = player.location = new Room(entrypoint);
 		}
-
-		/* Announce arrival/departure. */
-
-		if (oldRoom) {
-			oldRoom.tellOthers(player, `${player.name} departs for ${newRoom.title}.`);
-			newRoom.tellOthers(player, `${player.name} arrives from ${oldRoom.title}.`);
-		}
-		if (!oldRoom)
-			newRoom.tellOthers(player, `${player.name} teleports in.`);
 
 		/* Update the transcript. */
 

@@ -1,18 +1,58 @@
-<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/google-signin/google-icons.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
 <link rel="import" href="ts-gruntle.html">
 
 <dom-module id="ts-login">
-	<template>
-		<paper-card>
-			<ts-gruntle></ts-gruntle>
-			<div class="helptext">
-				Gruntle stores its files on Google Drive, so you need
-				to log in to continue.
-			</div>
-			<paper-button icon="google" on-click="onClick">Sign in with Google</paper-button>
-		</paper-card>
-	</template>
+<style>
+	paper-card {
+		@apply(--layout-vertical);
+		@apply(--layout-center);
+		width: 30em;
+		height: 18em;
+		padding: 1em;
+	}
+	
+	paper-button {
+		background: #4184f3;
+		color: white;
+		border: 1px solid #3266d5;
+		padding-top: 2px;
+		padding-bottom: 2px;
+		padding-left: 1px;
+	}
+
+	paper-button iron-icon {
+		background: white;
+		padding: 10px;
+	}
+
+	paper-button span {
+		padding-left: 0.8em;
+		padding-right: 0.8em;
+		text-transform: none;
+		font-weight: bold;
+	}
+
+	.helptext {
+		@apply(--layout-flex);
+		width: 75%;
+	}
+</style>
+<template>
+	<paper-card>
+		<ts-gruntle></ts-gruntle>
+		<p class="helptext">
+			Gruntle stores its files on Google Drive, so you need
+			to log in to continue.
+		</p>
+		<paper-button on-click="onClick" class="self-center">
+			<iron-icon icon="google:google"></iron-icon>
+			<span>Sign in with Google</span>
+		</paper-button>
+	</paper-card>
+</template>
 <script>
 (function () {
 "use strict";
