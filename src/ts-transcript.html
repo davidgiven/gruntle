@@ -18,6 +18,11 @@
 			margin-top: 0.75em;
 			margin-bottom: 0.5em;
 		}
+
+		--transcript-choice: {
+			margin-top: 0.2em;
+			margin-bottom: 0.2em;
+		}
 	}
 </style>
 
@@ -42,7 +47,11 @@
 	}
 
 	#container {
-		@apply(--layout-flex)
+		@apply(--layout-flex);
+	}
+
+	#container li p {
+		@apply(--transcript-choice);
 	}
 
 	#blank {
@@ -121,6 +130,10 @@ Polymer({
 
 		appendTextNode(this._title, room.title);
 		Polymer.dom(this._body).appendChild(parsed.dom);
+
+		empty(this._choices);
+		if (parsed.choicesDom != null)
+			Polymer.dom(this._choices).appendChild(parsed.choicesDom);
 	},
 
 	append: function(event) {

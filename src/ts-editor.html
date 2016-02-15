@@ -49,6 +49,10 @@
 		@apply(--transcript-title);
 	}
 
+	#choicesPreview li p {
+		@apply(--transcript-choice);
+	}
+
 	paper-tabs {
         background-color: var(--paper-blue-900);
         color: #fff;
@@ -269,6 +273,10 @@ Polymer({
 		}
 
 		Polymer.dom(body).appendChild(parsed.dom);
+
+		empty(this.$.choicesPreview);
+		if (parsed.choicesDom != null)
+			Polymer.dom(this.$.choicesPreview).appendChild(parsed.choicesDom);
 	}
 });
 

@@ -14,6 +14,7 @@ class ParsedText {
 	constructor(source, handler) {
 		let dom = document.createElement("div");
 		let actions = [];
+		let choices = [];
 		let currentParagraph = document.createElement("P");
 		let currentAction = null;
 
@@ -40,6 +41,17 @@ class ParsedText {
 			span.className = "error";
 			appendTextNode(span, text);
 			paragraph.appendChild(span);
+		}
+
+		function addLink(link) {
+			if (link != null) {
+				let action = currentAction = [];
+				actions.push(currentAction);
+				link.onclick = () => {
+					for (let [name, argument] of action)
+						handler[name](argument);
+				};
+			}
 		}
 
 		function parseAndAppend(paragraph, text) {
@@ -96,6 +108,14 @@ class ParsedText {
 				continue;
 			}
 
+			let choiceresult = line.match(/^\-\s+(.*)$/);
+			if (choiceresult) {
+				let p = document.createElement("P");
+				addLink(parseAndAppend(p, choiceresult[1]));
+				choices.push(p);
+				continue;
+			}
+
 			let actionresult = line.match(/^#(\w+)\s+(.*)$/);
 			if (actionresult) {
 				let name = parseActionName(actionresult[1]);
@@ -104,21 +124,31 @@ class ParsedText {
 				else
 					currentAction.push(["onUnknownAction", name]);
 			} else {
-				let link = parseAndAppend(currentParagraph, line);
-				if (link != null) {
-					let action = currentAction = [];
-					actions.push(currentAction);
-					link.onclick = () => {
-						for (let [name, argument] of action)
-							handler[name](argument);
-					};
-				}
+				addLink(parseAndAppend(currentParagraph, line));
 			}
 		}
 		pushParagraph();
 
 		this.dom = dom;
 		this.actions = actions;
+		this.choicesDom = null;
+
+		if (choices.length > 0) {
+			this.choicesDom = document.createElement("DIV");
+
+			let p = document.createElement("P");
+			appendTextNode(p, "What would you like to do?");
+			Polymer.dom(this.choicesDom).appendChild(p);
+
+			let ul = document.createElement("UL");
+			Polymer.dom(this.choicesDom).appendChild(ul);
+
+			for (let choice of choices) {
+				let li = document.createElement("LI");
+				Polymer.dom(li).appendChild(choice);
+				Polymer.dom(ul).appendChild(li);
+			}
+		}
 	}
 
 	onAction(action) {
