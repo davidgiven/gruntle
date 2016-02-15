@@ -11,7 +11,7 @@
 let G;
 
 class ParsedText {
-	constructor(source) {
+	constructor(source, handler) {
 		let dom = document.createElement("div");
 		let actions = [];
 		let currentParagraph = document.createElement("P");
@@ -79,6 +79,15 @@ class ParsedText {
 			return link;
 		}
 
+		function parseActionName(name) {
+			switch (name.toLowerCase()) {
+				case "goto":       return "onGotoAction";
+				case "tellplayer": return "onTellPlayerAction";
+				case "tellothers": return "onTellOthersAction";
+				case "tellall":    return "onTellAllAction";
+			}
+		}
+
 		source += '\n';
 		for (let line of source.match(/([^\r\n]*)[\r\n]/g)) {
 			line = line.trim();
@@ -89,13 +98,19 @@ class ParsedText {
 
 			let actionresult = line.match(/^#(\w+)\s+(.*)$/);
 			if (actionresult) {
+				let name = parseActionName(actionresult[1]);
+				if (name)
+					currentAction.push([name, actionresult[2]]);
+				else
+					currentAction.push(["onUnknownAction", name]);
 			} else {
 				let link = parseAndAppend(currentParagraph, line);
 				if (link != null) {
 					let action = currentAction = [];
 					actions.push(currentAction);
 					link.onclick = () => {
-						this.onAction(action);
+						for (let [name, argument] of action)
+							handler[name](argument);
 					};
 				}
 			}
@@ -118,8 +133,8 @@ Polymer({
 		G = this.$.globals.G;
 	},
 
-	parse: function(text) {
-		return new ParsedText(text);
+	parse: function(text, handler) {
+		return new ParsedText(text, handler);
 	},
 
 	startWatching: function(world) {

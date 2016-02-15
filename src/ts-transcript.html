@@ -97,6 +97,9 @@ Polymer({
 	newRoom: function(room) {
 		let $ = this.$;
 
+		if (this._choices != null)
+			Polymer.dom(this._room).removeChild(this._choices);
+
 		this._room = divWithClass("room");
 		this._title = divWithClass("title");
 		this._body = divWithClass("chunk");
@@ -114,8 +117,10 @@ Polymer({
 		empty(this._title);
 		empty(this._body);
 
+		let parsed = room.parsed;
+
 		appendTextNode(this._title, room.title);
-		Polymer.dom(this._body).appendChild(room.parsed.dom);
+		Polymer.dom(this._body).appendChild(parsed.dom);
 	},
 
 	append: function(event) {

@@ -44,25 +44,20 @@ class Room {
 		this.node = G.worldRooms.get(id);
 		this.log = ensureList(G.hubDoc, G.hub, this.id);
 
-		let reparse = () => {
-			if (this.parsed != null) {
-				roomstore.async(
-					() => roomstore.fire("current-room-changed", this)
-				);
-			}
-
-			this.parsed = $.parser.parse(this.text);
+		let onChange = () => {
+			roomstore.async(
+				() => roomstore.fire("current-room-changed", this)
+			);
 		};
-		reparse();
 
 		this.node.get("title").addEventListener(
 			gapi.drive.realtime.EventType.OBJECT_CHANGED,
-			reparse
+			onChange
 		);
 
 		this.node.get("text").addEventListener(
 			gapi.drive.realtime.EventType.OBJECT_CHANGED,
-			reparse
+			onChange
 		);
 	}
 
@@ -84,6 +79,10 @@ class Room {
 
 	get pendingText() {
 		return this._ensurePending("text", "pendingText");
+	}
+
+	get parsed() {
+		return $.parser.parse(this.text, this);
 	}
 	
 	_ensurePending(original, pending) {
@@ -132,6 +131,29 @@ class Room {
 	broadcast(text) {
 		postEvent(this, "broadcast", null, text);
 	}
+
+	onTellPlayerAction(text) {
+		this.tell(G.player, text);
+	}
+
+	onTellOthersAction(text) {
+		this.tellOthers(G.player, text);
+	}
+
+	onTellAllAction(text) {
+		this.broadcast(text);
+	}
+
+	onGotoAction(name) {
+		let room = cacheGet(name);
+		if (room == null)
+			roomstore.fire("hyperspace", G.player.location);
+		else {
+			this.tellOthers(G.player, `${G.player.name} goes to ${room.title}.`);
+			room.tellOthers(G.player, `${G.player.name} arrives from ${G.player.location.title}.`);
+			G.player.location = room;
+		}
+	}
 }
 
 function loadRoom(id) {
@@ -140,7 +162,7 @@ function loadRoom(id) {
 
 function cacheGet(id) {
 	let r = cache[id];
-	if (r == null) {
+	if ((r == null) && G.worldRooms.get(id)) {
 		r = loadRoom(id);
 		cache[id] = r;
 	}

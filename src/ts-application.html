@@ -95,6 +95,7 @@
 	<ts-globals id="globals"></ts-globals>
 	<ts-roomstore id="roomstore"
 		on-current-room-changed="onCurrentRoomChanged"
+		on-hyperspace="onHyperspaceJump"
 		></ts-roomstore>
 
 	<paper-dialog id="editorDialogue" modal="true">
@@ -154,8 +155,6 @@ class Player {
 	}
 
 	set location(v) {
-		this.cachedLocationName = v.id;
-		this.cachedLocation = v;
 		G.playerState.set("location", v.id);
 	}
 
@@ -279,7 +278,7 @@ Polymer({
 		G.playerState.addEventListener(
 			gapi.drive.realtime.EventType.VALUE_CHANGED,
 			(e) => {
-				if (e.isLocal || (e.oldValue == e.newValue))
+				if (e.oldValue == e.newValue)
 					return;
 
 				switch (e.property) {
@@ -294,31 +293,21 @@ Polymer({
 
 	_onPlayerLocationChanged: function(e) {
 		let oldRoom = e.oldValue ? $.roomstore.get(e.oldValue) : null;
+		if (oldRoom)
+			G.hub.get(oldRoom.id).removeEventListener(
+				gapi.drive.realtime.EventType.VALUES_ADDED,
+				roomEventListener);
+
 		let newRoom = G.player.location;
 
 		/* If this is a bad room name, put the player back at the entrypoint. */
 
 		if (!newRoom.node) {
-			if (oldRoom) {
-				oldRoom.tellOthers(G.player, `${G.player.name} shimmers weirdly and vanishes. That can't be right.`);
-				oldRoom.tell(G.player, `The world shimmers weirdly around you and dissolves. That can't be right.`);
-			}
-
-			let entrypoint = G.worldConfig.get("entrypoint");
-			oldRoom = null;
-			newRoom = G.player.location = $.roomstore.get(entrypoint);
+			this.onHyperspaceJump(null, oldRoom);
+			return;
 		}
 
-		/* Parse the room text and update the transcript. */
-
 		$.transcript.newRoom(newRoom);
-
-		/* Watch for events in this room's event queue. */
-
-		if (oldRoom)
-			G.hub.get(oldRoom.id).removeEventListener(
-				gapi.drive.realtime.EventType.VALUES_ADDED,
-				roomEventListener);
 
 		G.hub.get(newRoom.id).addEventListener(
 			gapi.drive.realtime.EventType.VALUES_ADDED,
@@ -352,6 +341,16 @@ Polymer({
 
 	onCurrentRoomChanged: function() {
 		$.transcript.updateRoom(G.player.location);
+	},
+
+	onHyperspaceJump: function(e, oldRoom) {
+		if (oldRoom) {
+			oldRoom.tellOthers(G.player, `${G.player.name} shimmers weirdly and vanishes. That can't be right.`);
+			oldRoom.tell(G.player, `The world shimmers weirdly around you and dissolves. That can't be right.`);
+		}
+
+		let entrypoint = G.worldConfig.get("entrypoint");
+		G.player.location = $.roomstore.get(entrypoint);
 	},
 });
 
