@@ -1,14 +1,17 @@
+<link rel="import" href="ts-parser.html">
+
 <dom-module id="ts-parser">
-<style>
-</style>
 <template>
+	<ts-globals id="globals"></ts-globals>
 </template>
 <script>
 (function () {
 "use strict";
 
+let G;
+
 class ParsedText {
-	constructor(source, playerName) {
+	constructor(source) {
 		let dom = document.createElement("div");
 		let actions = [];
 		let currentParagraph = document.createElement("P");
@@ -62,7 +65,7 @@ class ParsedText {
 						let varname = result[2];
 						switch (varname) {
 							case 'name':
-								appendTextNode(paragraph, playerName);
+								appendTextNode(paragraph, G.player.name);
 								break;
 
 							default:
@@ -111,9 +114,16 @@ class ParsedText {
 Polymer({
 	is: "ts-parser",
 
-	parse: function(text, playerName) {
-		return new ParsedText(text, playerName);
-	}
+	ready: function() {
+		G = this.$.globals.G;
+	},
+
+	parse: function(text) {
+		return new ParsedText(text);
+	},
+
+	startWatching: function(world) {
+	},
 });
 
 })()

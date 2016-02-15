@@ -1,0 +1,21 @@
+<dom-module id="ts-globals">
+<script>
+(function () {
+"use strict";
+
+let G = {};
+
+Polymer({
+	is: "ts-globals",
+
+	ready: function() {
+		this.G = G;
+	},
+});
+
+})()
+</script>
+</dom-module>
+
+
+

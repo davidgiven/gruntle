@@ -1,0 +1,179 @@
+<link rel="import" href="ts-parser.html">
+
+<dom-module id="ts-roomstore">
+<template>
+	<ts-globals id="globals"></ts-globals>
+	<ts-parser id="parser"></ts-parser>
+</template>
+<script>
+(function () {
+"use strict";
+
+let roomstore;
+let $;
+let G;
+let cache = {};
+
+function ensureList(doc, node, name) {
+	let v = node.get(name);
+	if (!v) {
+		v = doc.getModel().createList();
+		node.set(name, v);
+	}
+	return v
+}
+
+function postEvent(room, kind, player, text) {
+	let e = {
+		kind: kind,
+		player: player ? player.id : null,
+		text: text,
+		time: G.hubDoc.serverRevision
+	};
+
+	if (room.log.length > 20)
+		room.log.removeRange(0, room.log.length-20);
+	room.log.push(e);
+
+	console.log(`${e.time}: ${kind} in ${room.title}: ${player ? player.name : 'null'}: ${text}`);
+}
+
+class Room {
+	constructor(id) {
+		this.id = id;
+		this.node = G.worldRooms.get(id);
+		this.log = ensureList(G.hubDoc, G.hub, this.id);
+
+		let reparse = () => {
+			if (this.parsed != null) {
+				roomstore.async(
+					() => roomstore.fire("current-room-changed", this)
+				);
+			}
+
+			this.parsed = $.parser.parse(this.text);
+		};
+		reparse();
+
+		this.node.get("title").addEventListener(
+			gapi.drive.realtime.EventType.OBJECT_CHANGED,
+			reparse
+		);
+
+		this.node.get("text").addEventListener(
+			gapi.drive.realtime.EventType.OBJECT_CHANGED,
+			reparse
+		);
+	}
+
+	get model() {
+		return $.doc.world.getModel();
+	}
+
+	get title() {
+		return this.node.get("title");
+	}
+
+	get text() {
+		return this.node.get("text");
+	}
+	
+	get pendingTitle() {
+		return this._ensurePending("title", "pendingTitle");
+	}
+
+	get pendingText() {
+		return this._ensurePending("text", "pendingText");
+	}
+	
+	_ensurePending(original, pending) {
+		let p = this.node.get(pending);
+		if (!p) {
+			let s = this.node.get(original).getText();
+
+			p = G.worldDoc.getModel().createString(s);
+			this.node.set(pending, p);
+		}
+		return p;
+	}
+
+	_commitPending(original, pending) {
+		let p = this.node.get(pending);
+		if (p) {
+			let s = p.getText();
+			this.node.get(original).setText(s);
+		}
+	}
+
+	commitPending() {
+		this._commitPending("title", "pendingTitle");
+		this._commitPending("text", "pendingText");
+	}
+
+	_revertPending(original, pending) {
+		let p = this.node.get(pending);
+		if (p)
+			p.setText(this.node.get(original).getText());
+	}
+
+	revertPending() {
+		this._revertPending("title", "pendingTitle");
+		this._revertPending("text", "pendingText");
+	}
+
+	tell(player, text) {
+		postEvent(this, "tell", player, text);
+	}
+
+	tellOthers(player, text) {
+		postEvent(this, "tellOthers", player, text);
+	}
+
+	broadcast(text) {
+		postEvent(this, "broadcast", null, text);
+	}
+}
+
+function loadRoom(id) {
+	return new Room(id);
+}
+
+function cacheGet(id) {
+	let r = cache[id];
+	if (r == null) {
+		r = loadRoom(id);
+		cache[id] = r;
+	}
+	return r;
+}
+
+function onRoomDelete(e) {
+	console.log("unhandled: room deletion", e);
+}
+
+Polymer({
+	is: "ts-roomstore",
+
+	ready: function() {
+		roomstore = this;
+		G = this.$.globals.G;
+	},
+
+	startWatching: function() {
+		$ = this.$;
+
+		G.worldRooms.addEventListener(
+			gapi.drive.realtime.EventType.VALUES_REMOVED,
+			onRoomDelete);
+	},
+
+	get: function(id) {
+		return cacheGet(id);
+	}
+});
+
+})()
+</script>
+</dom-module>
+
+

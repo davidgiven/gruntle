@@ -40,25 +40,31 @@ rule cp
 build $O/5/ts-application.js $O/5/ts-application.html: crisper src/ts-application.html
 build $O/5/ts-document.js    $O/5/ts-document.html:    crisper src/ts-document.html
 build $O/5/ts-editor.js      $O/5/ts-editor.html:      crisper src/ts-editor.html
+build $O/5/ts-globals.js     $O/5/ts-globals.html:     crisper src/ts-globals.html
 build $O/5/ts-gruntle.js     $O/5/ts-gruntle.html:     crisper src/ts-gruntle.html
 build $O/5/ts-login.js       $O/5/ts-login.html:       crisper src/ts-login.html
 build $O/5/ts-parser.js      $O/5/ts-parser.html:      crisper src/ts-parser.html
+build $O/5/ts-roomstore.js   $O/5/ts-roomstore.html:   crisper src/ts-roomstore.html
 build $O/5/ts-transcript.js  $O/5/ts-transcript.html:  crisper src/ts-transcript.html
 
 build $O/ts-application.js: babel $O/5/ts-application.js
 build $O/ts-document.js:    babel $O/5/ts-document.js
 build $O/ts-editor.js:      babel $O/5/ts-editor.js
+build $O/ts-globals.js:     babel $O/5/ts-globals.js
 build $O/ts-gruntle.js:     babel $O/5/ts-gruntle.js
 build $O/ts-login.js:       babel $O/5/ts-login.js
 build $O/ts-parser.js:      babel $O/5/ts-parser.js
+build $O/ts-roomstore.js:   babel $O/5/ts-roomstore.js
 build $O/ts-transcript.js:  babel $O/5/ts-transcript.js
 
 build $O/ts-application.html: cp $O/5/ts-application.html
 build $O/ts-document.html:    cp $O/5/ts-document.html
 build $O/ts-editor.html:      cp $O/5/ts-editor.html
+build $O/ts-globals.html:     cp $O/5/ts-globals.html
 build $O/ts-gruntle.html:     cp $O/5/ts-gruntle.html
 build $O/ts-login.html:       cp $O/5/ts-login.html
 build $O/ts-parser.html:      cp $O/5/ts-parser.html
+build $O/ts-roomstore.html:   cp $O/5/ts-roomstore.html
 build $O/ts-transcript.html:  cp $O/5/ts-transcript.html
 
 build $O/index.html: cp src/index.html
@@ -69,12 +75,16 @@ build $O/combined.html: vulcanize $O/index.html | $
   $O/ts-document.js $
   $O/ts-editor.html $
   $O/ts-editor.js $
+  $O/ts-globals.html $
+  $O/ts-globals.js $
   $O/ts-gruntle.html $
   $O/ts-gruntle.js $
   $O/ts-login.html $
   $O/ts-login.js $
   $O/ts-parser.html $
   $O/ts-parser.js $
+  $O/ts-roomstore.html $
+  $O/ts-roomstore.js $
   $O/ts-transcript.html $
   $O/ts-transcript.js $
 

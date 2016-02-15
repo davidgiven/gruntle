@@ -5,8 +5,9 @@
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="ts-document.html">
 <link rel="import" href="ts-editor.html">
+<link rel="import" href="ts-globals.html">
 <link rel="import" href="ts-login.html">
-<link rel="import" href="ts-parser.html">
+<link rel="import" href="ts-roomstore.html">
 <link rel="import" href="ts-transcript.html">
 
 <dom-module id="ts-application">
@@ -91,7 +92,10 @@
 		>
 	</ts-document>
 
-	<ts-parser id="parser"></ts-parser>
+	<ts-globals id="globals"></ts-globals>
+	<ts-roomstore id="roomstore"
+		on-current-room-changed="onCurrentRoomChanged"
+		></ts-roomstore>
 
 	<paper-dialog id="editorDialogue" modal="true">
 		<ts-editor id="editor"></ts-editor>
@@ -135,42 +139,32 @@
 "use strict";
 
 let $ = null;
-let hub = null;
-let worldConfig = null;
-let playerState = null;
-let rooms = null;
-let player = null;
+let G = null;
 
 class Player {
 	constructor() {
-		this.cachedLocation = null;
-		this.cachedLocationName = null;
 	}
 
 	get location() {
-		let name = playerState.get("location");
+		let name = G.playerState.get("location");
 		if (!name)
 			return null;
 
-		if (!this.cachedLocation || (this.cachedLocationName != name)) {
-			this.cachedLocationName = name;
-			this.cachedLocation = new Room(name);
-		}
-		return this.cachedLocation;
+		return $.roomstore.get(name);
 	}
 
 	set location(v) {
 		this.cachedLocationName = v.id;
 		this.cachedLocation = v;
-		playerState.set("location", v.id);
+		G.playerState.set("location", v.id);
 	}
 
 	get name() {
-		return playerState.get("useName");
+		return G.playerState.get("useName");
 	}
 
 	set name(v) {
-		playerState.set("useName", v);
+		G.playerState.set("useName", v);
 	}
 
 	get id() {
@@ -178,108 +172,10 @@ class Player {
 	}
 }
 
-function postEvent(room, kind, player, text) {
-	let e = {
-		kind: kind,
-		player: player ? player.id : null,
-		text: text,
-		time: $.doc.hub.getModel().serverRevision
-	};
-
-	if (room.log.length > 20)
-		room.log.removeRange(0, room.log.length-20);
-	room.log.push(e);
-
-	console.log(`${e.time}: ${kind} in ${room.title}: ${player ? player.name : 'null'}: ${text}`);
-}
-
-class Room {
-	constructor(id) {
-		this.id = id;
-		this.node = rooms.get(id);
-		this.log = ensureList($.doc.hub, hub, this.id);
-	}
-
-	get model() {
-		return $.doc.world.getModel();
-	}
-
-	get title() {
-		return this.node.get("title");
-	}
-
-	get text() {
-		return this.node.get("text");
-	}
-	
-	get pendingTitle() {
-		return this._ensurePending("title", "pendingTitle");
-	}
-
-	get pendingText() {
-		return this._ensurePending("text", "pendingText");
-	}
-	
-	_ensurePending(original, pending) {
-		let p = this.node.get(pending);
-		if (!p) {
-			p = $.doc.world.getModel().createString();
-			this.node.set(pending, p);
-
-			let s = this.node.get(original).getText();
-			p.setText(s);
-		}
-		return p;
-	}
-
-	_commitPending(original, pending) {
-		let p = this.node.get(pending);
-		if (p)
-			this.node.get(original).setText(p.getText());
-	}
-
-	commitPending() {
-		this._commitPending("title", "pendingTitle");
-		this._commitPending("text", "pendingText");
-	}
-
-	_revertPending(original, pending) {
-		let p = this.node.get(pending);
-		if (p)
-			p.setText(this.node.get(original).getText());
-	}
-
-	revertPending() {
-		this._revertPending("title", "pendingTitle");
-		this._revertPending("text", "pendingText");
-	}
-
-	tell(player, text) {
-		postEvent(this, "tell", player, text);
-	}
-
-	tellOthers(player, text) {
-		postEvent(this, "tellOthers", player, text);
-	}
-
-	broadcast(text) {
-		postEvent(this, "broadcast", null, text);
-	}
-}
-
 function ensureMap(doc, node, name) {
 	let v = node.get(name);
 	if (!v) {
 		v = doc.getModel().createMap();
-		node.set(name, v);
-	}
-	return v
-}
-
-function ensureList(doc, node, name) {
-	let v = node.get(name);
-	if (!v) {
-		v = doc.getModel().createList();
 		node.set(name, v);
 	}
 	return v
@@ -294,12 +190,12 @@ function roomEventListener(e) {
 	for (let e of values) {
 		switch (e.kind) {
 			case "tellOthers":
-				if (e.player != player.id)
+				if (e.player != G.player.id)
 					$.transcript.append(e);
 				break;
 
 			case "tell":
-				if (e.player == player.id)
+				if (e.player == G.player.id)
 					$.transcript.append(e);
 				break;
 
@@ -319,6 +215,7 @@ Polymer({
 
 	ready: function() {
 		$ = this.$;
+		G = $.globals.G;
 		this.author = false;
 
 		this.doImplicitLogin();
@@ -350,32 +247,36 @@ Polymer({
 	onDocumentConnected: function() {
 		console.log("connected");
 
-		hub = ensureMap($.doc.hub, $.doc.hub.getModel().getRoot(), $.doc.worldDocument);
-		playerState = ensureMap($.doc.hub, hub, $.doc.myself.userId);
+		G.hubDoc = $.doc.hub;
+		G.hub = ensureMap($.doc.hub, $.doc.hub.getModel().getRoot(), $.doc.worldDocument);
+		G.playerState = ensureMap(G.hubDoc, G.hub, $.doc.myself.userId);
 
-		worldConfig = $.doc.worldRoot.get("config");
-		rooms = $.doc.worldRoot.get("rooms");
+		G.worldDoc = $.doc.world;
+		G.worldConfig = $.doc.worldRoot.get("config");
 
-		player = new Player;
-		if (!player.name)
-			player.name = $.doc.myself.displayName;
+		G.worldRooms = $.doc.worldRoot.get("rooms");
+		$.roomstore.startWatching();
 
-		if (!player.location)
+		G.player = new Player;
+		if (!G.player.name)
+			G.player.name = $.doc.myself.displayName;
+
+		if (!G.player.location)
 		{
-			let entrypoint = this.worldConfig.get("entrypoint");
-			player.location = new Room(entrypoint);
+			let entrypoint = G.worldConfig.get("entrypoint");
+			G.player.location = $.roomstore.get(entrypoint);
 		}
 
 		this._onPlayerLocationChanged(
 			{
 				oldValue: null,
-				newValue: player.location.id
+				newValue: G.player.location.id
 			}
 		);
 
-		player.location.tellOthers(player, `${player.name} teleports in.`);
+		G.player.location.tellOthers(G.player, `${G.player.name} teleports in.`);
 
-		playerState.addEventListener(
+		G.playerState.addEventListener(
 			gapi.drive.realtime.EventType.VALUE_CHANGED,
 			(e) => {
 				if (e.isLocal || (e.oldValue == e.newValue))
@@ -392,51 +293,48 @@ Polymer({
 	},
 
 	_onPlayerLocationChanged: function(e) {
-		let oldRoom = e.oldValue ? new Room(e.oldValue) : null;
-		let newRoom = player.location;
+		let oldRoom = e.oldValue ? $.roomstore.get(e.oldValue) : null;
+		let newRoom = G.player.location;
 
 		/* If this is a bad room name, put the player back at the entrypoint. */
 
 		if (!newRoom.node) {
 			if (oldRoom) {
-				oldRoom.tellOthers(player, `${player.name} shimmers weirdly and vanishes. That can't be right.`);
-				oldRoom.tell(player, `The world shimmers weirdly around you and dissolves. That can't be right.`);
+				oldRoom.tellOthers(G.player, `${G.player.name} shimmers weirdly and vanishes. That can't be right.`);
+				oldRoom.tell(G.player, `The world shimmers weirdly around you and dissolves. That can't be right.`);
 			}
 
-			let entrypoint = worldConfig.get("entrypoint");
+			let entrypoint = G.worldConfig.get("entrypoint");
 			oldRoom = null;
-			newRoom = player.location = new Room(entrypoint);
+			newRoom = G.player.location = $.roomstore.get(entrypoint);
 		}
 
 		/* Parse the room text and update the transcript. */
 
-		let parsed = $.parser.parse(newRoom.text, player.name);
-		parsed.onAction = (action) => this.onAction(action);
-		$.transcript.newRoom(newRoom.title, parsed.dom, "");
+		$.transcript.newRoom(newRoom);
 
-		/* Watch for events in this room. */
+		/* Watch for events in this room's event queue. */
 
 		if (oldRoom)
-			hub.get(oldRoom.id).removeEventListener(
+			G.hub.get(oldRoom.id).removeEventListener(
 				gapi.drive.realtime.EventType.VALUES_ADDED,
 				roomEventListener);
 
-		hub.get(newRoom.id).addEventListener(
+		G.hub.get(newRoom.id).addEventListener(
 			gapi.drive.realtime.EventType.VALUES_ADDED,
 			roomEventListener);
 	},
 
 	onEditButton: function() {
-		$.editor.playerName = player.name;
-		$.editor.room = player.location;
+		$.editor.room = G.player.location;
 		$.editorDialogue.open();
 	},
 
 	onTalkBoxKeydown: function(e) {
 		if (e.keyCode == 13) {
 			let s = $.talkbox.value;
-			player.location.tellOthers(player, `${player.name} says, "${s}"`);
-			player.location.tell(player, `You say "${s}"`);
+			G.player.location.tellOthers(G.player, `${G.player.name} says, "${s}"`);
+			G.player.location.tell(G.player, `You say "${s}"`);
 			$.talkbox.value = "";
 		}
 	},
@@ -450,6 +348,10 @@ Polymer({
 	},
 
 	onAction: function(action) {
+	},
+
+	onCurrentRoomChanged: function() {
+		$.transcript.updateRoom(G.player.location);
 	},
 });
 

@@ -7,6 +7,7 @@
 <link rel="import" href="../bower_components/paper-material/paper-material.html">
 <link rel="import" href="ts-transcript.html">
 <link rel="import" href="ts-parser.html">
+<link rel="import" href="ts-globals.html">
 
 <dom-module id="ts-editor">
 <style>
@@ -56,6 +57,7 @@
 	</style>
 
 <template>
+	<ts-globals id="globals"></ts-globals>
 	<ts-parser id="parser"></ts-parser>
 
 	<h2>Editing room: {{roomId}}</h2>
@@ -135,6 +137,8 @@
 (function () {
 "use strict";
 
+let G;
+
 function empty(element) {
 	for (;;) {
 		let child = Polymer.dom(element).firstChild;
@@ -163,6 +167,8 @@ Polymer({
 	},
 
 	ready: function() {
+		G = this.$.globals.G;
+
 		this.onTitleChangedByOther = (e) => {
 			this.titleContent = this.room.pendingTitle.getText();
 		};
@@ -251,7 +257,7 @@ Polymer({
 
 		let parsed = this.$.parser.parse(
 			this.room.pendingText.getText(),
-			this.playerName
+			G.player.name
 		);
 
 		let body = this.$.bodyPreview;

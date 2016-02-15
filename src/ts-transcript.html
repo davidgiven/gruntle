@@ -70,6 +70,20 @@ function divWithClass(c) {
 	return e;
 }
 
+function empty(element) {
+	for (;;) {
+		let child = Polymer.dom(element).firstChild;
+		if (!child)
+			break;
+		Polymer.dom(element).removeChild(child);
+	}
+}
+
+function appendTextNode(paragraph, text) {
+	let t = document.createTextNode(text);
+	paragraph.appendChild(t);
+}
+
 Polymer({
 	is: "ts-transcript",
 
@@ -80,7 +94,7 @@ Polymer({
 		this._choices = null;
 	},
 
-	newRoom: function(title, bodyDom, choices) {
+	newRoom: function(room) {
 		let $ = this.$;
 
 		this._room = divWithClass("room");
@@ -93,8 +107,15 @@ Polymer({
 		Polymer.dom(this._room).appendChild(this._body);
 		Polymer.dom(this._room).appendChild(this._choices);
 
-		this._title.innerHTML = title;
-		Polymer.dom(this._body).appendChild(bodyDom);
+		this.updateRoom(room);
+	},
+
+	updateRoom: function(room) {
+		empty(this._title);
+		empty(this._body);
+
+		appendTextNode(this._title, room.title);
+		Polymer.dom(this._body).appendChild(room.parsed.dom);
 	},
 
 	append: function(event) {
