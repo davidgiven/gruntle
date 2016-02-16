@@ -1,0 +1,39 @@
+#!/usr/bin/env lua5.1
+
+function prep(file)
+	local chunk = {}
+	chunk[#chunk+1] = "local fp = ...\n"
+	for line in file:lines() do
+		local _, _, cmd = string.find(line, "^¬ *(.*)$")
+		if cmd then
+			chunk[#chunk+1] = cmd .. "\n"
+		else
+		local last = 1
+			for text, expr, index in string.gmatch(line, "(.-)¬(%b())()") do 
+				last = index
+				if text ~= "" then
+					chunk[#chunk+1] = string.format('fp:write %q ', text)
+				end
+				chunk[#chunk+1] = string.format('fp:write%s ', expr)
+			end
+			chunk[#chunk+1] = string.format('fp:write %q\n', string.sub(line, last).."\n")
+		end
+	end
+	local source = table.concat(chunk)
+	local code, e = loadstring(source)
+	if e then
+		io.stderr:write("Preprocessor error", e, "\n")
+		os.exit(1)
+	end
+	return code
+end
+
+os.execute("mkdir -p .obj")
+
+local fpin = io.open("build.ninja", "r")
+local fpout = io.open(".obj/build.ninja", "w")
+prep(fpin)(fpout)
+fpout:close()
+
+os.exit(os.execute("ninja -f .obj/build.ninja"))
+
