@@ -44,6 +44,7 @@ rule cp
 ¬   "ts-globals",
 ¬   "ts-gruntle",
 ¬   "ts-login",
+¬   "ts-map",
 ¬   "ts-parser",
 ¬   "ts-roomstore",
 ¬   "ts-transcript",

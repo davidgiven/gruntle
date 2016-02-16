@@ -7,6 +7,7 @@
 <link rel="import" href="ts-editor.html">
 <link rel="import" href="ts-globals.html">
 <link rel="import" href="ts-login.html">
+<link rel="import" href="ts-map.html">
 <link rel="import" href="ts-roomstore.html">
 <link rel="import" href="ts-transcript.html">
 
@@ -73,7 +74,7 @@
 		font-size: 140%;
 	};
 
-	#editorDialogue {
+	#editorDialogue, #mapDialogue {
 		width: 90%;
 		height: 90%;
 	}
@@ -102,6 +103,10 @@
 		<ts-editor id="editor"></ts-editor>
 	</paper-dialog>
 
+	<paper-dialog id="mapDialogue" modal="true">
+		<ts-map id="map"></ts-map>
+	</paper-dialog>
+
 	<iron-pages id="page" selected="0">
 		<div id="loading">
 			<paper-spinner active></paper-spinner>
@@ -114,7 +119,8 @@
 					<paper-fab mini icon="settings" id="settingsButton"></paper-fab>
 					<paper-fab mini hidden="{{!author}}" icon="create"
 						on-click="onEditButton"></paper-fab>
-					<paper-fab mini hidden="{{!author}}" icon="explore"></paper-fab>
+					<paper-fab mini hidden="{{!author}}" icon="explore"
+						on-click="onMapButton"></paper-fab>
 				</div>
 			</paper-fab-speed-dial>
 			<ts-transcript id="transcript">
@@ -317,6 +323,10 @@ Polymer({
 	onEditButton: function() {
 		$.editor.room = G.player.location;
 		$.editorDialogue.open();
+	},
+
+	onMapButton: function() {
+		$.mapDialogue.open();
 	},
 
 	onTalkBoxKeydown: function(e) {

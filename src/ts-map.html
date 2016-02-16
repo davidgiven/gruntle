@@ -1,0 +1,154 @@
+<script src="../bower_components/lodash/lodash.min.js"></script>
+<script src="../bower_components/graphlib/dist/graphlib.core.js"></script>
+<script src="../bower_components/dagre/dist/dagre.core.min.js"></script>
+<script src="../bower_components/d3/d3.min.js"></script>
+<script src="../bower_components/dagre-d3/dist/dagre-d3.core.min.js"></script>
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="ts-globals.html">
+
+<dom-module id="ts-map">
+<style>
+	:host {
+		@apply(--layout-fit);
+		@apply(--layout-vertical);
+	}
+
+	#mapContainer {
+		@apply(--layout-flex);
+		overflow: hidden;
+	}
+
+	#map {
+		width: 100vw;
+		height: 100vh;
+	}
+
+	.node rect {
+		stroke: #333;
+		fill: #fff;
+	}
+
+	.edgePath path {
+		stroke: #333;
+		fill: #333;
+		stroke-width: 1.5px;
+	}
+</style>
+
+<template>
+	<ts-globals id="globals"></ts-globals>
+
+	<h2>Map</h2>
+	<paper-material id="mapContainer" class="flex">
+		<svg id="map"><g/></svg>
+	</paper-material>
+
+	<div class="buttons">
+		<paper-button dialog-dismiss>Close</paper-button>
+	</div>
+</template>
+<script>
+(function () {
+"use strict";
+
+let G;
+
+Polymer({
+	is: "ts-map",
+	properties: {
+		opened: {
+			type: Boolean,
+			observer: "onOpenClose"
+		},
+	},
+	behaviors: [
+		Polymer.IronResizableBehavior
+	],
+	listeners: {
+		"iron-resize": "onResize"
+	},
+
+	ready: function() {
+		G = this.$.globals.G;
+	},
+
+	onResize: function(e) {
+		let width = this.$.mapContainer.offsetWidth;
+		if (width > 0) {
+			// Create a new directed graph 
+var g = new dagreD3.graphlib.Graph().setGraph({});
+
+			// States and transitions from RFC 793
+var states = [ "CLOSED", "LISTEN", "SYN RCVD", "SYN SENT",
+               "ESTAB", "FINWAIT-1", "CLOSE WAIT", "FINWAIT-2",
+               "CLOSING", "LAST-ACK", "TIME WAIT" ];
+
+// Automatically label each of the nodes
+states.forEach(function(state) { g.setNode(state, { label: state }); });
+
+// Set up the edges
+g.setEdge("CLOSED",     "LISTEN",     { label: "open" });
+g.setEdge("LISTEN",     "SYN RCVD",   { label: "rcv SYN" });
+g.setEdge("LISTEN",     "SYN SENT",   { label: "send" });
+g.setEdge("LISTEN",     "CLOSED",     { label: "close" });
+g.setEdge("SYN RCVD",   "FINWAIT-1",  { label: "close" });
+g.setEdge("SYN RCVD",   "ESTAB",      { label: "rcv ACK of SYN" });
+g.setEdge("SYN SENT",   "SYN RCVD",   { label: "rcv SYN" });
+g.setEdge("SYN SENT",   "ESTAB",      { label: "rcv SYN, ACK" });
+g.setEdge("SYN SENT",   "CLOSED",     { label: "close" });
+g.setEdge("ESTAB",      "FINWAIT-1",  { label: "close" });
+g.setEdge("ESTAB",      "CLOSE WAIT", { label: "rcv FIN" });
+g.setEdge("FINWAIT-1",  "FINWAIT-2",  { label: "rcv ACK of FIN" });
+g.setEdge("FINWAIT-1",  "CLOSING",    { label: "rcv FIN" });
+g.setEdge("CLOSE WAIT", "LAST-ACK",   { label: "close" });
+g.setEdge("FINWAIT-2",  "TIME WAIT",  { label: "rcv FIN" });
+g.setEdge("CLOSING",    "TIME WAIT",  { label: "rcv ACK of FIN" });
+g.setEdge("LAST-ACK",   "CLOSED",     { label: "rcv ACK of FIN" });
+g.setEdge("TIME WAIT",  "CLOSED",     { label: "timeout=2MSL" });
+
+// Set some general styles
+g.nodes().forEach(function(v) {
+  var node = g.node(v);
+  node.rx = node.ry = 5;
+});
+
+// Add some custom colors based on state
+g.node('CLOSED').style = "fill: #f77";
+g.node('ESTAB').style = "fill: #7f7";
+
+var svg = d3.select(this.$.map),
+    inner = svg.select("g");
+
+// Set up zoom support
+var zoom = d3.behavior.zoom().on("zoom", function() {
+      inner.attr("transform", "translate(" + d3.event.translate + ")" +
+                                  "scale(" + d3.event.scale + ")");
+    });
+svg.call(zoom);
+
+// Create the renderer
+var render = new dagreD3.render();
+
+// Run the renderer. This is what draws the final graph.
+render(inner, g);
+
+// Center the graph
+var initialScale = 0.75;
+zoom
+  .translate([(width - g.graph().width * initialScale) / 2, 20])
+  .scale(initialScale)
+  .event(svg);
+
+		} else {
+		}
+	},
+});
+
+
+})();
+</script>
+</dom-module>
+
+
