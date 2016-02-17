@@ -28,11 +28,12 @@ rule uglify
 rule htmlminifier
   command = $$(npm bin)/html-minifier $
     --custom-attr-assign [\"/\\\\$$=/\"] $
-    --remove-comments $
-    --collapse-whitespace $
     --lint $
-    --minify-css $
-    -o $out $in
+    -o $out $in $
+
+#    --remove-comments $
+#    --collapse-whitespace $
+#    --minify-css $
 
 rule cp
   command = cp $in $out
@@ -53,7 +54,7 @@ rule cp
 ¬ for _, m in pairs(MODULES) do
 build $O/6/¬(m).js $O/6/¬(m).html: crisper src/¬(m).html
 build $O/¬(m).js                 : babel $O/6/¬(m).js
-build $O/¬(m).html               : cp $O/5/¬(m).html
+build $O/¬(m).html               : cp $O/6/¬(m).html
 ¬ end
 
 build $O/index.html: cp src/index.html
