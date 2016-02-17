@@ -46,7 +46,7 @@ class Room {
 
 		let onChange = () => {
 			roomstore.async(
-				() => roomstore.fire("current-room-changed", this)
+				() => roomstore.fire("room-changed", this)
 			);
 		};
 
@@ -169,10 +169,6 @@ function cacheGet(id) {
 	return r;
 }
 
-function onRoomDelete(e) {
-	console.log("unhandled: room deletion", e);
-}
-
 Polymer({
 	is: "ts-roomstore",
 
@@ -185,13 +181,36 @@ Polymer({
 		$ = this.$;
 
 		G.worldRooms.addEventListener(
-			gapi.drive.realtime.EventType.VALUES_REMOVED,
-			onRoomDelete);
+			gapi.drive.realtime.EventType.VALUE_CHANGED,
+			() =>
+				this.fire("room-changed", null)
+		);
 	},
 
 	get: function(id) {
 		return cacheGet(id);
-	}
+	},
+
+	getAll: function() {
+		let rooms = [];
+		for (let id of G.worldRooms.keys()) {
+			rooms.push(cacheGet(id));
+		}
+		return rooms;
+	},
+
+	createRoom: function(id, title, text) {
+		let r = G.worldDoc.getModel().createMap();
+		r.set("title", G.worldDoc.getModel().createString(
+			(title != null) ? title : "Room title goes here"
+		));
+		r.set("text", G.worldDoc.getModel().createString(
+			(text != null) ? text : "Room text goes here"
+		));
+		G.worldRooms.set(id, r);
+
+		return cacheGet(id);
+	},
 });
 
 })()

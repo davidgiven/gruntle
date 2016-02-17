@@ -15,6 +15,7 @@ class ParsedText {
 		let dom = document.createElement("div");
 		let actions = [];
 		let choices = [];
+		let exits = [];
 		let currentParagraph = document.createElement("P");
 		let currentAction = null;
 
@@ -119,10 +120,18 @@ class ParsedText {
 			let actionresult = line.match(/^#(\w+)\s+(.*)$/);
 			if (actionresult) {
 				let name = parseActionName(actionresult[1]);
-				if (name)
-					currentAction.push([name, actionresult[2]]);
-				else
-					currentAction.push(["onUnknownAction", name]);
+
+				if (name == "onGotoAction")
+					exits.push(actionresult[2]);
+
+				if (currentAction == null)
+					appendErrorNode(currentParagraph, "can't add an action without a link first");
+				else {
+					if (name)
+						currentAction.push([name, actionresult[2]]);
+					else
+						currentAction.push(["onUnknownAction", name]);
+				}
 			} else {
 				addLink(parseAndAppend(currentParagraph, line));
 			}
@@ -131,6 +140,7 @@ class ParsedText {
 
 		this.dom = dom;
 		this.actions = actions;
+		this.exits = exits;
 		this.choicesDom = null;
 
 		if (choices.length > 0) {

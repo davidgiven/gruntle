@@ -51,8 +51,8 @@ rule cp
 ¬ }
 
 ¬ for _, m in pairs(MODULES) do
-build $O/5/¬(m).js $O/5/¬(m).html: crisper src/¬(m).html
-build $O/¬(m).js                 : babel $O/5/¬(m).js
+build $O/6/¬(m).js $O/6/¬(m).html: crisper src/¬(m).html
+build $O/¬(m).js                 : babel $O/6/¬(m).js
 build $O/¬(m).html               : cp $O/5/¬(m).html
 ¬ end
 

@@ -82,6 +82,14 @@
 		bottom: 2em;
 	}
 
+	paper-dialog > *:first-child {
+		margin-top: 1em;
+	}
+
+	paper-dialog > *:last-child {
+		margin-bottom: 0;
+	}
+
 	</style>
 
 	<ts-document id="doc"
@@ -98,7 +106,7 @@
 
 	<ts-globals id="globals"></ts-globals>
 	<ts-roomstore id="roomstore"
-		on-current-room-changed="onCurrentRoomChanged"
+		on-room-changed="onRoomChanged"
 		on-hyperspace="onHyperspaceJump"
 		></ts-roomstore>
 
@@ -107,8 +115,22 @@
 	</paper-dialog>
 
 	<paper-dialog id="mapDialogue" modal="true">
-		<ts-map id="map"></ts-map>
+		<ts-map id="map"
+			on-edit-request="onEdit"
+			></ts-map>
 	</paper-dialog>
+
+	<paper-dialog id="implicitCreationDialogue">
+		<h2>Create room?</h2>
+		<p>
+			This room has been referred to by an action in another room, but
+			hasn't been created yet. Do you want to create it now?
+		</p>
+		<div class="buttons">
+			<paper-button dialog-dismiss>No</paper-button>
+			<paper-button dialog-confirm autofocus on-click="onConfirmEdit">Yes</paper-button>
+		</div>
+    </paper-dialog>
 
 	<iron-pages id="page" selected="0">
 		<div id="loading">
@@ -263,7 +285,8 @@ Polymer({
 		G.worldConfig = $.doc.worldRoot.get("config");
 
 		G.worldRooms = $.doc.worldRoot.get("rooms");
-		$.roomstore.startWatching();
+		G.rooms = $.roomstore;
+		G.rooms.startWatching();
 
 		G.player = new Player;
 		if (!G.player.name)
@@ -272,7 +295,7 @@ Polymer({
 		if (!G.player.location)
 		{
 			let entrypoint = G.worldConfig.get("entrypoint");
-			G.player.location = $.roomstore.get(entrypoint);
+			G.player.location = G.rooms.get(entrypoint);
 		}
 
 		this._onPlayerLocationChanged(
@@ -301,7 +324,7 @@ Polymer({
 	},
 
 	_onPlayerLocationChanged: function(e) {
-		let oldRoom = e.oldValue ? $.roomstore.get(e.oldValue) : null;
+		let oldRoom = e.oldValue ? G.rooms.get(e.oldValue) : null;
 		if (oldRoom)
 			G.hub.get(oldRoom.id).removeEventListener(
 				gapi.drive.realtime.EventType.VALUES_ADDED,
@@ -323,11 +346,26 @@ Polymer({
 			roomEventListener);
 	},
 
-	onEditButton: function() {
-		$.editor.room = G.player.location;
-		$.editorDialogue.open();
+	onEditButton: function(e) {
+		this.onEdit(e, G.player.location.id);
 	},
 
+	onEdit: function(e, id) {
+		let room = G.rooms.get(id);
+		if (room) {
+			$.editor.room = G.rooms.get(id);
+			$.editorDialogue.open();
+		} else {
+			$.implicitCreationDialogue.roomId = id;
+			$.implicitCreationDialogue.open();
+		}
+	},
+
+	onConfirmEdit: function(e) {
+		$.editor.room = G.rooms.createRoom($.implicitCreationDialogue.roomId);
+		$.editorDialogue.open();
+	},
+		
 	onMapButton: function() {
 		$.mapDialogue.open();
 	},
@@ -352,8 +390,10 @@ Polymer({
 	onAction: function(action) {
 	},
 
-	onCurrentRoomChanged: function() {
-		$.transcript.updateRoom(G.player.location);
+	onRoomChanged: function(event, room) {
+		if (room && (G.player.location == room))
+			$.transcript.updateRoom(G.player.location);
+		$.map.updateMap();
 	},
 
 	onHyperspaceJump: function(e, oldRoom) {
@@ -363,7 +403,7 @@ Polymer({
 		}
 
 		let entrypoint = G.worldConfig.get("entrypoint");
-		G.player.location = $.roomstore.get(entrypoint);
+		G.player.location = G.rooms.get(entrypoint);
 	},
 });
 
