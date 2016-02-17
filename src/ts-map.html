@@ -8,6 +8,19 @@
 <link rel="import" href="../bower_components/paper-material/paper-material.html">
 <link rel="import" href="ts-globals.html">
 
+<style>
+	svg#map .node rect {
+		stroke: #333;
+		fill: #fff;
+	}
+
+	svg#map .edgePath path {
+		stroke: #333;
+		fill: #333;
+		stroke-width: 1.5px;
+	}
+</style>
+
 <dom-module id="ts-map">
 <style>
 	:host {
@@ -25,23 +38,13 @@
 		height: 100vh;
 	}
 
-	.node rect {
-		stroke: #333;
-		fill: #fff;
-	}
-
-	.edgePath path {
-		stroke: #333;
-		fill: #333;
-		stroke-width: 1.5px;
-	}
 </style>
 
 <template>
 	<ts-globals id="globals"></ts-globals>
 
 	<h2>Map</h2>
-	<paper-material id="mapContainer" class="flex">
+	<paper-material id="mapContainer">
 		<svg id="map"><g/></svg>
 	</paper-material>
 
@@ -76,6 +79,7 @@ Polymer({
 
 	onResize: function(e) {
 		let width = this.$.mapContainer.offsetWidth;
+		console.log("onResize", width, this.$.mapContainer);
 		if (width > 0) {
 			// Create a new directed graph 
 var g = new dagreD3.graphlib.Graph().setGraph({});
@@ -89,7 +93,7 @@ var states = [ "CLOSED", "LISTEN", "SYN RCVD", "SYN SENT",
 states.forEach(function(state) { g.setNode(state, { label: state }); });
 
 // Set up the edges
-g.setEdge("CLOSED",     "LISTEN",     { label: "open" });
+g.setEdge("CLOSED",     "LISTEN",     { label: "open", lineInterpolate: "basis" });
 g.setEdge("LISTEN",     "SYN RCVD",   { label: "rcv SYN" });
 g.setEdge("LISTEN",     "SYN SENT",   { label: "send" });
 g.setEdge("LISTEN",     "CLOSED",     { label: "close" });
