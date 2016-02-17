@@ -137,10 +137,14 @@ Polymer({
 	},
 
 	append: function(event) {
+		Polymer.dom(this._room).removeChild(this._choices);
+
 		let t = divWithClass("chunk");
 		let n = document.createTextNode(event.text);
 		t.appendChild(n);
 		Polymer.dom(this._room).appendChild(t);
+
+		Polymer.dom(this._room).appendChild(this._choices);
 	}
 });
 

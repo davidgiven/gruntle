@@ -132,6 +132,10 @@ class Room {
 		postEvent(this, "broadcast", null, text);
 	}
 
+	onBeginAction(text) {
+		this.tell(G.player, "> " + text);
+	}
+
 	onTellPlayerAction(text) {
 		this.tell(G.player, text);
 	}

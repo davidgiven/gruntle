@@ -46,7 +46,12 @@ class ParsedText {
 
 		function addLink(link) {
 			if (link != null) {
-				let action = currentAction = [];
+				let action = currentAction = [
+					[
+						"onBeginAction",
+						link.text
+					]
+				];
 				actions.push(currentAction);
 				link.onclick = () => {
 					for (let [name, argument] of action)
