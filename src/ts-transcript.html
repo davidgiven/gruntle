@@ -1,29 +1,51 @@
 <link href='https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic' rel='stylesheet' type='text/css'>
+<link rel="import" href="ts-transformer.html">
 
-<style is="custom-style">
-	:root {
-		--transcript-text: {
-			@apply(--paper-font-common-expensive-kerning);
-			font-family: 'Merriweather', serif;
-			text-align: justify;
-			line-height: 1.8em;
-			margin-top: 0.5em;
-			overflow-wrap: break-word;
-			word-wrap: break-word;
-		};
-
-		--transcript-title: {
-			font-size: 120%;
-			font-weight: bold;
-			margin-top: 0.75em;
-			margin-bottom: 0.5em;
-		}
-
-		--transcript-choice: {
-			margin-top: 0.2em;
-			margin-bottom: 0.2em;
-		}
+<style>
+	.transcript {
+		text-rendering: optimizeLegibility;
+		font-family: 'Merriweather', serif;
+		text-align: justify;
+		line-height: 1.8em;
+		overflow-wrap: break-word;
+		word-wrap: break-word;
+		margin: 0;
+		padding: 0;
 	}
+
+	.transcript P {
+		margin: 0;
+		padding-top: 0;
+		padding-bottom: 0.5em;
+	}
+
+	.transcript H1 {
+		font-size: 120%;
+		font-weight: bold;
+		margin: 0;
+		padding-top: 1.5em;
+		padding-bottom: 1em;
+	}
+
+	.transcript H3 {
+		font-size: 100%;
+		font-weight: bold;
+		margin: 0;
+		padding-top: 1em;
+		padding-bottom: 0.5em;
+	}
+
+	.transcript UL {
+		margin: 0;
+		padding-top: 0.2em;
+		padding-bottom: 0.2em;
+	}
+
+	.transcript UL P {
+		margin: 0;
+		padding-bottom: 0.5em;
+	}
+
 </style>
 
 <dom-module id="ts-transcript">
@@ -35,15 +57,6 @@
 		display: block;
 		min-height: 100%;
 		font-size: 110%;
-	}
-
-	.title {
-		@apply(--transcript-text);
-		@apply(--transcript-title);
-	}
-
-	.chunk {
-		@apply(--transcript-text);
 	}
 
 	#container {
@@ -66,7 +79,7 @@
 	}
 	</style>
 
-	<div id="container"></div>
+	<div id="container" class="transcript"></div>
 	<div id="blank"></div>
 </template>
 <script>
@@ -110,9 +123,9 @@ Polymer({
 			Polymer.dom(this._room).removeChild(this._choices);
 
 		this._room = divWithClass("room");
-		this._title = divWithClass("title");
-		this._body = divWithClass("chunk");
-		this._choices = divWithClass("chunk");
+		this._title = document.createElement("H1");
+		this._body = document.createElement("ts-transformer");
+		this._choices = document.createElement("DIV");
 
 		Polymer.dom($.container).appendChild(this._room);
 		Polymer.dom(this._room).appendChild(this._title);
@@ -124,16 +137,16 @@ Polymer({
 
 	updateRoom: function(room) {
 		empty(this._title);
-		empty(this._body);
 
 		let parsed = room.parsed;
 
 		appendTextNode(this._title, room.title);
-		Polymer.dom(this._body).appendChild(parsed.dom);
 
 		empty(this._choices);
 		if (parsed.choicesDom != null)
 			Polymer.dom(this._choices).appendChild(parsed.choicesDom);
+
+		this._body.content = parsed.dom;
 	},
 
 	append: function(event) {

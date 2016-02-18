@@ -49,6 +49,7 @@ rule cp
 ¬   "ts-parser",
 ¬   "ts-roomstore",
 ¬   "ts-transcript",
+¬   "ts-transformer",
 ¬ }
 
 ¬ for _, m in pairs(MODULES) do

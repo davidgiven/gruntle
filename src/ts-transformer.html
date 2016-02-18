@@ -1,0 +1,118 @@
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+
+<dom-module id="ts-transformer">
+<style>
+	:host {
+		@apply(--layout-vertical);
+	}
+
+	#box {
+		@apply(--layout-vertical);
+		overflow: hidden;
+		position: relative;
+	}
+
+	.box-transitions {
+		transition: width 1s;
+		transition: height 1s;
+	}
+		
+	#old, #new {
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
+
+	.container-transitions {
+		transition: opacity 1s;
+	}
+</style>
+<template>
+	<div id="box">
+		<div id="old"></div>
+		<div id="new"></div>
+	</div>
+</template>
+<script>
+(function () {
+"use strict";
+
+let G = {};
+
+Polymer({
+	is: "ts-transformer",
+	properties: {
+		content: {
+			type: Object,
+			observer: "onContentChange"
+		},
+	},
+	behaviors: [
+		Polymer.IronResizableBehavior
+	],
+	listeners: {
+		"iron-resize": "onResize"
+	},
+
+	ready: function() {
+		this.G = G;
+		this.pendingChange = null;
+		this.currentAnimation = null;
+	},
+
+	onContentChange: function(n, o) {
+		this.pendingChange = () => {
+			console.log("swap:", n, o);
+
+			this.toggleClass("box-transitions", false, this.$.box);
+			if (o) {
+				this.$.box.style.height = o.offsetHeight + "px";
+				this.$.old.appendChild(o);
+			} else
+				this.$.box.style.height = 0;
+			this.$.new.appendChild(n);
+
+			this.toggleClass("container-transitions", false, this.$.old);
+			this.toggleClass("container-transitions", false, this.$.new);
+			this.$.old.style.opacity = 1.0;
+			this.$.new.style.opacity = 0.0;
+
+			Polymer.dom.flush();
+
+			let v = setInterval(
+				() => {
+					clearInterval(v);
+					console.log("new size:", n.offsetWidth, n.offsetHeight);
+
+					this.toggleClass("box-transitions", true, this.$.box);
+					this.toggleClass("container-transitions", true, this.$.old);
+					this.toggleClass("container-transitions", true, this.$.new);
+					this.$.box.style.height = n.offsetHeight + "px";
+					this.$.old.style.opacity = 0.0;
+					this.$.new.style.opacity = 1.0;
+
+					this.pendingChange = null;
+					console.log("new size:", n.offsetWidth, n.offsetHeight);
+				},
+				100
+			);
+		};
+
+		if (this.clientWidth > 0)
+			this.pendingChange();
+	},
+
+	onResize: function() {
+		this.$.old.style.width = this.$.new.style.width = this.clientWidth + "px";
+
+		if (this.clientWidth > 0)
+			this.pendingChange();
+	},
+});
+
+})()
+</script>
+</dom-module>
+
+
+

@@ -85,10 +85,10 @@
 			</paper-tabs>
 				
 			<iron-pages class="scrollable" selected="{{rightPanePage}}">
-				<div class="previewPane">
-					<div id="titlePreview"></div>
+				<div class="previewPane transcript">
+					<h1 id="titlePreview"></h1>
 					<div id="bodyPreview"></div>
-					<div id="choicesPreview"></div>
+					<div id="choicesPreview" class="transcript"></div>
 				</div>
 				<div class="helpPane">
 					<p>Herewith is a very quick reference to the markup
@@ -255,7 +255,7 @@ Polymer({
 
 		let title = this.room.pendingTitle.getText();
 		empty(this.$.titlePreview);
-		Polymer.dom(this.$.titlePreview).appendChild(
+		this.$.titlePreview.appendChild(
 			document.createTextNode(title)
 		);
 
@@ -266,17 +266,17 @@ Polymer({
 
 		let body = this.$.bodyPreview;
 		for (;;) {
-			let child = Polymer.dom(body).firstChild;
+			let child = body.firstChild;
 			if (!child)
 				break;
-			Polymer.dom(body).removeChild(child);
+			body.removeChild(child);
 		}
 
-		Polymer.dom(body).appendChild(parsed.dom);
+		body.appendChild(parsed.dom);
 
 		empty(this.$.choicesPreview);
 		if (parsed.choicesDom != null)
-			Polymer.dom(this.$.choicesPreview).appendChild(parsed.choicesDom);
+			this.$.choicesPreview.appendChild(parsed.choicesDom);
 	}
 });
 
