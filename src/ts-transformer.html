@@ -12,19 +12,16 @@
 		position: relative;
 	}
 
-	.box-transitions {
-		transition: width 0.5s ease-in-out;
-		transition: height 0.5s ease-in-out;
+	.transitions {
+		transition: width 0.5s ease-in-out,
+					height 0.5s ease-in-out,
+					opacity 0.5s ease-in-out;
 	}
 		
 	#new {
 		position: absolute;
 		top: 0;
 		left: 0;
-	}
-
-	.container-transitions {
-		transition: opacity 0.5s ease-in-out;
 	}
 </style>
 <template>
@@ -66,9 +63,10 @@ Polymer({
 	},
 
 	setAnimations: function(bool) {
-		this.toggleClass("box-transitions", bool, this.$.box);
-		this.toggleClass("container-transitions", bool, this.$.old);
-		this.toggleClass("container-transitions", bool, this.$.new);
+		this.toggleClass("transitions", bool, this.$.box);
+		this.toggleClass("transitions", bool, this.$.old);
+		this.toggleClass("transitions", bool, this.$.new);
+		Polymer.dom.flush();
 	},
 
 	replaceWithThrowaway: function() {
@@ -88,15 +86,15 @@ Polymer({
 
 			this.setAnimations(false);
 			this.$.box.style.height = this.offsetHeight + "px";
-			if (n == null)
-				n = document.createElement("DIV");
-			if (n) {
-				this.$.new.appendChild(n);
-				n.style.backgroundColor = "transparent";
-			}
-
 			this.$.old.style.opacity = 1.0;
 			this.$.new.style.opacity = 0.0;
+
+			if (n == null)
+				n = document.createElement("DIV");
+			this.$.new.appendChild(n);
+
+			/* Hacky hacky force relayout. */
+			let dummy = this.$.old.offsetHeight + this.$.new.offsetHeight;
 
 			this.setAnimations(this.animated);
 			this.$.box.style.height = n ? (n.offsetHeight + "px") : 0;
@@ -111,10 +109,8 @@ Polymer({
 					this.$.old.removeChild(o);
 
 				let n = this.$.new.firstChild;
-				if (n) {
+				if (n)
 					this.$.old.appendChild(n);
-					n.style.backgroundColor = "transparent";
-				}
 
 				this.setAnimations(false);
 				this.$.old.style.opacity = 1.0;
