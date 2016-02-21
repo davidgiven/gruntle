@@ -204,44 +204,6 @@ class Player {
 	}
 }
 
-function ensureMap(doc, node, name) {
-	let v = node.get(name);
-	if (!v) {
-		v = doc.getModel().createMap();
-		node.set(name, v);
-	}
-	return v
-}
-
-function roomEventListener(e) {
-	let values = e.values.slice(0);
-	values.sort(
-		(a, b) => a.time - b.time
-	);
-
-	for (let e of values) {
-		switch (e.kind) {
-			case "tellOthers":
-				if (e.player != G.player.id)
-					$.transcript.append(e.text);
-				break;
-
-			case "tell":
-				if (e.player == G.player.id)
-					$.transcript.append(e.text);
-				break;
-
-			case "broadcast":
-				$.transcript.append(e.text);
-				break;
-
-			default:
-				console.log("unhandled event", e);
-				break;
-		}
-	}
-}
-
 Polymer({
 	is: "ts-application",
 
@@ -280,8 +242,8 @@ Polymer({
 		console.log("connected");
 
 		G.hubDoc = $.doc.hub;
-		G.hub = ensureMap($.doc.hub, $.doc.hub.getModel().getRoot(), $.doc.worldDocument);
-		G.playerState = ensureMap(G.hubDoc, G.hub, $.doc.myself.userId);
+		G.hub = G.ensureMap($.doc.hub, $.doc.hub.getModel().getRoot(), $.doc.worldDocument);
+		G.playerState = G.ensureMap(G.hubDoc, G.hub, $.doc.myself.userId);
 
 		G.worldDoc = $.doc.world;
 		G.worldConfig = $.doc.worldRoot.get("config");
@@ -327,11 +289,6 @@ Polymer({
 
 	_onPlayerLocationChanged: function(e) {
 		let oldRoom = e.oldValue ? G.rooms.get(e.oldValue) : null;
-		if (oldRoom)
-			G.hub.get(oldRoom.id).removeEventListener(
-				gapi.drive.realtime.EventType.VALUES_ADDED,
-				roomEventListener);
-
 		let newRoom = G.player.location;
 
 		/* If this is a bad room name, put the player back at the entrypoint. */
@@ -350,9 +307,35 @@ Polymer({
 			}
 		);
 
-		G.hub.get(newRoom.id).addEventListener(
-			gapi.drive.realtime.EventType.VALUES_ADDED,
-			roomEventListener);
+		if (this.roomQueue)
+			this.roomQueue.detach();
+
+		this.roomQueue = new G.MessageQueue(
+			G.player.location.log,
+			(e) => this._onRoomEvent(e)
+		);
+	},
+
+	_onRoomEvent: function(e) {
+		switch (e.kind) {
+			case "tellOthers":
+				if (e.player != G.player.id)
+					$.transcript.append(e.text);
+				break;
+
+			case "tell":
+				if (e.player == G.player.id)
+					$.transcript.append(e.text);
+				break;
+
+			case "broadcast":
+				$.transcript.append(e.text);
+				break;
+
+			default:
+				console.log("unhandled event", e);
+				break;
+		}
 	},
 
 	onEditButton: function(e) {
@@ -415,12 +398,11 @@ Polymer({
 
 	onHyperspaceJump: function(e, oldRoom) {
 		if (oldRoom) {
-			oldRoom.tellOthers(G.player, `${G.player.name} shimmers weirdly and vanishes. That can't be right.`);
-			oldRoom.tell(G.player, `The world shimmers weirdly around you and dissolves. That can't be right.`);
+			oldRoom.tell(G.player, `[That bit of the world hasn't been built yet.]`);
+		} else {
+			let entrypoint = G.worldConfig.get("entrypoint");
+			G.player.location = G.rooms.get(entrypoint);
 		}
-
-		let entrypoint = G.worldConfig.get("entrypoint");
-		G.player.location = G.rooms.get(entrypoint);
 	},
 
 	onUserAction: function(e, actions) {

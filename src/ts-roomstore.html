@@ -14,35 +14,12 @@ let $;
 let G;
 let cache = {};
 
-function ensureList(doc, node, name) {
-	let v = node.get(name);
-	if (!v) {
-		v = doc.getModel().createList();
-		node.set(name, v);
-	}
-	return v
-}
-
-function postEvent(room, kind, player, text) {
-	let e = {
-		kind: kind,
-		player: player ? player.id : null,
-		text: text,
-		time: G.hubDoc.serverRevision
-	};
-
-	if (room.log.length > 20)
-		room.log.removeRange(0, room.log.length-20);
-	room.log.push(e);
-
-	console.log(`${e.time}: ${kind} in ${room.title}: ${player ? player.name : 'null'}: ${text}`);
-}
-
 class Room {
 	constructor(id) {
 		this.id = id;
 		this.node = G.worldRooms.get(id);
-		this.log = ensureList(G.hubDoc, G.hub, this.id);
+		this.log = G.ensureList(G.hubDoc, G.hub, this.id);
+		this.queue = new G.MessageQueue(this.log);
 
 		let onChange = () => {
 			roomstore.async(
@@ -122,16 +99,27 @@ class Room {
 		this._revertPending("text", "pendingText");
 	}
 
+	postEvent(kind, player, text) {
+		let e = this.queue.post(kind,
+			{
+				player: player ? player.id : null,
+				text: text,
+			}
+		);
+
+		console.log(`${e.time}: ${kind} in ${this.title}: ${player ? player.name : 'null'}: ${text}`);
+	}
+
 	tell(player, text) {
-		postEvent(this, "tell", player, text);
+		this.postEvent("tell", player, text);
 	}
 
 	tellOthers(player, text) {
-		postEvent(this, "tellOthers", player, text);
+		this.postEvent("tellOthers", player, text);
 	}
 
 	broadcast(text) {
-		postEvent(this, "broadcast", null, text);
+		this.postEvent("broadcast", null, text);
 	}
 
 }

@@ -5,6 +5,65 @@
 
 let G = {};
 
+G.ensureList = function(doc, node, name) {
+	let v = node.get(name);
+	if (!v) {
+		v = doc.getModel().createList();
+		node.set(name, v);
+	}
+	return v
+}
+
+G.ensureMap = function(doc, node, name) {
+	let v = node.get(name);
+	if (!v) {
+		v = doc.getModel().createMap();
+		node.set(name, v);
+	}
+	return v
+}
+
+G.MessageQueue = class MessageQueue {
+	constructor(hubDocNode, onMessage) {
+		this.hubDocNode = hubDocNode;
+		this.handler = (e) => {
+			let values = e.values.slice(0);
+			values.sort(
+				(a, b) => a.time - b.time
+			);
+
+			for (let event of values) {
+				if (onMessage != null)
+					onMessage(event);
+			}
+		};
+
+		this.hubDocNode.addEventListener(
+			gapi.drive.realtime.EventType.VALUES_ADDED,
+			this.handler);
+	}
+
+	detach() {
+		this.hubDocNode.removeEventListener(
+			gapi.drive.realtime.EventType.VALUES_ADDED,
+			this.handler);
+	}
+
+	post(kind, params) {
+		let e = {};
+		for (let k in params)
+			e[k] = params[k];
+		e.kind = kind;
+		e.time = G.hubDoc.getModel().serverRevision;
+
+		if (this.hubDocNode.length > 20)
+			this.hubDocNode.removeRange(0, this.hubDocNode.length-20);
+		this.hubDocNode.push(e);
+
+		return e;
+	}
+}
+
 Polymer({
 	is: "ts-globals",
 
