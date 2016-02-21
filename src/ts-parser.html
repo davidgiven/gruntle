@@ -13,7 +13,6 @@ let G;
 class ParsedText {
 	constructor(source, handler) {
 		let dom = document.createElement("div");
-		let actions = [];
 		let choices = [];
 		let exits = [];
 		let currentParagraph = document.createElement("P");
@@ -48,17 +47,11 @@ class ParsedText {
 
 		function addLink(link) {
 			if (link != null) {
-				let action = currentAction = [
-					[
-						"onBeginAction",
-						link.text
-					]
+				/* a becomes a copy of the new currentAction value */
+				let a = currentAction = [
+					["beginAction", link.innerText]
 				];
-				actions.push(currentAction);
-				link.onclick = () => {
-					for (let [name, argument] of action)
-						handler[name](argument);
-				};
+				link.onclick = () => handler(a);
 			}
 		}
 
@@ -101,10 +94,10 @@ class ParsedText {
 
 		function parseActionName(name) {
 			switch (name.toLowerCase()) {
-				case "goto":       return "onGotoAction";
-				case "tellplayer": return "onTellPlayerAction";
-				case "tellothers": return "onTellOthersAction";
-				case "tellall":    return "onTellAllAction";
+				case "goto":       return "gotoAction";
+				case "tellplayer": return "tellPlayerAction";
+				case "tellothers": return "tellOthersAction";
+				case "tellall":    return "tellAllAction";
 			}
 		}
 
@@ -128,7 +121,7 @@ class ParsedText {
 			if (actionresult) {
 				let name = parseActionName(actionresult[1]);
 
-				if (name == "onGotoAction")
+				if (name == "gotoAction")
 					exits.push(actionresult[2]);
 
 				if (currentAction == null)
@@ -146,7 +139,6 @@ class ParsedText {
 		pushParagraph();
 
 		this.dom = dom;
-		this.actions = actions;
 		this.exits = exits;
 		this.choicesDom = null;
 

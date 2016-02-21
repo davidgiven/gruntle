@@ -13,18 +13,18 @@
 	}
 
 	.box-transitions {
-		transition: width 1s;
-		transition: height 1s;
+		transition: width 0.5s ease-in-out;
+		transition: height 0.5s ease-in-out;
 	}
 		
-	#old, #new {
+	#new {
 		position: absolute;
 		top: 0;
 		left: 0;
 	}
 
 	.container-transitions {
-		transition: opacity 1s;
+		transition: opacity 0.5s ease-in-out;
 	}
 </style>
 <template>
@@ -46,12 +46,17 @@ Polymer({
 			type: Object,
 			observer: "onContentChange"
 		},
+		animated: {
+			type: Boolean,
+			value: true
+		},
 	},
 	behaviors: [
 		Polymer.IronResizableBehavior
 	],
 	listeners: {
-		"iron-resize": "onResize"
+		"iron-resize": "onResize",
+
 	},
 
 	ready: function() {
@@ -60,42 +65,71 @@ Polymer({
 		this.currentAnimation = null;
 	},
 
+	setAnimations: function(bool) {
+		this.toggleClass("box-transitions", bool, this.$.box);
+		this.toggleClass("container-transitions", bool, this.$.old);
+		this.toggleClass("container-transitions", bool, this.$.new);
+	},
+
+	replaceWithThrowaway: function() {
+		let o = this.$.old.firstChild;
+		if (o)
+			this.$.old.removeChild(o);
+
+		let clone = o.cloneNode(true);
+		this.$.old.appendChild(clone);
+	},
+
 	onContentChange: function(n, o) {
 		this.pendingChange = () => {
+			this.pendingChange = null;
+
 			console.log("swap:", n, o);
 
-			this.toggleClass("box-transitions", false, this.$.box);
-			if (o) {
-				this.$.box.style.height = o.offsetHeight + "px";
-				this.$.old.appendChild(o);
-			} else
-				this.$.box.style.height = 0;
-			this.$.new.appendChild(n);
+			this.setAnimations(false);
+			this.$.box.style.height = this.offsetHeight + "px";
+			if (n == null)
+				n = document.createElement("DIV");
+			if (n) {
+				this.$.new.appendChild(n);
+				n.style.backgroundColor = "transparent";
+			}
 
-			this.toggleClass("container-transitions", false, this.$.old);
-			this.toggleClass("container-transitions", false, this.$.new);
 			this.$.old.style.opacity = 1.0;
 			this.$.new.style.opacity = 0.0;
 
-			Polymer.dom.flush();
+			this.setAnimations(this.animated);
+			this.$.box.style.height = n ? (n.offsetHeight + "px") : 0;
+			this.$.old.style.opacity = 0.0;
+			this.$.new.style.opacity = 1.0;
 
-			let v = setInterval(
-				() => {
-					clearInterval(v);
-					console.log("new size:", n.offsetWidth, n.offsetHeight);
+			let ontransitionend = () => {
+				this.removeEventListener("transitionend", ontransitionend);
 
-					this.toggleClass("box-transitions", true, this.$.box);
-					this.toggleClass("container-transitions", true, this.$.old);
-					this.toggleClass("container-transitions", true, this.$.new);
-					this.$.box.style.height = n.offsetHeight + "px";
-					this.$.old.style.opacity = 0.0;
-					this.$.new.style.opacity = 1.0;
+				let o = this.$.old.firstChild;
+				if (o)
+					this.$.old.removeChild(o);
 
-					this.pendingChange = null;
-					console.log("new size:", n.offsetWidth, n.offsetHeight);
-				},
-				100
-			);
+				let n = this.$.new.firstChild;
+				if (n) {
+					this.$.old.appendChild(n);
+					n.style.backgroundColor = "transparent";
+				}
+
+				this.setAnimations(false);
+				this.$.old.style.opacity = 1.0;
+				this.$.box.style.height = "";
+
+				console.log("animation end");
+				this.fire("animation-end");
+			};
+
+			if (!this.animated)
+				ontransitionend();
+			else {
+				console.log("animation start");
+				this.addEventListener("transitionend", ontransitionend);
+			}
 		};
 
 		if (this.clientWidth > 0)
@@ -103,10 +137,24 @@ Polymer({
 	},
 
 	onResize: function() {
-		this.$.old.style.width = this.$.new.style.width = this.clientWidth + "px";
+		console.log("onResize", this.clientWidth);
+		this.$.old.style.width = this.$.new.style.width = this.offsetWidth + "px";
 
-		if (this.clientWidth > 0)
+		if ((this.clientWidth > 0) && (this.pendingChange != null))
 			this.pendingChange();
+	},
+
+	then: function(f) {
+		let h = () => {
+			if (!h)
+				return;
+
+			h = null;
+			this.removeEventListener("animation-end", h);
+			return f();
+		};
+
+		this.addEventListener("animation-end", h);
 	},
 });
 

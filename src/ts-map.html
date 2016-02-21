@@ -100,9 +100,10 @@ Polymer({
 		let edges = [];
 
 		for (let r of rooms) {
+			let parsed = r.parse();
 			nodes.push(r);
 
-			for (let exit of r.parsed.exits) {
+			for (let exit of parsed.exits) {
 				if (!G.rooms.get(exit))
 					nodes.push(
 						{

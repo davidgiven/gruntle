@@ -1,10 +1,9 @@
-<link href='https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic' rel='stylesheet' type='text/css'>
 <link rel="import" href="ts-transformer.html">
 
 <style>
 	.transcript {
 		text-rendering: optimizeLegibility;
-		font-family: 'Merriweather', serif;
+		font-family: 'Lora', serif;
 		text-align: justify;
 		line-height: 1.8em;
 		overflow-wrap: break-word;
@@ -88,7 +87,21 @@
 
 function divWithClass(c) {
 	let e = document.createElement("DIV");
-	Polymer.dom(e).setAttribute("class", c);
+	e.setAttribute("class", c);
+	return e;
+}
+
+function createDiv(...elements) {
+	let div = document.createElement("DIV");
+	for (let e of elements)
+		div.appendChild(e);
+	return div;
+}
+
+function createTextNode(elementType, text) {
+	let e = document.createElement(elementType);
+	let t = document.createTextNode(text);
+	e.appendChild(t);
 	return e;
 }
 
@@ -106,58 +119,151 @@ function appendTextNode(paragraph, text) {
 	paragraph.appendChild(t);
 }
 
+let chain = [];
+let running = false;
+
+function consume_next() {
+	console.log("queue consume");
+	let next = chain.shift();
+	if (!next) {
+		console.log("queue runner terminate");
+		running = false;
+		return null;
+	}
+
+	return new Promise(next).then(
+		() => consume_next()
+	);
+}
+
+function queue(cb) {
+	console.log("queue add");
+	chain.push(cb);
+	if (!running) {
+		console.log("queue runner start");
+		running = true;
+		consume_next();
+	}
+}
+
 Polymer({
 	is: "ts-transcript",
 
 	ready: function() {
-		this._room = null;
-		this._title = null;
-		this._body = null;
-		this._choices = null;
+		this.roomDiv = null;
+		this.titleT = null;
+		this.bodyT = null;
+		this.choicesT = null;
+		this.bodyDom = null;
+		this.choicesDom = null;
 	},
 
-	newRoom: function(room) {
-		let $ = this.$;
+	newRoom: function({title, bodyDom, choicesDom}) {
+		queue(
+			(pass, fail) => {
+				console.log("-> newRoom");
+				let $ = this.$;
 
-		if (this._choices != null)
-			Polymer.dom(this._room).removeChild(this._choices);
+				this.roomDiv = divWithClass("transcript");
+				this.titleT = document.createElement("ts-transformer");
+				this.bodyT = document.createElement("ts-transformer");
+				this.choicesT = null;
 
-		this._room = divWithClass("room");
-		this._title = document.createElement("H1");
-		this._body = document.createElement("ts-transformer");
-		this._choices = document.createElement("DIV");
+				this.bodyDom = bodyDom;
+				this.choicesDom = choicesDom;
 
-		Polymer.dom($.container).appendChild(this._room);
-		Polymer.dom(this._room).appendChild(this._title);
-		Polymer.dom(this._room).appendChild(this._body);
-		Polymer.dom(this._room).appendChild(this._choices);
+				$.container.appendChild(this.roomDiv);
+				this.roomDiv.appendChild(this.titleT);
+				this.roomDiv.appendChild(this.bodyT);
 
-		this.updateRoom(room);
+				this.titleT.content = createTextNode("H1", title);
+				this.bodyT.content = createDiv(bodyDom, choicesDom);
+
+				this.bodyT.then(pass);
+			}
+		);
 	},
 
-	updateRoom: function(room) {
-		empty(this._title);
+	hideChoices: function() {
+		queue(
+			(pass, fail) => {
+				console.log("-> hideChoices");
+				if (this.choicesT == null) {
+					/* This room hasn't been split yet; do so. */
+					
+					this.bodyT.replaceWithThrowaway();
+					this.bodyT.content = this.bodyDom;
 
-		let parsed = room.parsed;
+					this.choicesT = document.createElement("ts-transformer");
+					console.log("choicesT", this.choicesT);
 
-		appendTextNode(this._title, room.title);
-
-		empty(this._choices);
-		if (parsed.choicesDom != null)
-			Polymer.dom(this._choices).appendChild(parsed.choicesDom);
-
-		this._body.content = parsed.dom;
+					this.bodyT.then(pass);
+				} else {
+					this.choicesT.content = null;
+					this.choicesT.then(pass);
+				}
+			}
+		);
 	},
 
-	append: function(event) {
-		Polymer.dom(this._room).removeChild(this._choices);
+	showChoices: function() {
+		queue(
+			(pass, fail) => {
+				console.log("-> showChoices");
+					console.log("choicesT", this.choicesT);
+				if (this.choicesT == null) {
+					/* This room hasn't been split yet; choices are already
+					visible. */
+					pass();
+				} else if (this.choicesT.content != null) {
+					/* Choices are already visible. */
+					pass();
+				} else {
+					this.roomDiv.appendChild(this.choicesT);
+					this.choicesT.content = this.choicesDom;
+					this.choicesT.then(pass);
+				}
+			}
+		);
+	},
 
-		let t = divWithClass("chunk");
-		let n = document.createTextNode(event.text);
-		t.appendChild(n);
-		Polymer.dom(this._room).appendChild(t);
+	updateRoom: function({title, bodyDom, choicesDom}) {
+		queue(
+			(pass, fail) => {
+				console.log("-> updateRoom");
 
-		Polymer.dom(this._room).appendChild(this._choices);
+				this.titleT.content = createTextNode("H1", title);
+
+				this.bodyDom = bodyDom;
+				this.choicesDom = choicesDom;
+
+				if (this.choicesT == null) {
+					/* Unseparated room description. */
+
+					this.bodyT.content = createDiv(bodyDom, choicesDom);
+					this.bodyT.then(pass);
+				} else {
+					/* Split body and choices. */
+
+					this.bodyT.content = bodyDom;
+					this.choicesT.content = choicesDom;
+					this.bodyT.then(pass);
+				}
+			}
+		);
+	},
+
+	append: function(text) {
+		let room = this._currentRoom;
+		queue(
+			(pass, fail) => {
+				let t = document.createElement("ts-transformer");
+				t.content = createTextNode("P", text);
+				this.roomDiv.appendChild(t);
+
+				t.then(pass);
+			}
+		);
 	}
 });
 

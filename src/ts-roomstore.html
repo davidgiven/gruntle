@@ -81,8 +81,10 @@ class Room {
 		return this._ensurePending("text", "pendingText");
 	}
 
-	get parsed() {
-		return $.parser.parse(this.text, this);
+	parse() {
+		return $.parser.parse(this.text,
+			(actions) => G.rooms.fire("user-action", actions)
+		);
 	}
 	
 	_ensurePending(original, pending) {
@@ -132,32 +134,6 @@ class Room {
 		postEvent(this, "broadcast", null, text);
 	}
 
-	onBeginAction(text) {
-		this.tell(G.player, "> " + text);
-	}
-
-	onTellPlayerAction(text) {
-		this.tell(G.player, text);
-	}
-
-	onTellOthersAction(text) {
-		this.tellOthers(G.player, text);
-	}
-
-	onTellAllAction(text) {
-		this.broadcast(text);
-	}
-
-	onGotoAction(name) {
-		let room = cacheGet(name);
-		if (room == null)
-			roomstore.fire("hyperspace", G.player.location);
-		else {
-			this.tellOthers(G.player, `${G.player.name} goes to ${room.title}.`);
-			room.tellOthers(G.player, `${G.player.name} arrives from ${G.player.location.title}.`);
-			G.player.location = room;
-		}
-	}
 }
 
 function loadRoom(id) {

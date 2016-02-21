@@ -1,3 +1,4 @@
+<link href="https://fonts.googleapis.com/css?family=Lora:400,400italic,700,700italic" rel="stylesheet" type="text/css">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-fab-transitions/paper-fab-speed-dial.html">
@@ -108,6 +109,7 @@
 	<ts-roomstore id="roomstore"
 		on-room-changed="onRoomChanged"
 		on-hyperspace="onHyperspaceJump"
+		on-user-action="onUserAction"
 		></ts-roomstore>
 
 	<paper-dialog id="editorDialogue" modal="true">
@@ -221,16 +223,16 @@ function roomEventListener(e) {
 		switch (e.kind) {
 			case "tellOthers":
 				if (e.player != G.player.id)
-					$.transcript.append(e);
+					$.transcript.append(e.text);
 				break;
 
 			case "tell":
 				if (e.player == G.player.id)
-					$.transcript.append(e);
+					$.transcript.append(e.text);
 				break;
 
 			case "broadcast":
-				$.transcript.append(e);
+				$.transcript.append(e.text);
 				break;
 
 			default:
@@ -339,7 +341,14 @@ Polymer({
 			return;
 		}
 
-		$.transcript.newRoom(newRoom);
+		let parsed = newRoom.parse();
+		$.transcript.newRoom(
+			{
+				title: newRoom.title,
+				bodyDom: parsed.dom,
+				choicesDom: parsed.choicesDom
+			}
+		);
 
 		G.hub.get(newRoom.id).addEventListener(
 			gapi.drive.realtime.EventType.VALUES_ADDED,
@@ -391,8 +400,16 @@ Polymer({
 	},
 
 	onRoomChanged: function(event, room) {
-		if (room && (G.player.location == room))
-			$.transcript.updateRoom(G.player.location);
+		if (room && (G.player.location == room)) {
+			let parsed = G.player.location.parse();
+			$.transcript.updateRoom(
+				{
+					title: G.player.location.title,
+					bodyDom: parsed.dom,
+					choicesDom: parsed.choicesDom
+				}
+			);
+		}
 		$.map.updateMap();
 	},
 
@@ -404,6 +421,36 @@ Polymer({
 
 		let entrypoint = G.worldConfig.get("entrypoint");
 		G.player.location = G.rooms.get(entrypoint);
+	},
+
+	onUserAction: function(e, actions) {
+		$.transcript.hideChoices();
+
+		const actionHandler = {
+			beginAction:      (text) => G.player.location.tell(G.player, "> " + text),
+			tellPlayerAction: (text) => G.player.location.tell(G.player, text),
+			tellOthersAction: (text) => G.player.location.tellOthers(G.player, text),
+			tellAllAction:    (text) => G.player.location.broadcast(text),
+
+			gotoAction: (name) => {
+				let room = G.rooms.get(name);
+				if (room == null)
+					this.onHyperspaceJump(null, G.player.location);
+				else {
+					G.player.location.tellOthers(G.player, `${G.player.name} goes to ${room.title}.`);
+					room.tellOthers(G.player, `${G.player.name} arrives from ${G.player.location.title}.`);
+					G.player.location = room;
+				}
+			}
+		};
+
+		for (let [action, arg] of actions)
+			actionHandler[action](arg);
+
+		/* TODO: fix this, it's horrible. This gives enough time for the event
+		 * handlers to fire and tell the transcript what to do, so showChoices()
+		 * always runs last. */
+		this.async(() => $.transcript.showChoices(), 500);
 	},
 });
 
