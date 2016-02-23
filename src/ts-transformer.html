@@ -12,10 +12,16 @@
 		position: relative;
 	}
 
-	.transitions {
+	.fade-zoom {
 		transition: width 0.5s ease-in-out,
 					height 0.5s ease-in-out,
 					opacity 0.5s ease-in-out;
+	}
+		
+	.fast-fade-zoom {
+		transition: width 0.2s ease-in-out,
+					height 0.2s ease-in-out,
+					opacity 0.2s ease-in-out;
 	}
 		
 	#new {
@@ -47,6 +53,10 @@ Polymer({
 			type: Boolean,
 			value: true
 		},
+		animation: {
+			type: String,
+			value: "fade-zoom"
+		},
 	},
 	behaviors: [
 		Polymer.IronResizableBehavior
@@ -58,14 +68,14 @@ Polymer({
 
 	ready: function() {
 		this.G = G;
-		this.pendingChange = null;
-		this.currentAnimation = null;
+		this._pendingChange = null;
+		this._animating = false;
 	},
 
 	setAnimations: function(bool) {
-		this.toggleClass("transitions", bool, this.$.box);
-		this.toggleClass("transitions", bool, this.$.old);
-		this.toggleClass("transitions", bool, this.$.new);
+		this.toggleClass(this.animation, bool, this.$.box);
+		this.toggleClass(this.animation, bool, this.$.old);
+		this.toggleClass(this.animation, bool, this.$.new);
 		Polymer.dom.flush();
 	},
 
@@ -79,8 +89,8 @@ Polymer({
 	},
 
 	onContentChange: function(n, o) {
-		this.pendingChange = () => {
-			this.pendingChange = null;
+		this._pendingChange = () => {
+			this._pendingChange = null;
 
 			console.log("swap:", n, o);
 
@@ -116,41 +126,46 @@ Polymer({
 				this.$.old.style.opacity = 1.0;
 				this.$.box.style.height = "";
 
-				console.log("animation end");
+				this._animating = false;
 				this.fire("animation-end");
 			};
 
 			if (!this.animated)
 				ontransitionend();
 			else {
+				this._animating = true;
 				console.log("animation start");
 				this.addEventListener("transitionend", ontransitionend);
 			}
 		};
 
 		if (this.clientWidth > 0)
-			this.pendingChange();
+			this._pendingChange();
 	},
 
 	onResize: function() {
 		console.log("onResize", this.clientWidth);
 		this.$.old.style.width = this.$.new.style.width = this.offsetWidth + "px";
 
-		if ((this.clientWidth > 0) && (this.pendingChange != null))
-			this.pendingChange();
+		if ((this.clientWidth > 0) && (this._pendingChange != null))
+			this._pendingChange();
 	},
 
 	then: function(f) {
-		let h = () => {
-			if (!h)
-				return;
+		if (this._animating) {
+			let h = () => {
+				if (!h)
+					return;
 
-			h = null;
-			this.removeEventListener("animation-end", h);
-			return f();
-		};
+				h = null;
+				this.removeEventListener("animation-end", h);
+				return f();
+			};
 
-		this.addEventListener("animation-end", h);
+			this.addEventListener("animation-end", h);
+		} else {
+			f();
+		}
 	},
 });
 

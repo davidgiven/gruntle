@@ -29,9 +29,11 @@
 	}
 
 	#game {
+		position: relative;
 		min-height: 100vh;
 		overflow-y: scroll;
 		height: 0;
+		transition: scrollTop 0.5s ease-in-out,
 	}
 
 	#game ts-transcript {
@@ -140,16 +142,6 @@
 		</div>
 
 		<div id="game">
-			<paper-fab-speed-dial direction="bottom">
-				<paper-fab icon="menu" class="dropdown-trigger"></paper-fab>
-				<div class="dropdown-content">
-					<paper-fab mini icon="settings" id="settingsButton"></paper-fab>
-					<paper-fab mini hidden="{{!author}}" icon="create"
-						on-click="onEditButton"></paper-fab>
-					<paper-fab mini hidden="{{!author}}" icon="explore"
-						on-click="onMapButton"></paper-fab>
-				</div>
-			</paper-fab-speed-dial>
 			<ts-transcript id="transcript">
 			</ts-transcript>
 			<div id="talkboxContainer">
@@ -161,6 +153,16 @@
 					>
 				</paper-input>
 			</div>
+			<paper-fab-speed-dial direction="bottom">
+				<paper-fab icon="menu" class="dropdown-trigger"></paper-fab>
+				<div class="dropdown-content">
+					<paper-fab mini icon="settings" id="settingsButton"></paper-fab>
+					<paper-fab mini hidden="{{!author}}" icon="create"
+						on-click="onEditButton"></paper-fab>
+					<paper-fab mini hidden="{{!author}}" icon="explore"
+						on-click="onMapButton"></paper-fab>
+				</div>
+			</paper-fab-speed-dial>
 		</div>
 
 		<ts-login id="login"
@@ -407,6 +409,7 @@ Polymer({
 
 	onUserAction: function(e, actions) {
 		$.transcript.hideChoices();
+		$.transcript.setMark();
 
 		const actionHandler = {
 			beginAction:      (text) => G.player.location.tell(G.player, "> " + text),
@@ -419,6 +422,7 @@ Polymer({
 				if (room == null)
 					this.onHyperspaceJump(null, G.player.location);
 				else {
+					$.transcript.scrollToMark();
 					G.player.location.tellOthers(G.player, `${G.player.name} goes to ${room.title}.`);
 					room.tellOthers(G.player, `${G.player.name} arrives from ${G.player.location.title}.`);
 					G.player.location = room;

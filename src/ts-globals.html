@@ -5,6 +5,25 @@
 
 let G = {};
 
+G.findScrollable = function(element) {
+	do {
+		if (element.clientHeight != element.scrollHeight)
+			return element;
+
+		element = element.parentElement;
+	} while (element != null);
+	return element;
+};
+
+G.findRelativeYOffset = function(element, top) {
+	let y = 0;
+	while (element != top) {
+		y += element.offsetTop;
+		element = element.offsetParent;
+	}
+	return y;
+};
+
 G.ensureList = function(doc, node, name) {
 	let v = node.get(name);
 	if (!v) {
@@ -12,7 +31,7 @@ G.ensureList = function(doc, node, name) {
 		node.set(name, v);
 	}
 	return v
-}
+};
 
 G.ensureMap = function(doc, node, name) {
 	let v = node.get(name);
@@ -21,7 +40,7 @@ G.ensureMap = function(doc, node, name) {
 		node.set(name, v);
 	}
 	return v
-}
+};
 
 G.MessageQueue = class MessageQueue {
 	constructor(hubDocNode, onMessage) {
@@ -62,7 +81,7 @@ G.MessageQueue = class MessageQueue {
 
 		return e;
 	}
-}
+};
 
 Polymer({
 	is: "ts-globals",

@@ -1,4 +1,5 @@
 <link rel="import" href="ts-transformer.html">
+<link rel="import" href="ts-globals.html">
 
 <style>
 	.transcript {
@@ -22,7 +23,7 @@
 		font-size: 120%;
 		font-weight: bold;
 		margin: 0;
-		padding-top: 1.5em;
+		padding-top: 0.5em;
 		padding-bottom: 1em;
 	}
 
@@ -67,7 +68,7 @@
 	}
 
 	#blank {
-		height: 100vh;
+		height: 200vh;
 	}
 
 	#textbox {
@@ -78,6 +79,7 @@
 	}
 	</style>
 
+	<ts-globals id="globals"></ts-globals>
 	<div id="container" class="transcript"></div>
 	<div id="blank"></div>
 </template>
@@ -85,8 +87,10 @@
 (function () {
 "use strict";
 
-function divWithClass(c) {
-	let e = document.createElement("DIV");
+let G = null;
+
+function createElementWithClass(elementType, c) {
+	let e = document.createElement(elementType);
 	e.setAttribute("class", c);
 	return e;
 }
@@ -150,12 +154,15 @@ Polymer({
 	is: "ts-transcript",
 
 	ready: function() {
+		G = this.$.globals.G;
+
 		this.roomDiv = null;
 		this.titleT = null;
 		this.bodyT = null;
 		this.choicesT = null;
 		this.bodyDom = null;
 		this.choicesDom = null;
+		this.mark = null;
 	},
 
 	newRoom: function({title, bodyDom, choicesDom}) {
@@ -164,10 +171,10 @@ Polymer({
 				console.log("-> newRoom");
 				let $ = this.$;
 
-				this.roomDiv = divWithClass("transcript");
+				this.roomDiv = createElementWithClass("DIV", "transcript");
 				this.titleT = document.createElement("ts-transformer");
 				this.bodyT = document.createElement("ts-transformer");
-				this.choicesT = null;
+				this.choicesT = document.createElement("ts-transformer");
 
 				this.bodyDom = bodyDom;
 				this.choicesDom = choicesDom;
@@ -175,9 +182,11 @@ Polymer({
 				$.container.appendChild(this.roomDiv);
 				this.roomDiv.appendChild(this.titleT);
 				this.roomDiv.appendChild(this.bodyT);
+				this.roomDiv.appendChild(this.choicesT);
 
 				this.titleT.content = createTextNode("H1", title);
-				this.bodyT.content = createDiv(bodyDom, choicesDom);
+				this.bodyT.content = bodyDom;
+				this.choicesT.content = choicesDom;
 
 				this.bodyT.then(pass);
 			}
@@ -188,20 +197,8 @@ Polymer({
 		queue(
 			(pass, fail) => {
 				console.log("-> hideChoices");
-				if (this.choicesT == null) {
-					/* This room hasn't been split yet; do so. */
-					
-					this.bodyT.replaceWithThrowaway();
-					this.bodyT.content = this.bodyDom;
-
-					this.choicesT = document.createElement("ts-transformer");
-					console.log("choicesT", this.choicesT);
-
-					this.bodyT.then(pass);
-				} else {
-					this.choicesT.content = null;
-					this.choicesT.then(pass);
-				}
+				this.choicesT.content = null;
+				this.choicesT.then(pass);
 			}
 		);
 	},
@@ -210,16 +207,12 @@ Polymer({
 		queue(
 			(pass, fail) => {
 				console.log("-> showChoices");
-					console.log("choicesT", this.choicesT);
-				if (this.choicesT == null) {
-					/* This room hasn't been split yet; choices are already
-					visible. */
-					pass();
-				} else if (this.choicesT.content != null) {
+				if (this.choicesT.content != null) {
 					/* Choices are already visible. */
 					pass();
 				} else {
 					this.roomDiv.appendChild(this.choicesT);
+
 					this.choicesT.content = this.choicesDom;
 					this.choicesT.then(pass);
 				}
@@ -237,18 +230,9 @@ Polymer({
 				this.bodyDom = bodyDom;
 				this.choicesDom = choicesDom;
 
-				if (this.choicesT == null) {
-					/* Unseparated room description. */
-
-					this.bodyT.content = createDiv(bodyDom, choicesDom);
-					this.bodyT.then(pass);
-				} else {
-					/* Split body and choices. */
-
-					this.bodyT.content = bodyDom;
-					this.choicesT.content = choicesDom;
-					this.bodyT.then(pass);
-				}
+				this.bodyT.content = bodyDom;
+				this.choicesT.content = choicesDom;
+				this.bodyT.then(pass);
 			}
 		);
 	},
@@ -258,13 +242,57 @@ Polymer({
 		queue(
 			(pass, fail) => {
 				let t = document.createElement("ts-transformer");
+				t.animation = "fast-fade-zoom";
 				t.content = createTextNode("P", text);
 				this.roomDiv.appendChild(t);
 
 				t.then(pass);
 			}
 		);
-	}
+	},
+
+	setMark: function() {
+		queue(
+			(pass, fail) => {
+				this.mark = createElementWithClass("DIV", "mark");
+				this.roomDiv.appendChild(this.mark);
+
+				pass();
+			}
+		);
+	},
+
+	scrollToMark: function() {
+		queue(
+			(pass, fail) => {
+				if (this.mark == null)
+					return;
+
+				let s = G.findScrollable(this);
+				if (s != null) {
+					let a = new KeyframeEffect(
+						s,
+						[],
+						{
+							duration: 1000,
+							easing: "ease-in-out"
+						}
+					);
+					let starty = s.scrollTop;
+					a.onsample = (fraction, e, a) => {
+						let endy = G.findRelativeYOffset(this.mark, s);
+
+						if (fraction != null)
+							s.scrollTop = starty - fraction*(starty-endy);
+					};
+
+					document.timeline.play(a);
+				}
+				
+				pass();
+			}
+		);
+	},
 });
 
 })();
