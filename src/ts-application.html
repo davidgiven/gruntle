@@ -77,12 +77,25 @@
 		font-size: 140%;
 	}
 
-	#editorDialogue, #mapDialogue {
-		position: fixed;
-		left: 1em;
-		top: 2em;
-		right: 1em;
-		bottom: 2em;
+	@media (min-width: 800px) {
+		#editorDialogue, #mapDialogue {
+			position: fixed;
+			left: 1em;
+			top: 2em;
+			right: 1em;
+			bottom: 2em;
+			margin: 0;
+		}
+	}
+	@media (max-width: 800px) {
+		#editorDialogue, #mapDialogue {
+			position: fixed;
+			left: 0;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			margin: 0;
+		}
 	}
 
 	paper-dialog > *:first-child {

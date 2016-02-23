@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
@@ -8,6 +9,58 @@
 <link rel="import" href="ts-transcript.html">
 <link rel="import" href="ts-parser.html">
 <link rel="import" href="ts-globals.html">
+
+<dom-module id="ts-editor-help">
+<template>
+	<p>Herewith is a very quick reference to the markup
+	language. This is all provisional and subject to change
+	without notice.</p>
+
+	<p><b>Blank lines separate paragraphs.</b> Newlines are
+	otherwise ignored.</p>
+
+	<p><b>{Some text} makes a link.</b> You can have as many as
+	you like. It's recommended that you only have one per
+	source line, however, because...</p>
+
+	<p><b>A line beginning with <code>#</code> adds an action
+	to the most recent link.</b> You can have as many actions
+	per link as you like (although having multiple
+	<code>#goto</code> actions prodably isn't useful).</p>
+
+	<p><b>A line beginning with <code>-</code> adds an entry to
+	the 'What would you like to do?' list.</b> This probably
+	wants to be a link with actions. These are all collected
+	together at the end of your text; see the preview.</p>
+
+	<p>Actions include:</p>
+
+	<p><b><code>#goto</code></b>: moves the player to the named
+	room.</p>
+
+	<p><b><code>#tellPlayer</code></b>: tells the player, and
+	only the player, something.</p>
+
+	<p><b><code>#tellOthers</code></b>: tells everybody
+	<i>except</i> the player something.</p>
+
+	<p><b><code>#tellAll</code></b>: tells everybody, including
+	the player, something.</p>
+
+	<p>In addition: <b><code>${name}</code> expands to the
+	current player's name</b> everywhere.</p>
+</template>
+<script>
+(function () {
+"use strict";
+
+Polymer({
+	is: "ts-editor-help"
+});
+
+})();
+</script>
+</dom-module>
 
 <dom-module id="ts-editor">
 <style>
@@ -20,6 +73,10 @@
 		@apply(--layout-flex);
 		@apply(--layout-horizontal);
 		margin-top: 1em;
+	}
+
+	paper-material {
+		margin: 0;
 	}
 
 	.left {
@@ -45,11 +102,16 @@
 		@apply(--transcript-text);
 	}
 
-	#titlePreview {
+	.helpPane {
+		@apply(--layout-flex);
+		@apply(--layout-vertical);
+	}
+
+	.titlePreview {
 		@apply(--transcript-title);
 	}
 
-	#choicesPreview li p {
+	.choicesPreview li p {
 		@apply(--transcript-choice);
 	}
 
@@ -58,78 +120,74 @@
         color: #fff;
 	}
 
+	paper-tab {
+		@apply(--layout-flex};
+	}
+
 	</style>
 
 <template>
 	<ts-globals id="globals"></ts-globals>
 	<ts-parser id="parser"></ts-parser>
+	<iron-media-query query="(min-width: 800px)" query-matches="{{isWide}}"></iron-media-query>
 
 	<h2>Editing room: {{roomId}}</h2>
 	<div class="columns">
-		<paper-material class="tabPane left">
-			<paper-tabs selected="{{leftPanePage}}">
-				<paper-tab>Source</paper-tab>
-			</paper-tabs>
-				
-			<iron-pages class="scrollable" selected="{{leftPanePage}}">
-				<div class="editorPane">
-					<paper-input id="titleEditor" label="Name visible to players" value="{{titleContent}}"></paper-input>
-					<paper-textarea id="textEditor" label="Room content" value="{{textContent}}"></paper-textarea>
-				</div>
-			</iron-pages>
-		</paper-material>
-		<paper-material class="tabPane right">
-			<paper-tabs selected="{{rightPanePage}}">
-				<paper-tab>Preview</paper-tab>
-				<paper-tab>Help</paper-tab>
-			</paper-tabs>
-				
-			<iron-pages class="scrollable" selected="{{rightPanePage}}">
-				<div class="previewPane transcript">
-					<h1 id="titlePreview"></h1>
-					<div id="bodyPreview"></div>
-					<div id="choicesPreview" class="transcript"></div>
-				</div>
-				<div class="helpPane">
-					<p>Herewith is a very quick reference to the markup
-					language. This is all provisional and subject to change
-					without notice.</p>
-
-					<p><b>Blank lines separate paragraphs.</b> Newlines are
-					otherwise ignored.</p>
-
-					<p><b>Curly braces make links.</b> You can have as many as
-					you like. It's recommended that you only have one per
-					source line, however, because...</p>
-
-					<p><b>A line beginning with <code>#</code> adds an action
-					to the most recent link.</b> You can have as many actions
-					per link as you like (although having multiple
-					<code>#goto</code> actions prodably isn't useful).</p>
-
-					<p><b>A line beginning with <code>-</code> adds an entry to
-					the 'What would you like to do?' list.</b> This probably
-					wants to be a link with actions.</p>
-
-					<p>Actions include:</p>
-
-					<p><b><code>#goto</code></b>: moves the player to the named
-					room.</p>
-
-					<p><b><code>#tellPlayer</code></b>: tells the player, and
-					only the player, something.</p>
-
-					<p><b><code>#tellOthers</code></b>: tells everybody
-					<i>except</i> the player something.</p>
-
-					<p><b><code>#tellAll</code></b>: tells everybody, including
-					the player, something.</p>
-
-					<p>In addition: <b><code>${name}</code> expands to the
-					current player's name</b> everywhere.</p>
-				</div>
-			</iron-pages>
-		</paper-material>
+		<template is="dom-if" if="{{isWide}}" restamp="true">
+			<paper-material class="tabPane left">
+				<paper-tabs selected="{{leftPanePage}}">
+					<paper-tab>Source</paper-tab>
+				</paper-tabs>
+					
+				<iron-pages class="scrollable" selected="{{leftPanePage}}">
+					<div class="editorPane">
+						<paper-input label="Name visible to players" value="{{titleContent}}"></paper-input>
+						<paper-textarea label="Room content" value="{{textContent}}"></paper-textarea>
+					</div>
+				</iron-pages>
+			</paper-material>
+			<paper-material class="tabPane right">
+				<paper-tabs selected="{{rightPanePage}}">
+					<paper-tab>Preview</paper-tab>
+					<paper-tab>Help</paper-tab>
+				</paper-tabs>
+					
+				<iron-pages class="scrollable" selected="{{rightPanePage}}">
+					<div class="previewPane transcript">
+						<h1 class="titlePreview"></h1>
+						<div class="bodyPreview"></div>
+						<div class="choicesPreview transcript"></div>
+					</div>
+					<div class="helpPane">
+						<ts-editor-help></ts-editor-help>
+					</div>
+				</iron-pages>
+			</paper-material>
+		</template>
+		<template is="dom-if" if="{{!isWide}}" restamp="true">
+			<paper-material class="tabPane">
+				<paper-tabs selected="{{combinedPanePage}}">
+					<paper-tab>Source</paper-tab>
+					<paper-tab>Preview</paper-tab>
+					<paper-tab>Help</paper-tab>
+				</paper-tabs>
+					
+				<iron-pages class="scrollable" selected="{{combinedPanePage}}">
+					<div class="editorPane">
+						<paper-input label="Name visible to players" value="{{titleContent}}"></paper-input>
+						<paper-textarea label="Room content" value="{{textContent}}"></paper-textarea>
+					</div>
+					<div class="previewPane transcript">
+						<h1 class="titlePreview"></h1>
+						<div class="bodyPreview"></div>
+						<div class="choicesPreview transcript"></div>
+					</div>
+					<div class="helpPane">
+						<ts-editor-help></ts-editor-help>
+					</div>
+				</iron-pages>
+			</paper-material>
+		</template>
 	</div>
 	<div class="buttons">
 		<paper-button on-click="onRevert">Revert changes</paper-button>
@@ -168,6 +226,10 @@ Polymer({
 			type: String,
 			observer: "onTextChangedByUI"
 		},
+		isWide: {
+			type: Boolean,
+			observer: "updatePreview"
+		},
 	},
 
 	ready: function() {
@@ -183,6 +245,7 @@ Polymer({
 
 		this.leftPanePage = 0;
 		this.rightPanePage = 0;
+		this.combinedPanePage = 0;
 	},
 
 	bind: function() {
@@ -250,33 +313,39 @@ Polymer({
 	},
 
 	updatePreview: function() {
-		if (!this.room)
-			return;
+		this.async(
+			() => {
+				if (!this.room)
+					return;
 
-		let title = this.room.pendingTitle.getText();
-		empty(this.$.titlePreview);
-		this.$.titlePreview.appendChild(
-			document.createTextNode(title)
+				let title = this.room.pendingTitle.getText();
+				let titlePreview = this.$$(".titlePreview");
+				empty(titlePreview);
+				titlePreview.appendChild(
+					document.createTextNode(title)
+				);
+
+				let parsed = this.$.parser.parse(
+					this.room.pendingText.getText(),
+					G.player.name
+				);
+
+				let bodyPreview = this.$$(".bodyPreview");
+				for (;;) {
+					let child = bodyPreview.firstChild;
+					if (!child)
+						break;
+					bodyPreview.removeChild(child);
+				}
+
+				bodyPreview.appendChild(parsed.dom);
+
+				let choicesPreview = this.$$(".choicesPreview");
+				empty(choicesPreview);
+				if (parsed.choicesDom != null)
+					choicesPreview.appendChild(parsed.choicesDom);
+			}
 		);
-
-		let parsed = this.$.parser.parse(
-			this.room.pendingText.getText(),
-			G.player.name
-		);
-
-		let body = this.$.bodyPreview;
-		for (;;) {
-			let child = body.firstChild;
-			if (!child)
-				break;
-			body.removeChild(child);
-		}
-
-		body.appendChild(parsed.dom);
-
-		empty(this.$.choicesPreview);
-		if (parsed.choicesDom != null)
-			this.$.choicesPreview.appendChild(parsed.choicesDom);
 	}
 });
 
