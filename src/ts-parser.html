@@ -47,10 +47,8 @@ class ParsedText {
 
 		function addLink(link) {
 			if (link != null) {
-				/* a becomes a copy of the new currentAction value */
-				let a = currentAction = [
-					["beginAction", link.innerText]
-				];
+				/* a becomes a reference to the new currentAction value */
+				let a = currentAction = [];
 				link.onclick = () => handler(a);
 			}
 		}

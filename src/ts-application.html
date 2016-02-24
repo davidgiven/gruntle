@@ -425,7 +425,6 @@ Polymer({
 		$.transcript.setMark();
 
 		const actionHandler = {
-			beginAction:      (text) => G.player.location.tell(G.player, "> " + text),
 			tellPlayerAction: (text) => G.player.location.tell(G.player, text),
 			tellOthersAction: (text) => G.player.location.tellOthers(G.player, text),
 			tellAllAction:    (text) => G.player.location.broadcast(text),
