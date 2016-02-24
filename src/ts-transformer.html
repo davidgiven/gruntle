@@ -92,8 +92,6 @@ Polymer({
 		this._pendingChange = () => {
 			this._pendingChange = null;
 
-			console.log("swap:", n, o);
-
 			this.setAnimations(false);
 			this.$.box.style.height = this.offsetHeight + "px";
 			this.$.old.style.opacity = 1.0;
@@ -130,21 +128,19 @@ Polymer({
 				this.fire("animation-end");
 			};
 
+			this._animating = this.animated;
 			if (!this.animated)
 				ontransitionend();
-			else {
-				this._animating = true;
-				console.log("animation start");
+			else
 				this.addEventListener("transitionend", ontransitionend);
-			}
 		};
 
+		this._animating = true;
 		if (this.clientWidth > 0)
 			this._pendingChange();
 	},
 
 	onResize: function() {
-		console.log("onResize", this.clientWidth);
 		this.$.old.style.width = this.$.new.style.width = this.offsetWidth + "px";
 
 		if ((this.clientWidth > 0) && (this._pendingChange != null))
@@ -163,9 +159,8 @@ Polymer({
 			};
 
 			this.addEventListener("animation-end", h);
-		} else {
+		} else
 			f();
-		}
 	},
 });
 
