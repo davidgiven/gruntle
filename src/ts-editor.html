@@ -12,50 +12,100 @@
 
 <dom-module id="ts-editor-help">
 <template>
-	<p>Herewith is a very quick reference to the markup
-	language. This is all provisional and subject to change
-	without notice.</p>
+</template>
+<script>
+Polymer({ is: "ts-editor-help" });
+</script>
+</dom-module>
 
-	<p><b>Blank lines separate paragraphs.</b> Newlines are
-	otherwise ignored.</p>
+<dom-module id="ts-editor-ui">
+<style>
+	:host {
+		@apply(--layout-flex);
+		@apply(--layout-horizontal);
+	}
 
-	<p><b>{Some text} makes a link.</b> You can have as many as
-	you like. It's recommended that you only have one per
-	source line, however, because...</p>
+	.scrollable {
+		@apply(--layout-flex);
+		overflow-y: scroll;
+		padding: 0.5em;
+	}
 
-	<p><b>A line beginning with <code>#</code> adds an action
-	to the most recent link.</b> You can have as many actions
-	per link as you like (although having multiple
-	<code>#goto</code> actions prodably isn't useful).</p>
+	.left {
+		margin-right: 0.5em;
+	}
 
-	<p><b>A line beginning with <code>-</code> adds an entry to
-	the 'What would you like to do?' list.</b> This probably
-	wants to be a link with actions. These are all collected
-	together at the end of your text; see the preview.</p>
+	.right {
+		margin-left: 0.5em;
+	}
 
-	<p>Actions include:</p>
+	paper-material {
+		margin: 0;
+	}
 
-	<p><b><code>#goto</code></b>: moves the player to the named
-	room.</p>
+	paper-tabs {
+        background-color: var(--paper-blue-900);
+        color: #fff;
+	}
 
-	<p><b><code>#tellPlayer</code></b>: tells the player, and
-	only the player, something.</p>
+	paper-tab {
+		@apply(--layout-flex};
+	}
+</style>
+<template>
+	<iron-media-query query="(min-width: 800px)" query-matches="{{isWide}}"></iron-media-query>
 
-	<p><b><code>#tellOthers</code></b>: tells everybody
-	<i>except</i> the player something.</p>
+	<template is="dom-if" if="{{isWide}}" restamp="true">
+		<paper-material class="vertical layout flex left">
+			<paper-tabs selected="{{leftPanePage}}">
+				<paper-tab>Source</paper-tab>
+			</paper-tabs>
+				
+			<iron-pages class="scrollable" selected="{{leftPanePage}}">
+				<content select=".editorPane"></content>
+			</iron-pages>
+		</paper-material>
+		<paper-material class="vertical layout flex right">
+			<paper-tabs selected="{{rightPanePage}}">
+				<paper-tab>Preview</paper-tab>
+				<paper-tab>Help</paper-tab>
+			</paper-tabs>
+				
+			<iron-pages class="scrollable" selected="{{rightPanePage}}">
+				<content select=".previewPane"></content>
+				<content select=".helpPane"></content>
+			</iron-pages>
+		</paper-material>
+	</template>
 
-	<p><b><code>#tellAll</code></b>: tells everybody, including
-	the player, something.</p>
-
-	<p>In addition: <b><code>${name}</code> expands to the
-	current player's name</b> everywhere.</p>
+	<template is="dom-if" if="{{!isWide}}" restamp="true">
+		<paper-material class="vertical layout flex">
+			<paper-tabs selected="{{combinedPanePage}}">
+				<paper-tab>Source</paper-tab>
+				<paper-tab>Preview</paper-tab>
+				<paper-tab>Help</paper-tab>
+			</paper-tabs>
+				
+			<iron-pages class="scrollable" selected="{{combinedPanePage}}">
+				<content select=".editorPane"></content>
+				<content select=".previewPane"></content>
+				<content select=".helpPane"></content>
+			</iron-pages>
+		</paper-material>
+	</template>
 </template>
 <script>
 (function () {
 "use strict";
 
 Polymer({
-	is: "ts-editor-help"
+	is: "ts-editor-ui",
+
+	ready: function() {
+		this.leftPanePage = 0;
+		this.rightPanePage = 0;
+		this.combinedPanePage = 0;
+	}
 });
 
 })();
@@ -67,30 +117,6 @@ Polymer({
 	:host {
 		@apply(--layout-fit);
 		@apply(--layout-vertical);
-	}
-
-	.columns {
-		@apply(--layout-flex);
-		@apply(--layout-horizontal);
-		margin-top: 1em;
-	}
-
-	paper-material {
-		margin: 0;
-	}
-
-	.left {
-		margin-right: 0.5em;
-	}
-
-	.right {
-		margin-left: 0.5em;
-	}
-
-	.scrollable {
-		@apply(--layout-flex);
-		overflow-y: scroll;
-		padding: 0.5em;
 	}
 
 	.tabPane {
@@ -107,6 +133,11 @@ Polymer({
 		@apply(--layout-vertical);
 	}
 
+	.helpPane P {
+		margin-top: 0.5em;
+		margin-bottom: 0.5em;
+	}
+
 	.titlePreview {
 		@apply(--transcript-title);
 	}
@@ -115,13 +146,8 @@ Polymer({
 		@apply(--transcript-choice);
 	}
 
-	paper-tabs {
-        background-color: var(--paper-blue-900);
-        color: #fff;
-	}
-
-	paper-tab {
-		@apply(--layout-flex};
+	h2 {
+		margin-bottom: 0.5em;
 	}
 
 	</style>
@@ -129,66 +155,58 @@ Polymer({
 <template>
 	<ts-globals id="globals"></ts-globals>
 	<ts-parser id="parser"></ts-parser>
-	<iron-media-query query="(min-width: 800px)" query-matches="{{isWide}}"></iron-media-query>
 
 	<h2>Editing room: {{roomId}}</h2>
-	<div class="columns">
-		<template is="dom-if" if="{{isWide}}" restamp="true">
-			<paper-material class="tabPane left">
-				<paper-tabs selected="{{leftPanePage}}">
-					<paper-tab>Source</paper-tab>
-				</paper-tabs>
-					
-				<iron-pages class="scrollable" selected="{{leftPanePage}}">
-					<div class="editorPane">
-						<paper-input label="Name visible to players" value="{{titleContent}}"></paper-input>
-						<paper-textarea label="Room content" value="{{textContent}}"></paper-textarea>
-					</div>
-				</iron-pages>
-			</paper-material>
-			<paper-material class="tabPane right">
-				<paper-tabs selected="{{rightPanePage}}">
-					<paper-tab>Preview</paper-tab>
-					<paper-tab>Help</paper-tab>
-				</paper-tabs>
-					
-				<iron-pages class="scrollable" selected="{{rightPanePage}}">
-					<div class="previewPane transcript">
-						<h1 class="titlePreview"></h1>
-						<div class="bodyPreview"></div>
-						<div class="choicesPreview transcript"></div>
-					</div>
-					<div class="helpPane">
-						<ts-editor-help></ts-editor-help>
-					</div>
-				</iron-pages>
-			</paper-material>
-		</template>
-		<template is="dom-if" if="{{!isWide}}" restamp="true">
-			<paper-material class="tabPane">
-				<paper-tabs selected="{{combinedPanePage}}">
-					<paper-tab>Source</paper-tab>
-					<paper-tab>Preview</paper-tab>
-					<paper-tab>Help</paper-tab>
-				</paper-tabs>
-					
-				<iron-pages class="scrollable" selected="{{combinedPanePage}}">
-					<div class="editorPane">
-						<paper-input label="Name visible to players" value="{{titleContent}}"></paper-input>
-						<paper-textarea label="Room content" value="{{textContent}}"></paper-textarea>
-					</div>
-					<div class="previewPane transcript">
-						<h1 class="titlePreview"></h1>
-						<div class="bodyPreview"></div>
-						<div class="choicesPreview transcript"></div>
-					</div>
-					<div class="helpPane">
-						<ts-editor-help></ts-editor-help>
-					</div>
-				</iron-pages>
-			</paper-material>
-		</template>
-	</div>
+	<ts-editor-ui>
+		<div class="editorPane">
+			<paper-input label="Name visible to players" value="{{titleContent}}"></paper-input>
+			<paper-textarea label="Room content" value="{{textContent}}"></paper-textarea>
+		</div>
+		<div class="previewPane transcript">
+			<h1 class="titlePreview"></h1>
+			<div class="bodyPreview"></div>
+			<div class="choicesPreview transcript"></div>
+		</div>
+		<div class="helpPane">
+			<p>Herewith is a very quick reference to the markup
+			language. This is all provisional and subject to change
+			without notice.</p>
+
+			<p><b>Blank lines separate paragraphs.</b> Newlines are
+			otherwise ignored.</p>
+
+			<p><b>{Some text} makes a link.</b> You can have as many as
+			you like. It's recommended that you only have one per
+			source line, however, because...</p>
+
+			<p><b>A line beginning with <code>#</code> adds an action
+			to the most recent link.</b> You can have as many actions
+			per link as you like (although having multiple
+			<code>#goto</code> actions prodably isn't useful).</p>
+
+			<p><b>A line beginning with <code>-</code> adds an entry to
+			the 'What would you like to do?' list.</b> This probably
+			wants to be a link with actions. These are all collected
+			together at the end of your text; see the preview.</p>
+
+			<p>Actions include:</p>
+
+			<p><b><code>#goto</code></b>: moves the player to the named
+			room.</p>
+
+			<p><b><code>#tellPlayer</code></b>: tells the player, and
+			only the player, something.</p>
+
+			<p><b><code>#tellOthers</code></b>: tells everybody
+			<i>except</i> the player something.</p>
+
+			<p><b><code>#tellAll</code></b>: tells everybody, including
+			the player, something.</p>
+
+			<p>In addition: <b><code>${name}</code> expands to the
+			current player's name</b> everywhere.</p>
+		</div>
+	</ts-editor-ui>
 	<div class="buttons">
 		<paper-button on-click="onRevert">Revert changes</paper-button>
 		<paper-button dialog-confirm on-click="onPublish">Publish</paper-button>
@@ -249,6 +267,8 @@ Polymer({
 	},
 
 	bind: function() {
+		this.roomId = this.room.id;
+
 		this.titleContent = this.room.pendingTitle.getText();
 		this.textContent = this.room.pendingText.getText();
 
