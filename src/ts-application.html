@@ -1,9 +1,13 @@
 <link href="https://fonts.googleapis.com/css?family=Lora:400,400italic,700,700italic" rel="stylesheet" type="text/css">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-fab-transitions/paper-fab-speed-dial.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../bower_components/neon-animation/neon-animated-pages.html">
+<link rel="import" href="../bower_components/neon-animation/neon-animatable.html">
 <link rel="import" href="ts-document.html">
 <link rel="import" href="ts-editor.html">
 <link rel="import" href="ts-globals.html">
@@ -57,24 +61,34 @@
 		--paper-fab-keyboard-focus-background: var(--paper-light-blue-500);
 	}
 
-	#talkboxContainer {
+	#talkboxOuter {
 		position: fixed;
 		bottom: 0;
 		left: 0;
 		right: 0;
+		height: 4em;
+	}
+
+	#talkboxInner {
+		margin-left: auto;
+		margin-right: auto;
+		height: 5em;
+		max-width: 790px;
 	}
 
 	#talkbox {
 		background-color: rgba(255, 255, 255, 0.9);
-		max-width: 790px;
-		margin-left: auto;
-		margin-right: auto;
-		padding-left: 2em;
-		padding-right: 2em;
 	}
 
 	#talkbox --paper-input-container-input: {
 		font-size: 140%;
+	}
+
+	#scrollButton {
+		margin-left: auto;
+		margin-right: auto;
+		margin-bottom: 0.4em;
+		background-color: var(--paper-grey-300);
 	}
 
 	@media (min-width: 800px) {
@@ -154,17 +168,33 @@
 			<paper-spinner active></paper-spinner>
 		</div>
 
-		<div id="game">
-			<ts-transcript id="transcript">
+		<div id="game" on-scroll="onGameScrollbarMoving">
+			<ts-transcript id="transcript"
+				on-new-content="onGameScrollbarMoving">
 			</ts-transcript>
-			<div id="talkboxContainer">
-				<paper-input id="talkbox"
-					label="Type here to talk"
-					on-keydown="onTalkBoxKeydown"
-					autofocus
-					always-float-label
-					>
-				</paper-input>
+			<div id="talkboxOuter">
+				<neon-animated-pages id="talkboxInner">
+					<neon-animatable
+						entry-animation="fade-in-animation"
+						exit-animation="fade-out-animation">
+						<paper-input id="talkbox"
+							label="Type here to talk"
+							on-keydown="onTalkBoxKeydown"
+							always-float-label
+							>
+						</paper-input>
+					</neon-animatable>
+					<neon-animatable
+						entry-animation="slide-from-bottom-animation"
+						exit-animation="slide-down-animation">
+						<div class="vertical layout center fit">
+							<paper-button id="scrollButton" raised
+								on-click="onScrollDownButton">
+								<iron-icon icon="arrow-downward">
+							</paper-button>
+						</div>
+					</neon-animatable>
+				</neon-animated-pages>
 			</div>
 			<paper-fab-speed-dial direction="bottom">
 				<paper-fab icon="menu" class="dropdown-trigger"></paper-fab>
@@ -225,6 +255,7 @@ Polymer({
 	ready: function() {
 		$ = this.$;
 		G = $.globals.G;
+		$.transcript.scrollTarget = $.game;
 		this.author = false;
 
 		this.doImplicitLogin();
@@ -449,6 +480,33 @@ Polymer({
 		 * handlers to fire and tell the transcript what to do, so showChoices()
 		 * always runs last. */
 		this.async(() => $.transcript.showChoices(), 500);
+	},
+
+	onGameScrollbarMoving: function() {
+		if ($.transcript.atBottom()) {
+			$.talkboxInner.selected = 0;
+		} else {
+			$.talkboxInner.selected = 1;
+		}
+	},
+
+	onScrollDownButton: function() {
+		let a = new KeyframeEffect(
+			this.scrollTarget,
+			[],
+			{
+				duration: 300,
+				easing: "ease-in-out"
+			}
+		);
+		let starty = $.game.scrollTop;
+		let endy = $.game.scrollTop + $.game.offsetHeight*0.8;
+		a.onsample = (fraction, e, a) => {
+			if (fraction != null)
+				$.game.scrollTop = starty - fraction*(starty-endy);
+		};
+
+		document.timeline.play(a);
 	},
 });
 

@@ -123,35 +123,11 @@ function appendTextNode(paragraph, text) {
 	paragraph.appendChild(t);
 }
 
-let chain = [];
-let running = false;
-
-function consume_next() {
-	console.log("queue consume");
-	let next = chain.shift();
-	if (!next) {
-		console.log("queue runner terminate");
-		running = false;
-		return null;
-	}
-
-	return new Promise(next).then(
-		() => consume_next()
-	);
-}
-
-function queue(cb) {
-	console.log("queue add");
-	chain.push(cb);
-	if (!running) {
-		console.log("queue runner start");
-		running = true;
-		consume_next();
-	}
-}
-
 Polymer({
 	is: "ts-transcript",
+	properties: {
+		scrollTarget: HTMLElement
+	},
 
 	ready: function() {
 		G = this.$.globals.G;
@@ -163,10 +139,37 @@ Polymer({
 		this.bodyDom = null;
 		this.choicesDom = null;
 		this.mark = null;
+
+		this._chain = [];
+		this._running = false;
+	},
+
+	_queue: function(cb) {
+		this._chain.push(cb);
+		if (!this._running) {
+			this._running = true;
+			this._consumeQueueItem();
+		}
+	},
+
+	_consumeQueueItem: function() {
+		let next = this._chain.shift();
+		if (!next) {
+			console.log("queue runner terminate");
+			this._running = false;
+			return null;
+		}
+
+		return new Promise(next).then(
+			() => {
+				this.fire("new-content");
+				this._consumeQueueItem();
+			}
+		);
 	},
 
 	newRoom: function({title, bodyDom, choicesDom}) {
-		queue(
+		this._queue(
 			(pass, fail) => {
 				console.log("-> newRoom");
 				let $ = this.$;
@@ -189,22 +192,25 @@ Polymer({
 				this.choicesT.content = choicesDom;
 
 				this.bodyT.then(pass);
+				this.fire("new-content");
 			}
 		);
 	},
 
 	hideChoices: function() {
-		queue(
+		this._queue(
 			(pass, fail) => {
 				console.log("-> hideChoices");
 				this.choicesT.content = null;
 				this.choicesT.then(pass);
+
+				this.fire("new-content");
 			}
 		);
 	},
 
 	showChoices: function() {
-		queue(
+		this._queue(
 			(pass, fail) => {
 				console.log("-> showChoices");
 				if (this.choicesT.content != null) {
@@ -216,12 +222,14 @@ Polymer({
 					this.choicesT.content = this.choicesDom;
 					this.choicesT.then(pass);
 				}
+
+				this.fire("new-content");
 			}
 		);
 	},
 
 	updateRoom: function({title, bodyDom, choicesDom}) {
-		queue(
+		this._queue(
 			(pass, fail) => {
 				console.log("-> updateRoom");
 
@@ -232,6 +240,8 @@ Polymer({
 
 				this.bodyT.content = bodyDom;
 				this.choicesT.content = choicesDom;
+
+				this.fire("new-content");
 				this.bodyT.then(pass);
 			}
 		);
@@ -239,7 +249,7 @@ Polymer({
 
 	append: function(text) {
 		let room = this._currentRoom;
-		queue(
+		this._queue(
 			(pass, fail) => {
 				console.log("-> append", text);
 				let t = document.createElement("ts-transformer");
@@ -247,13 +257,14 @@ Polymer({
 				t.content = createTextNode("P", text);
 				this.roomDiv.appendChild(t);
 
+				this.fire("new-content");
 				t.then(pass);
 			}
 		);
 	},
 
 	setMark: function() {
-		queue(
+		this._queue(
 			(pass, fail) => {
 				console.log("-> setmark");
 				this.mark = createElementWithClass("DIV", "mark");
@@ -265,28 +276,27 @@ Polymer({
 	},
 
 	scrollToMark: function() {
-		queue(
+		this._queue(
 			(pass, fail) => {
 				console.log("-> scrollToMark");
 				if (this.mark == null)
 					return;
 
-				let s = G.findScrollable(this);
-				if (s != null) {
+				if (this.scrollTarget != null) {
 					let a = new KeyframeEffect(
-						s,
+						this.scrollTarget,
 						[],
 						{
 							duration: 1000,
 							easing: "ease-in-out"
 						}
 					);
-					let starty = s.scrollTop;
+					let starty = this.scrollTarget.scrollTop;
 					a.onsample = (fraction, e, a) => {
-						let endy = G.findRelativeYOffset(this.mark, s);
+						let endy = G.findRelativeYOffset(this.mark, this.scrollTarget);
 
 						if (fraction != null)
-							s.scrollTop = starty - fraction*(starty-endy);
+							this.scrollTarget.scrollTop = starty - fraction*(starty-endy);
 					};
 
 					document.timeline.play(a);
@@ -295,6 +305,18 @@ Polymer({
 				pass();
 			}
 		);
+	},
+
+	isVisible: function(ypos) {
+		let fontSize = parseFloat(getComputedStyle(this).getPropertyValue("font-size"));
+		let margin = fontSize * 2;
+		let windowHeight = this.scrollTarget.offsetHeight;
+		let top = this.scrollTarget.scrollTop;
+		return (top + windowHeight) > (ypos + margin);
+	},
+
+	atBottom: function() {
+		return this.isVisible(this.$.container.offsetHeight);
 	},
 });
 

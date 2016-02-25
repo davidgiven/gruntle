@@ -7,7 +7,7 @@ let G = {};
 
 G.findScrollable = function(element) {
 	do {
-		if (element.clientHeight != element.scrollHeight)
+		if (element.getComputedStyle().overflowY != "")
 			return element;
 
 		element = element.parentElement;
