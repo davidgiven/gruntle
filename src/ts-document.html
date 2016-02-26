@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/google-apis/google-js-api.html">
+<link rel="import" href="ts-globals.html">
 
 <dom-module id="ts-document">
 <template>
@@ -8,11 +9,14 @@
 	  }
 	</style>
 
+	<ts-globals id="globals"></ts-globals>
 	<google-js-api id="api"></google-js-api>
 </template>
 <script>
 (function () {
 "use strict";
+
+let G;
 
 const MIME_TYPE = "application/vnd.google-apps.drive-sdk";
 const CLIENT_ID = "513414562039-vqfsh4i9jl0ethpti9ihm3ptkuj9s966.apps.googleusercontent.com";
@@ -24,10 +28,11 @@ Polymer({
 	is: "ts-document",
 	properties: {
 		worldDocument: String,
-		hubDocument: String
 	},
 
 	ready: function() {
+		G = this.$.globals.G;
+
 		this.people = new Map();
 
 		this.apiLoadPromise = new Promise(
@@ -77,23 +82,8 @@ Polymer({
 		
 	connect: function() {
 		this.loginPromise.then(
-			() => Promise.all(
-				[
-					new Promise(
-						(pass, fail) =>
-							gapi.drive.realtime.load(
-								this.hubDocument,
-								(hubDoc) => {
-									this.hub = hubDoc;
-									this.hubRoot = hubDoc.getModel().getRoot();
-									pass();
-								},
-								null,
-								fail)
-					),
-
-					new Promise(
-						(pass, fail) =>
+			() => new Promise(
+				(pass, fail) =>
 							gapi.drive.realtime.load(
 								this.worldDocument,
 								(worldDoc) => {
@@ -102,15 +92,54 @@ Polymer({
 									pass();
 								},
 								null,
-								fail)
+						fail
 					)
-				]
 			)
 		).then(
 			() => {
 				console.log("document loaded");
-				console.log("hub revision:", this.hub.getModel().serverRevision);
 				console.log("world revision:", this.world.getModel().serverRevision);
+
+				let config = this.worldRoot.get("config");
+				let hubDocument = null;
+				if (config != null)
+					hubDocument = config.get("hubDocument");
+
+				if ((hubDocument == null) || (hubDocument == "private")) {
+					console.log("using in-memory hub");
+					return new Promise(
+						(pass, fail) =>
+							gapi.drive.realtime.newInMemoryDocument(
+								(hubDoc) => {
+									this.hub = hubDoc;
+									this.hubRoot = hubDoc.getModel().getRoot();
+									pass();
+								},
+								null,
+								fail
+							)
+					);
+				} else {
+					console.log("hub document:", hubDocument);
+					return new Promise(
+						(pass, fail) =>
+							gapi.drive.realtime.load(
+								hubDocument,
+								(hubDoc) => {
+									this.hub = hubDoc;
+									this.hubRoot = hubDoc.getModel().getRoot();
+									pass();
+								},
+								null,
+								fail
+							)
+					);
+				}
+			}
+		).then(
+			() => {
+				console.log("document loaded");
+				console.log("hub revision:", this.hub.getModel().serverRevision);
 
 				this.world.addEventListener(
 					gapi.drive.realtime.EventType.COLLABORATOR_JOINED,
