@@ -46,6 +46,13 @@
 		padding-bottom: 0.5em;
 	}
 
+	.transcript .disabled {
+		opacity: 0.6;
+		pointer-events: none;
+
+		transition: opacity 2.0s ease-in-out;
+	}
+
 </style>
 
 <dom-module id="ts-transcript">
@@ -173,6 +180,13 @@ Polymer({
 			(pass, fail) => {
 				console.log("-> newRoom");
 				let $ = this.$;
+
+				if (this.roomDiv) {
+					this.roomDiv.className += " disabled";
+
+					for (let e of this.roomDiv.getElementsByTagName("A"))
+						e.tabIndex = -1;
+				}
 
 				this.roomDiv = createElementWithClass("DIV", "transcript");
 				this.titleT = document.createElement("ts-transformer");
