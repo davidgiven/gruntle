@@ -176,6 +176,7 @@ Polymer({
 	},
 
 	newRoom: function({title, bodyDom, choicesDom}) {
+		this.hideChoices();
 		this._queue(
 			(pass, fail) => {
 				console.log("-> newRoom");
@@ -215,10 +216,13 @@ Polymer({
 		this._queue(
 			(pass, fail) => {
 				console.log("-> hideChoices");
-				this.choicesT.content = null;
-				this.choicesT.then(pass);
+				if (this.choicesT != null) {
+					this.choicesT.content = null;
+					this.choicesT.then(pass);
 
-				this.fire("new-content");
+					this.fire("new-content");
+				} else
+					pass();
 			}
 		);
 	},

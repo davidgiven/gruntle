@@ -198,7 +198,8 @@
 			<paper-fab-speed-dial direction="bottom">
 				<paper-fab icon="menu" class="dropdown-trigger"></paper-fab>
 				<div class="dropdown-content">
-					<paper-fab mini icon="settings" id="settingsButton"></paper-fab>
+					<paper-fab mini hidden="{{!author}}" icon="settings"
+						></paper-fab>
 					<paper-fab mini hidden="{{!author}}" icon="create"
 						on-click="onEditButton"></paper-fab>
 					<paper-fab mini hidden="{{!author}}" icon="explore"
