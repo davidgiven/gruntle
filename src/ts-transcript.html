@@ -39,6 +39,7 @@
 		margin: 0;
 		padding-top: 0.2em;
 		padding-bottom: 0.2em;
+		padding-left: 7%;
 	}
 
 	.transcript UL P {
@@ -63,9 +64,15 @@
 		@apply(--layout-vertical);
 		display: block;
 		min-height: 100%;
-		font-size: 110%;
+		font-size: 100%;
 	}
 
+	@media (min-width: 800px) {
+		:host {
+			font-size: 110%;
+		}
+	}
+	
 	#container {
 		@apply(--layout-flex);
 	}

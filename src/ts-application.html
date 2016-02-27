@@ -40,14 +40,17 @@
 		transition: scrollTop 0.5s ease-in-out,
 	}
 
-	#game ts-transcript {
+	.gameContainer {
 		@apply(--shadow-elevation-4dp);
 		max-width: 800px;
 		margin-left: auto;
 		margin-right: auto;
 		background-color: white;
-		padding-left: 2em;
-		padding-right: 2em;
+	}
+
+	#game ts-transcript {
+		margin-left: 3%;
+		margin-right: 3%;
 	}
 
 	#game > paper-fab-speed-dial {
@@ -73,11 +76,13 @@
 		margin-left: auto;
 		margin-right: auto;
 		height: 5em;
-		max-width: 790px;
+		max-width: 800px;
 	}
 
 	#talkbox {
 		background-color: rgba(255, 255, 255, 0.9);
+		margin-left: 1em;
+		margin-right: 1em;
 	}
 
 	#talkbox --paper-input-container-input: {
@@ -168,9 +173,11 @@
 		</div>
 
 		<div id="game" on-scroll="onGameScrollbarMoving">
-			<ts-transcript id="transcript"
-				on-new-content="onGameScrollbarMoving">
-			</ts-transcript>
+			<div class="gameContainer">
+				<ts-transcript id="transcript"
+					on-new-content="onGameScrollbarMoving">
+				</ts-transcript>
+			</div>
 			<div id="talkboxOuter">
 				<neon-animated-pages id="talkboxInner">
 					<neon-animatable
