@@ -1,0 +1,70 @@
+<dom-module id="ts-grt-binding">
+<script>
+(function () {
+"use strict";
+
+Polymer({
+	is: "ts-grt-binding",
+	properties: {
+		node: {
+			type: Object,
+			observer: "_onNodeChange"
+		},
+		property: {
+			type: String,
+			observer: "_forceRead"
+		},
+		value: {
+			type: String,
+			observer: "_onValueChange",
+			notify: true
+		},
+	},
+
+	ready: function() {
+		this._handler = (e) => {
+			if (e.property == this.property) {
+				this.value = e.newValue;
+			}
+		};
+	},
+
+	_forceRead: function() {
+		if ((this.node != null) && (this.property != null))
+			this._handler(
+				{
+					property: this.property,
+					newValue: this.node.get(this.property)
+				}
+			);
+	},
+
+	_onNodeChange: function(n, o) {
+		if (o != null) {
+			o.removeEventListener(
+				gapi.drive.realtime.EventType.VALUE_CHANGED,
+				this._handler
+			);
+		}
+
+		if (n != null) {
+			n.addEventListener(
+				gapi.drive.realtime.EventType.VALUE_CHANGED,
+				this._handler
+			);
+			this._forceRead();
+		}
+		
+	},
+
+	_onValueChange: function(n, o) {
+		if ((this.node != null) && (this.property != null))
+			this.node.set(this.property, n);
+	},
+});
+
+})()
+</script>
+</dom-module>
+
+

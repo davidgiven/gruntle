@@ -1,0 +1,72 @@
+<link rel="import" href="../bower_components/iron-label/iron-label.html">
+<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
+<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-shared-styles.html">
+<link rel="import" href="../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="ts-grt-binding.html">
+
+<dom-module id="ts-user-preferences">
+<style include="paper-dialog-shared-styles">
+	:host {
+		@apply(--layout-vertical);
+		width: 30em;
+		height: 25em;
+	}
+
+	paper-radio-group iron-label {
+		padding-top: 0;
+		margin-left: 26px;
+	}
+
+	paper-item iron-icon {
+		margin-right: 1em;
+	}
+</style>
+
+<template>
+	<ts-grt-binding
+		node="{{playerStateNode}}"
+		property="useName"
+		value="{{useName}}">
+		</ts-grt-binding>
+
+	<h2>User preferences</h2>
+
+	<paper-dialog-scrollable class="vertical layout flex">
+		<paper-input
+			id="useNameInput"
+			label="What name do you want to use?"
+			value="{{useName}}"
+			></paper-input>
+		<iron-label for="useNameInput">
+			This is the name that other people will see as you talk and move
+			around. You can use anything you like, and you can have different
+			names in different games. Please note that multiple people can have
+			the same name!
+		</iron-label>
+	</paper-dialog-scrollable>
+
+	<div class="buttons">
+		<paper-button dialog-dismiss>Close</paper-button>
+	</div>
+</template>
+<script>
+(function () {
+"use strict";
+
+let G;
+
+Polymer({
+	is: "ts-user-preferences",
+	behaviors: [
+		Polymer.PaperDialogBehavior
+	],
+	properties: {
+		playerStateNode: Object,
+		useName: String,
+	},
+});
+
+})();
+</script>
+</dom-module>
+

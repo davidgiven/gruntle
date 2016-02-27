@@ -1,6 +1,7 @@
 <link href="https://fonts.googleapis.com/css?family=Lora:400,400italic,700,700italic" rel="stylesheet" type="text/css">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/social-icons.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-fab-transitions/paper-fab-speed-dial.html">
@@ -16,6 +17,7 @@
 <link rel="import" href="ts-map.html">
 <link rel="import" href="ts-roomstore.html">
 <link rel="import" href="ts-transcript.html">
+<link rel="import" href="ts-user-preferences.html">
 
 <dom-module id="ts-application">
 <template>
@@ -65,6 +67,11 @@
 		--paper-fab-keyboard-focus-background: var(--paper-light-blue-500);
 	}
 
+	#game > paper-fab-speed-dial paper-fab.for-editing {
+		--paper-fab-background: var(--paper-light-red-300);
+		--paper-fab-keyboard-focus-background: var(--paper-light-red-500);
+	}
+
 	#talkboxOuter {
 		position: fixed;
 		bottom: 0;
@@ -97,7 +104,7 @@
 		background-color: var(--paper-grey-300);
 	}
 
-	@media (min-width: 800px) {
+	@media (min-width: 700px) {
 		.big-dialogue {
 			position: fixed;
 			left: 1em;
@@ -107,7 +114,7 @@
 			margin: 0;
 		}
 	}
-	@media (max-width: 800px) {
+	@media (max-width: 700px) {
 		.big-dialogue {
 			position: fixed;
 			left: 0;
@@ -162,6 +169,9 @@
 	<ts-game-settings id="settingsDialogue" modal="true" class="big-dialogue">
 	</ts-game-settings>
 
+	<ts-user-preferences id="preferencesDialogue" modal="true">
+	</ts-user-preferences>
+
 	<paper-dialog id="implicitCreationDialogue">
 		<h2>Create room?</h2>
 		<p>
@@ -214,9 +224,13 @@
 			<paper-fab-speed-dial direction="bottom">
 				<paper-fab icon="menu" class="dropdown-trigger"></paper-fab>
 				<div class="dropdown-content">
+					<paper-fab mini icon="social:person"
+						on-click="onPreferencesButton"></paper-fab>
 					<paper-fab mini hidden="{{!author}}" icon="settings"
+						class="for-editing"
 						on-click="onSettingsButton"></paper-fab>
 					<paper-fab mini hidden="{{!author}}" icon="explore"
+						class="for-editing"
 						on-click="onMapButton"></paper-fab>
 				</div>
 			</paper-fab-speed-dial>
@@ -320,6 +334,7 @@ Polymer({
 
 		if (this.author)
 			$.settingsDialogue.worldConfig = G.worldConfig;
+		$.preferencesDialogue.playerStateNode = G.playerState;
 
 		G.player = new Player;
 		if (!G.player.name)
@@ -433,6 +448,11 @@ Polymer({
 	onSettingsButton: function() {
 		$.settingsDialogue.fit();
 		$.settingsDialogue.open();
+	},
+
+	onPreferencesButton: function() {
+		$.preferencesDialogue.fit();
+		$.preferencesDialogue.open();
 	},
 
 	onTalkBoxKeydown: function(e) {

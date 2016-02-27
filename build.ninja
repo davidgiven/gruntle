@@ -45,12 +45,14 @@ rule cp
 ¬   "ts-game-settings",
 ¬   "ts-globals",
 ¬   "ts-gruntle",
+¬   "ts-grt-binding",
 ¬   "ts-login",
 ¬   "ts-map",
 ¬   "ts-parser",
 ¬   "ts-roomstore",
 ¬   "ts-transcript",
 ¬   "ts-transformer",
+¬   "ts-user-preferences",
 ¬ }
 
 ¬ for _, m in pairs(MODULES) do
