@@ -1,3 +1,5 @@
+<link rel="import" href="../bower_components/iron-icons/editor-icons.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="ts-transformer.html">
 <link rel="import" href="ts-globals.html">
 
@@ -182,6 +184,23 @@ Polymer({
 		);
 	},
 
+	_createTitleNode: function(text, id) {
+		let e = document.createElement("H1");
+		e.appendChild(document.createTextNode(text));
+
+		if (this.author) {
+			let icon = document.createElement("paper-icon-button");
+			icon.icon = "editor:mode-edit";
+			icon.addEventListener(
+				"click",
+				() => this.fire("edit-request")
+			);
+			e.appendChild(icon);
+		}
+
+		return e;
+	},
+
 	newRoom: function({title, bodyDom, choicesDom}) {
 		this.hideChoices();
 		this._queue(
@@ -209,7 +228,7 @@ Polymer({
 				this.roomDiv.appendChild(this.bodyT);
 				this.roomDiv.appendChild(this.choicesT);
 
-				this.titleT.content = createTextNode("H1", title);
+				this.titleT.content = this._createTitleNode(title);
 				this.bodyT.content = bodyDom;
 				this.choicesT.content = choicesDom;
 
@@ -258,7 +277,7 @@ Polymer({
 			(pass, fail) => {
 				console.log("-> updateRoom");
 
-				this.titleT.content = createTextNode("H1", title);
+				this.titleT.content = this._createTitleNode(title);
 
 				this.bodyDom = bodyDom;
 				this.choicesDom = choicesDom;

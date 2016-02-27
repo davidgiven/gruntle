@@ -182,6 +182,8 @@
 		<div id="game" on-scroll="onGameScrollbarMoving">
 			<div class="gameContainer">
 				<ts-transcript id="transcript"
+					author="{{author}}"
+					on-edit-request="onEditButton"
 					on-new-content="onGameScrollbarMoving">
 				</ts-transcript>
 			</div>
@@ -214,8 +216,6 @@
 				<div class="dropdown-content">
 					<paper-fab mini hidden="{{!author}}" icon="settings"
 						on-click="onSettingsButton"></paper-fab>
-					<paper-fab mini hidden="{{!author}}" icon="create"
-						on-click="onEditButton"></paper-fab>
 					<paper-fab mini hidden="{{!author}}" icon="explore"
 						on-click="onMapButton"></paper-fab>
 				</div>
@@ -315,7 +315,11 @@ Polymer({
 		G.rooms = $.roomstore;
 		G.rooms.startWatching();
 
-		$.settingsDialogue.worldConfig = G.worldConfig;
+		this.author = !($.doc.world.getModel().isReadOnly);
+		console.log(`I am ${this.author ? "the author" : "not the author"}`);
+
+		if (this.author)
+			$.settingsDialogue.worldConfig = G.worldConfig;
 
 		G.player = new Player;
 		if (!G.player.name)
@@ -348,8 +352,6 @@ Polymer({
 			}
 		);
 
-		this.author = !($.doc.world.getModel().isReadOnly);
-		console.log(`I am ${this.author ? "the author" : "not the author"}`);
 		$.page.selected = 1;
 	},
 
