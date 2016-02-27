@@ -53,10 +53,26 @@ class ParsedText {
 			}
 		}
 
+		function expandVariables(text) {
+			return text.replace(
+				/\${([^}]*)}/g,
+				(_, varname) => {
+					switch (varname) {
+						case 'name':
+							return G.player.name;
+
+						default:
+							return `[unrecognised variable '${varname}']`;
+					}
+				}
+			);
+		}
+
 		function parseAndAppend(paragraph, text) {
-			const re = /((?:\${)|{)([^}]*)}/g;
+			const re = /{([^}]*)}/g;
 			let link = null;
 			let start = 0;
+			text = expandVariables(text);
 			for (;;) {
 				let result = re.exec(text);
 				if (!result) {
@@ -66,26 +82,7 @@ class ParsedText {
 					appendTextNode(paragraph, text.slice(start, result.index));
 				start = re.lastIndex;
 
-				switch (result[1]) {
-					case '{':
-						link = appendActionNode(paragraph, result[2]);
-						break;
-
-					case '${':
-					{
-						let varname = result[2];
-						switch (varname) {
-							case 'name':
-								appendTextNode(paragraph, G.player.name);
-								break;
-
-							default:
-								appendErrorNode(paragraph, `unrecognised variable '${varname}'`);
-								break;
-						}
-						break;
-					}
-				}
+				link = appendActionNode(paragraph, result[1]);
 			}
 			return link;
 		}
@@ -126,7 +123,7 @@ class ParsedText {
 					appendErrorNode(currentParagraph, "can't add an action without a link first");
 				else {
 					if (name)
-						currentAction.push([name, actionresult[2]]);
+						currentAction.push([name, expandVariables(actionresult[2])]);
 					else
 						currentAction.push(["onUnknownAction", name]);
 				}
