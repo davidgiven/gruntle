@@ -329,7 +329,8 @@ Polymer({
 			}
 		);
 
-		this.author = !$.doc.world.getModel.isReadOnly;
+		this.author = !($.doc.world.getModel().isReadOnly);
+		console.log(`I am ${this.author ? "the author" : "not the author"}`);
 		$.page.selected = 1;
 	},
 
