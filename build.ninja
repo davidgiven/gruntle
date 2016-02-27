@@ -42,6 +42,7 @@ rule cp
 ¬   "ts-application",
 ¬   "ts-document",
 ¬   "ts-editor",
+¬   "ts-game-settings",
 ¬   "ts-globals",
 ¬   "ts-gruntle",
 ¬   "ts-login",

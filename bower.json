@@ -39,6 +39,12 @@
     "paper-material": "PolymerElements/paper-material#^1.0.6",
     "dagre-d3": "^0.4.17",
     "iron-resizable-behavior": "PolymerElements/iron-resizable-behavior#^1.0.3",
-    "iron-media-query": "PolymerElements/iron-media-query#^1.0.8"
+    "iron-media-query": "PolymerElements/iron-media-query#^1.0.8",
+    "paper-radio-group": "PolymerElements/paper-radio-group#^1.0.9",
+    "paper-radio-button": "PolymerElements/paper-radio-button#^1.1.1",
+    "iron-label": "PolymerElements/iron-label#^1.0.2",
+    "paper-dialog-scrollable": "PolymerElements/paper-dialog-scrollable#^1.1.1",
+    "iron-collapse": "PolymerElements/iron-collapse#^1.0.6",
+    "paper-item": "PolymerElements/paper-item#^1.1.4"
   }
 }

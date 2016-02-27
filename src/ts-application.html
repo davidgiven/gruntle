@@ -10,6 +10,7 @@
 <link rel="import" href="../bower_components/neon-animation/neon-animatable.html">
 <link rel="import" href="ts-document.html">
 <link rel="import" href="ts-editor.html">
+<link rel="import" href="ts-game-settings.html">
 <link rel="import" href="ts-globals.html">
 <link rel="import" href="ts-login.html">
 <link rel="import" href="ts-map.html">
@@ -97,7 +98,7 @@
 	}
 
 	@media (min-width: 800px) {
-		#editorDialogue, #mapDialogue {
+		.big-dialogue {
 			position: fixed;
 			left: 1em;
 			top: 2em;
@@ -107,7 +108,7 @@
 		}
 	}
 	@media (max-width: 800px) {
-		#editorDialogue, #mapDialogue {
+		.big-dialogue {
 			position: fixed;
 			left: 0;
 			top: 0;
@@ -115,6 +116,9 @@
 			bottom: 0;
 			margin: 0;
 		}
+	}
+
+	:host > paper-dialog {
 	}
 
 	paper-dialog > *:first-child {
@@ -145,15 +149,18 @@
 		on-user-action="onUserAction"
 		></ts-roomstore>
 
-	<paper-dialog id="editorDialogue" modal="true">
+	<paper-dialog id="editorDialogue" modal="true" class="big-dialogue">
 		<ts-editor id="editor"></ts-editor>
 	</paper-dialog>
 
-	<paper-dialog id="mapDialogue" modal="true">
+	<paper-dialog id="mapDialogue" modal="true" class="big-dialogue">
 		<ts-map id="map"
 			on-edit-request="onEdit"
 			></ts-map>
 	</paper-dialog>
+
+	<ts-game-settings id="settingsDialogue" modal="true" class="big-dialogue">
+	</ts-game-settings>
 
 	<paper-dialog id="implicitCreationDialogue">
 		<h2>Create room?</h2>
@@ -196,7 +203,7 @@
 						<div class="vertical layout center fit">
 							<paper-button id="scrollButton" raised
 								on-click="onScrollDownButton">
-								<iron-icon icon="arrow-downward">
+								<iron-icon icon="arrow-downward"></iron-icon>
 							</paper-button>
 						</div>
 					</neon-animatable>
@@ -206,7 +213,7 @@
 				<paper-fab icon="menu" class="dropdown-trigger"></paper-fab>
 				<div class="dropdown-content">
 					<paper-fab mini hidden="{{!author}}" icon="settings"
-						></paper-fab>
+						on-click="onSettingsButton"></paper-fab>
 					<paper-fab mini hidden="{{!author}}" icon="create"
 						on-click="onEditButton"></paper-fab>
 					<paper-fab mini hidden="{{!author}}" icon="explore"
@@ -295,7 +302,10 @@ Polymer({
 		console.log("connected");
 
 		G.hubDoc = $.doc.hub;
-		G.hub = G.ensureMap($.doc.hub, $.doc.hub.getModel().getRoot(), $.doc.worldDocument);
+		G.hub = G.ensureMap(
+			$.doc.hub,
+			G.ensureMap($.doc.hub, $.doc.hub.getModel().getRoot(), "hub"),
+			$.doc.worldDocument);
 		G.playerState = G.ensureMap(G.hubDoc, G.hub, $.doc.myself.userId);
 
 		G.worldDoc = $.doc.world;
@@ -304,6 +314,8 @@ Polymer({
 		G.worldRooms = $.doc.worldRoot.get("rooms");
 		G.rooms = $.roomstore;
 		G.rooms.startWatching();
+
+		$.settingsDialogue.worldConfig = G.worldConfig;
 
 		G.player = new Player;
 		if (!G.player.name)
@@ -416,6 +428,11 @@ Polymer({
 		$.mapDialogue.open();
 	},
 
+	onSettingsButton: function() {
+		$.settingsDialogue.fit();
+		$.settingsDialogue.open();
+	},
+
 	onTalkBoxKeydown: function(e) {
 		if (e.keyCode == 13) {
 			let s = $.talkbox.value;
@@ -431,9 +448,6 @@ Polymer({
 
 	onArrivalsDepartures: function(e, changes) {
 		console.log("arriving/departing", changes);
-	},
-
-	onAction: function(action) {
 	},
 
 	onRoomChanged: function(event, room) {

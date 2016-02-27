@@ -119,6 +119,10 @@ Polymer({
 								fail
 							)
 					);
+				} else if (hubDocument == "this") {
+					console.log("using this document as a hub");
+					this.hub = this.world;
+					this.hubRoot = this.worldRoot;
 				} else {
 					console.log("hub document:", hubDocument);
 					return new Promise(
