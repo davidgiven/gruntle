@@ -1,0 +1,162 @@
+<link rel="import" href="../bower_components/google-signin/google-icons.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="ts-globals.html">
+<link rel="import" href="ts-gruntle.html">
+
+<dom-module id="ts-welcome">
+<style>
+	paper-card {
+		@apply(--layout-vertical);
+		@apply(--layout-center);
+		padding: 1em;
+	}
+	
+	P {
+		text-align: center;
+	}
+
+	.helptext {
+		@apply(--layout-flex);
+		width: 75%;
+	}
+
+	.choices {
+		@apply(--layout-vertical);
+	}
+
+	.choices .row {
+		@apply(--layout-horizontal);
+	}
+
+	.choices .keyboard-focus {
+		font-weight: normal;
+	}
+
+	.choices paper-button {
+		@apply(--layout-flex);
+		@apply(--layout-vertical);
+		@apply(--layout-center);
+		margin: 0.5em;
+	}
+
+	.choices paper-button > iron-icon {
+		width: 3em;
+		height: 3em;
+		display: block;
+	}
+
+	.choices paper-button > div {
+		font-size: 80%;
+		margin-top: 0.5em;
+		margin-left: 0.2em;
+		margin-right: 0.2em;
+		text-transform: none;
+		white-space: pre;
+	}
+
+	.choices paper-button.create-game {
+		background-color: var(--paper-red-100);
+	}
+
+	.choices paper-button.create-game.keyboard-focus {
+		background-color: var(--paper-red-300);
+	}
+
+	.choices paper-button.load-game {
+		background-color: var(--paper-green-100);
+	}
+
+	.choices paper-button.load-game.keyboard-focus {
+		background-color: var(--paper-green-300);
+	}
+
+	.choices paper-button.theatre {
+		background-color: var(--paper-yellow-100);
+	}
+
+	.choices paper-button.theatre.keyboard-focus {
+		background-color: var(--paper-yellow-300);
+	}
+
+	.choices paper-button.drive {
+		background-color: var(--paper-blue-100);
+	}
+
+	.choices paper-button.drive.keyboard-focus {
+		background-color: var(--paper-blue-300);
+	}
+
+</style>
+<template>
+	<ts-globals id="globals"></ts-globals>
+
+	<paper-card>
+		<ts-gruntle></ts-gruntle>
+		<p>
+			Welcome to Gruntle, the BYO CYOA MMORPG!
+		</p>
+		<p>
+			What would you like to do?
+		</p>
+		<div class="choices">
+				<div class="row">
+					<paper-button class="create-game" on-click="onCreateGame" raised disabled="true">
+						<iron-icon icon="add-box"></iron-icon>
+						<div>Create a game</div>
+					</paper-button>
+
+					<paper-button class="load-game" on-click="onLoadGame" raised disabled="true">
+						<iron-icon icon="open-in-browser"></iron-icon>
+						<div>Load a game</div>
+					</paper-button>
+				</div>
+				<div class="row">
+					<paper-button class="theatre" on-click="onTheatre" raised>
+						<iron-icon icon="home"></iron-icon>
+						<div>Go to the Theatre</div>
+					</paper-button>
+
+					<paper-button class="drive" on-click="onDrive" raised disabled="true">
+						<iron-icon icon="google:google"></iron-icon>
+						<div>Add to Drive</div>
+					</paper-button>
+				</div>
+			</div>
+		</div>
+		<p>© 2013-2016 <a href="http://cowlark.com">David Given</a></p>
+	</paper-card>
+</template>
+<script>
+(function () {
+"use strict";
+
+let G;
+
+Polymer({
+	is: "ts-welcome",
+
+	ready: function() {
+		G = this.$.globals.G;
+	},
+
+	onCreateGame: function() {
+	},
+
+	onLoadGame: function() {
+	},
+
+	onTheatre: function() {
+		window.location = `${G.URI.path}?id=${G.THEATRE}`;
+	},
+
+	onDrive: function() {
+	},
+});
+
+})()
+</script>
+</dom-module>
+

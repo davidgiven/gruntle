@@ -1,3 +1,5 @@
+<script src="../bower_components/bower-parseUri/parseuri.js"></script>
+
 <dom-module id="ts-globals">
 <script>
 (function () {
@@ -5,6 +7,11 @@
 
 let G = {};
 
+parseUri.options.strictMode = true;
+G.URI = parseUri(window.location);
+console.log(G.URI);
+
+G.THEATRE = "0ByWQADzU1i2wampHaEZ0OEJLOVk";
 G.PUBLIC_HUB = "0ByWQADzU1i2wa3N1VmVweS1EOE0";
 
 G.findScrollable = function(element) {

@@ -18,6 +18,7 @@
 <link rel="import" href="ts-roomstore.html">
 <link rel="import" href="ts-transcript.html">
 <link rel="import" href="ts-user-preferences.html">
+<link rel="import" href="ts-welcome.html">
 
 <dom-module id="ts-application">
 <template>
@@ -29,7 +30,7 @@
 		background-color: var(--paper-blue-grey-100);
 	}
 
-	#loading, #login {
+	#loading, #login, #welcome {
 		@apply(--layout-fit);
 		@apply(--layout-center-center);
 		@apply(--layout-vertical);
@@ -139,7 +140,6 @@
 	</style>
 
 	<ts-document id="doc"
-		world-document="0ByWQADzU1i2wampHaEZ0OEJLOVk"
 		on-player-visible="onDocumentConnected"
 		on-auth-success="onDocumentAuthSuccess"
 		on-auth-failure="onDocumentAuthFailure"
@@ -232,6 +232,8 @@
 					<paper-fab mini hidden="{{!author}}" icon="explore"
 						class="for-editing"
 						on-click="onMapButton"></paper-fab>
+					<paper-fab mini icon="exit-to-app"
+						on-click="onLogoutButton"></paper-fab>
 				</div>
 			</paper-fab-speed-dial>
 		</div>
@@ -239,6 +241,9 @@
 		<ts-login id="login"
 			on-click="doExplicitLogin"
 			></ts-login>
+
+		<ts-welcome id="welcome"
+			></ts-welcome>
 	</iron-pages>
 </template>
 <script>
@@ -304,7 +309,11 @@ Polymer({
 	},
 
 	onDocumentAuthSuccess: function() {
-		$.doc.connect();
+		if (G.URI.queryKey.id != null) {
+			$.doc.worldDocument = G.URI.queryKey.id;
+			$.doc.connect();
+		} else
+			$.page.selected = 3;
 	},
 
 	onDocumentAuthFailure: function(e, f) {
@@ -551,6 +560,10 @@ Polymer({
 		};
 
 		document.timeline.play(a);
+	},
+
+	onLogoutButton: function() {
+		window.location = G.URI.path;
 	},
 });
 

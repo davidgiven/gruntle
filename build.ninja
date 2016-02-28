@@ -53,6 +53,7 @@ rule cp
 ¬   "ts-transcript",
 ¬   "ts-transformer",
 ¬   "ts-user-preferences",
+¬   "ts-welcome",
 ¬ }
 
 ¬ for _, m in pairs(MODULES) do
