@@ -71,6 +71,7 @@ build $O/combined/index.js $O/combined/index.html: crisper $O/combined.html
 
 build dist/index.js: uglify $O/combined/index.js
 build dist/index.html: htmlminifier $O/combined/index.html
+build dist/icon.png: cp extras/icon.png
 
 # vim: set ts=2 sw=2 expandtab:
 
