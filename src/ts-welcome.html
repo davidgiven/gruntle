@@ -163,7 +163,7 @@ Polymer({
 	},
 
 	onTheatre: function() {
-		load(G.THEATRE);
+		this.fire("load-request", G.THEATRE);
 	},
 
 	onDrive: function() {
