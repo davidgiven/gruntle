@@ -243,6 +243,8 @@
 			></ts-login>
 
 		<ts-welcome id="welcome"
+			on-load-request="onLoadRequest"
+			on-create-request="onCreateRequest"
 			></ts-welcome>
 	</iron-pages>
 </template>
@@ -312,6 +314,13 @@ Polymer({
 		if (G.URI.queryKey.id != null) {
 			$.doc.worldDocument = G.URI.queryKey.id;
 			$.doc.connect();
+		} else if (G.URI.queryKey.action == "create") {
+			this.onCreateRequest(
+				{
+					title: G.URI.queryKey.title,
+					folderId: G.URI.queryKey.folderId
+				}
+			);
 		} else
 			$.page.selected = 3;
 	},
@@ -319,6 +328,24 @@ Polymer({
 	onDocumentAuthFailure: function(e, f) {
 		console.log(e, f);
 		$.page.selected = 2;
+	},
+
+	onLoadRequest: function(e, id) {
+		$.page.selected = 0;
+		window.location = `${G.URI.path}?id=${id}`;
+	},
+
+	onCreateRequest: function(e, params={}) {
+		$.page.selected = 0;
+
+		if (params.title == null)
+			params.title = "My new Gruntle game";
+
+		$.doc.create(params.title, params.folderId).then(
+			(id) => {
+				window.location = `${G.URI.path}?id=${id}`;
+			}
+		);
 	},
 
 	onDocumentConnected: function() {

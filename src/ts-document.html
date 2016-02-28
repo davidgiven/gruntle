@@ -74,18 +74,45 @@ Polymer({
 		);
 	},
 		
+	create: function(title, folderId) {
+		return this.loginPromise.then(
+			() => new Promise(
+				(pass, fail) => {
+					let parents = folderId ? [folderId] : null;
+
+					gapi.client.drive.files.insert(
+						{
+							resource: {
+								mimeType: G.MIME_TYPE,
+								title: title,
+								parents: parents
+							}
+						}
+					).execute(
+						(r) => {
+							if (r.result)
+								pass(r.result.id);
+							else
+								fail(r);
+						}
+					);
+				}
+			)
+		);
+	},
+
 	connect: function() {
 		this.loginPromise.then(
 			() => new Promise(
 				(pass, fail) =>
-							gapi.drive.realtime.load(
-								this.worldDocument,
-								(worldDoc) => {
-									this.world = worldDoc;
-									this.worldRoot = worldDoc.getModel().getRoot();
-									pass();
-								},
-								null,
+					gapi.drive.realtime.load(
+						this.worldDocument,
+						(worldDoc) => {
+							this.world = worldDoc;
+							this.worldRoot = worldDoc.getModel().getRoot();
+							pass();
+						},
+						(worldDoc) => this._onInitialise(worldDoc),
 						fail
 					)
 			)
@@ -213,6 +240,35 @@ Polymer({
 					departing: departing
 				});
 		}
+	},
+
+	_onInitialise: function(model) {
+		let root = model.getRoot();
+
+		let config = model.createMap();
+		root.set("config", config);
+		config.set("entrypoint", "entrypoint");
+		config.set("hubDocument", "private");
+
+		let rooms = model.createMap();
+		root.set("rooms", rooms);
+
+		let entrypoint = model.createMap();
+		rooms.set("entrypoint", entrypoint);
+
+		entrypoint.set("title", model.createString("My first room"));
+		entrypoint.set("text", model.createString(
+			`This is the first and only room in my brand new game. ` +
+			`Eventually this will be replaced with a rather more ` +
+			`useful template. We Apologise For The Inconvenience.\n\n` +
+			`To add more rooms, edit this one and add exits --- the ` +
+			`new rooms will appear automatically on the map. (This ` +
+			`all needs smoothing out.)\n\n` +
+			`Note that this game is set to single player mode by ` +
+			`default. You can change this in the settings. Remember ` +
+			`you still need to share it with someone before they can ` +
+			`play (go to the Drive UI to do that).`
+		));
 	},
 });
 

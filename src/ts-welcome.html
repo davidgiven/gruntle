@@ -103,7 +103,7 @@
 		</p>
 		<div class="choices">
 				<div class="row">
-					<paper-button class="create-game" on-click="onCreateGame" raised disabled="true">
+					<paper-button class="create-game" on-click="onCreateGame" raised>
 						<iron-icon icon="add-box"></iron-icon>
 						<div>Create a game</div>
 					</paper-button>
@@ -119,7 +119,7 @@
 						<div>Go to the Theatre</div>
 					</paper-button>
 
-					<paper-button class="drive" on-click="onDrive" raised disabled="true">
+					<paper-button class="drive" on-click="onDrive" raised>
 						<iron-icon icon="google:google"></iron-icon>
 						<div>Add to Drive</div>
 					</paper-button>
@@ -135,10 +135,6 @@
 
 let G;
 
-function load(id) {
-	window.location = `${G.URI.path}?id=${id}`;
-}
-
 Polymer({
 	is: "ts-welcome",
 
@@ -147,6 +143,7 @@ Polymer({
 	},
 
 	onCreateGame: function() {
+		this.fire("create-request");
 	},
 
 	onLoadGame: function() {
@@ -159,7 +156,7 @@ Polymer({
 			.setCallback(
 				(r) => {
 					if (r.action == "picked")
-						load(r.docs[0].id);
+						this.fire("load-request", r.docs[0].id);
 				}
 			).build();
 		picker.setVisible(true);
@@ -170,6 +167,14 @@ Polymer({
 	},
 
 	onDrive: function() {
+		gapi.auth.authorize(
+			{
+				client_id: G.CLIENT_ID,
+				scope: G.SCOPES.concat("https://www.googleapis.com/auth/drive.install"),
+				immediate: false
+			},
+			(r) => {}
+		);
 	},
 });
 
