@@ -18,12 +18,6 @@
 
 let G;
 
-const MIME_TYPE = "application/vnd.google-apps.drive-sdk";
-const CLIENT_ID = "513414562039-vqfsh4i9jl0ethpti9ihm3ptkuj9s966.apps.googleusercontent.com";
-const SCOPES = [
-	"https://www.googleapis.com/auth/drive.file"
-];
-
 Polymer({
 	is: "ts-document",
 	properties: {
@@ -41,7 +35,7 @@ Polymer({
 		).then(
 			() => new Promise(
 				(pass, fail) =>
-					gapi.load("auth:client,drive-realtime", pass, fail)
+					gapi.load("auth:client,drive-realtime,picker", pass, fail)
 			)
 		).then(
 			() => gapi.client.load("drive", "v2")
@@ -60,8 +54,8 @@ Polymer({
 				(pass, fail) => {
 					gapi.auth.authorize(
 						{
-							client_id: CLIENT_ID,
-							scope: SCOPES,
+							client_id: G.CLIENT_ID,
+							scope: G.SCOPES,
 							immediate: silent
 						},
 						(r) => {
@@ -164,7 +158,7 @@ Polymer({
 		return this.loginPromise.then(
 			() => gapi.client.drive.files.insert(
 				{
-					mimeType: MIME_TYPE,
+					mimeType: G.MIME_TYPE,
 					title: filename
 				}
 			)

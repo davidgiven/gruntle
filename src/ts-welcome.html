@@ -108,7 +108,7 @@
 						<div>Create a game</div>
 					</paper-button>
 
-					<paper-button class="load-game" on-click="onLoadGame" raised disabled="true">
+					<paper-button class="load-game" on-click="onLoadGame" raised>
 						<iron-icon icon="open-in-browser"></iron-icon>
 						<div>Load a game</div>
 					</paper-button>
@@ -135,6 +135,10 @@
 
 let G;
 
+function load(id) {
+	window.location = `${G.URI.path}?id=${id}`;
+}
+
 Polymer({
 	is: "ts-welcome",
 
@@ -146,10 +150,23 @@ Polymer({
 	},
 
 	onLoadGame: function() {
+		let picker = new google.picker.PickerBuilder()
+			.addView(new google.picker.View(google.picker.ViewId.DOCS)
+				.setMimeTypes(`${G.MIME_TYPE}.${G.APP_ID}`))
+			.setAppId(G.APP_ID)
+			.setOAuthToken(gapi.auth.getToken().access_token)
+			.setDeveloperKey(G.APIKEY)
+			.setCallback(
+				(r) => {
+					if (r.action == "picked")
+						load(r.docs[0].id);
+				}
+			).build();
+		picker.setVisible(true);
 	},
 
 	onTheatre: function() {
-		window.location = `${G.URI.path}?id=${G.THEATRE}`;
+		load(G.THEATRE);
 	},
 
 	onDrive: function() {

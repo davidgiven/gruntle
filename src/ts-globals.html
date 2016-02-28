@@ -9,7 +9,15 @@ let G = {};
 
 parseUri.options.strictMode = true;
 G.URI = parseUri(window.location);
-console.log(G.URI);
+
+G.APIKEY = "AIzaSyDkxlFXlA2WqxKyWcCQqVYx2Ms8QVm1npg";
+G.APP_ID = "513414562039";
+G.CLIENT_ID = "513414562039-vqfsh4i9jl0ethpti9ihm3ptkuj9s966.apps.googleusercontent.com";
+G.SCOPES = [
+	"https://www.googleapis.com/auth/drive.file"
+];
+
+G.MIME_TYPE = "application/vnd.google-apps.drive-sdk";
 
 G.THEATRE = "0ByWQADzU1i2wampHaEZ0OEJLOVk";
 G.PUBLIC_HUB = "0ByWQADzU1i2wa3N1VmVweS1EOE0";
