@@ -307,7 +307,8 @@ Polymer({
 	},
 
 	onServerError: function(e) {
-		console.log("server error!", e);
+		console.log("server error", e);
+		location.reload();
 	},
 
 	onDocumentAuthSuccess: function() {

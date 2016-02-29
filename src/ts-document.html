@@ -68,7 +68,27 @@ Polymer({
 				}
 			)
 		).then(
-			() => this.fire("auth-success")
+			() => {
+				/* Enable token refresh every 45 minutes. */
+				setTimeout(
+					() => {
+						console.log("refreshing auth token");
+						gapi.auth.authorize(
+							{
+								client_id: G.CLIENT_ID,
+								scope: G.SCOPES,
+								immediate: true
+							},
+							(r) => {
+								if (!r || !r.error)
+									this.fire("server-error", e);
+							}
+						);
+					},
+					45 * 60 * 1000
+				);
+				this.fire("auth-success");
+			}
 		).catch(
 			(e) => this.fire("auth-failure", e)
 		);
