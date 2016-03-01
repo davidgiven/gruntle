@@ -26,8 +26,11 @@
 
 	:host {
 		@apply(--layout-fit);
-		display: block;
 		background-color: var(--paper-blue-grey-100);
+	}
+
+	#page {
+		@apply(--layout-fit);
 	}
 
 	#loading, #login, #welcome {
@@ -37,18 +40,16 @@
 	}
 
 	#game {
-		position: relative;
-		min-height: 100vh;
+		@apply(--layout-fit);
+		@apply(--layout-vertical);
+		@apply(--layout-center);
 		overflow-y: scroll;
-		height: 0;
-		transition: scrollTop 0.5s ease-in-out,
 	}
 
 	.gameContainer {
 		@apply(--shadow-elevation-4dp);
+		width: 100%;
 		max-width: 800px;
-		margin-left: auto;
-		margin-right: auto;
 		background-color: white;
 	}
 
