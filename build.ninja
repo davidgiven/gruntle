@@ -29,11 +29,11 @@ rule htmlminifier
   command = $$(npm bin)/html-minifier $
     --custom-attr-assign [\"/\\\\$$=/\"] $
     --lint $
+    --remove-comments $
+    --collapse-whitespace $
+    --minify-css $
     -o $out $in $
 
-#    --remove-comments $
-#    --collapse-whitespace $
-#    --minify-css $
 
 rule cp
   command = cp $in $out
