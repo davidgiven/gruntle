@@ -139,6 +139,7 @@ function appendTextNode(paragraph, text) {
 Polymer({
 	is: "ts-transcript",
 	properties: {
+		isAuthor: Boolean,
 		scrollTarget: HTMLElement
 	},
 
@@ -185,7 +186,7 @@ Polymer({
 		let e = document.createElement("H1");
 		e.appendChild(document.createTextNode(text));
 
-		if (this.author) {
+		if (this.isAuthor) {
 			let icon = document.createElement("paper-icon-button");
 			icon.icon = "editor:mode-edit";
 			icon.addEventListener(

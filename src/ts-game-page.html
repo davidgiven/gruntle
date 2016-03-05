@@ -1,0 +1,224 @@
+<link href="https://fonts.googleapis.com/css?family=Lora:400,400italic,700,700italic" rel="stylesheet" type="text/css">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/social-icons.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-fab-transitions/paper-fab-speed-dial.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/neon-animation/neon-animated-pages.html">
+<link rel="import" href="../bower_components/neon-animation/neon-animatable.html">
+<link rel="import" href="ts-globals.html">
+<link rel="import" href="ts-transcript.html">
+
+<dom-module id="ts-game-page">
+<style>
+
+	:host {
+		display: block;
+		@apply(--layout-fit);
+		@apply(--layout-vertical);
+		@apply(--layout-center);
+		overflow-y: scroll;
+	}
+
+	.gameContainer {
+		@apply(--shadow-elevation-4dp);
+		width: 100%;
+		max-width: 800px;
+		background-color: white;
+	}
+
+	ts-transcript {
+		@apply(--layout-flex);
+	}
+
+	paper-fab-speed-dial {
+		position: fixed;
+		top: 20px;
+		right: 20px;
+	}
+
+	paper-fab-speed-dial paper-fab {
+		--paper-fab-background: var(--paper-light-blue-300);
+		--paper-fab-keyboard-focus-background: var(--paper-light-blue-500);
+	}
+
+	paper-fab-speed-dial paper-fab.for-editing {
+		--paper-fab-background: var(--paper-light-red-300);
+		--paper-fab-keyboard-focus-background: var(--paper-light-red-500);
+	}
+
+	#talkboxOuter {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		height: 4em;
+	}
+
+	#talkboxInner {
+		margin-left: auto;
+		margin-right: auto;
+		height: 5em;
+		max-width: 800px;
+	}
+
+	#talkbox {
+		background-color: rgba(255, 255, 255, 0.9);
+		margin-left: 1em;
+		margin-right: 1em;
+	}
+
+	#talkbox --paper-input-container-input: {
+		font-size: 140%;
+	}
+
+	#scrollButton {
+		margin-left: auto;
+		margin-right: auto;
+		margin-bottom: 0.4em;
+		background-color: var(--paper-grey-300);
+	}
+
+</style>
+<template>
+	<ts-globals id="globals"></ts-globals>
+
+	<div class="gameContainer">
+		<ts-transcript id="transcript"
+			is-author="{{isAuthor}}"
+			on-edit-request="onEditButton"
+			on-new-content="onScroll">
+		</ts-transcript>
+	</div>
+	<div id="talkboxOuter">
+		<neon-animated-pages id="talkboxInner">
+			<neon-animatable
+				hidden="{{isSinglePlayer}}"
+				entry-animation="fade-in-animation"
+				exit-animation="fade-out-animation">
+				<paper-input id="talkbox"
+					label="Type here to talk"
+					on-keydown="onTalkBoxKeydown"
+					always-float-label
+					>
+				</paper-input>
+			</neon-animatable>
+			<neon-animatable
+				entry-animation="slide-from-bottom-animation"
+				exit-animation="slide-down-animation">
+				<div class="vertical layout center fit">
+					<paper-button id="scrollButton" raised
+						on-click="onScrollDownButton">
+						<iron-icon icon="arrow-downward"></iron-icon>
+					</paper-button>
+				</div>
+			</neon-animatable>
+		</neon-animated-pages>
+	</div>
+	<paper-fab-speed-dial direction="bottom">
+		<paper-fab icon="menu" class="dropdown-trigger"></paper-fab>
+		<div class="dropdown-content">
+			<paper-fab mini icon="social:person"
+				on-click="onPreferencesButton"></paper-fab>
+			<paper-fab mini hidden="{{!author}}" icon="settings"
+				class="for-editing"
+				on-click="onSettingsButton"></paper-fab>
+			<paper-fab mini hidden="{{!author}}" icon="explore"
+				class="for-editing"
+				on-click="onMapButton"></paper-fab>
+			<paper-fab mini icon="exit-to-app"
+				on-click="onLogoutButton"></paper-fab>
+		</div>
+	</paper-fab-speed-dial>
+</template>
+<script>
+(function () {
+"use strict";
+
+let G = null;
+
+Polymer({
+	is: "ts-game-page",
+	properties: {
+		isAuthor: Boolean,
+		isSinglePlayer: Boolean
+	},
+	listeners: {
+		scroll: "onScroll"
+	},
+
+	ready: function() {
+		let $ = this.$;
+		G = $.globals.G;
+		G.transcript = $.transcript;
+
+		$.transcript.scrollTarget = this;
+	},
+
+	onEditButton: function(e) {
+		this.fire("edit-request", G.player.location.id);
+		e.stopPropagation();
+	},
+
+	onPreferencesButton: function(e) {
+		this.fire("preferences-request");
+		e.stopPropagation();
+	},
+
+	onSettingsButton: function(e) {
+		this.fire("settings-request");
+		e.stopPropagation();
+	},
+
+	onMapButton: function(e) {
+		this.fire("map-request");
+		e.stopPropagation();
+	},
+
+	onLogoutButton: function(e) {
+		this.fire("logout-request");
+		e.stopPropagation();
+	},
+
+	onTalkBoxKeydown: function(e) {
+		let $ = this.$;
+		if (e.keyCode == 13) {
+			let s = $.talkbox.value;
+			this.fire("talk-request", $.talkbox.value);
+			$.talkbox.value = "";
+		}
+	},
+
+	onScroll: function() {
+		let $ = this.$;
+		if (G.transcript.atBottom()) {
+			$.talkboxInner.selected = 0;
+		} else {
+			$.talkboxInner.selected = 1;
+		}
+	},
+
+	onScrollDownButton: function() {
+		let a = new KeyframeEffect(
+			this.scrollTarget,
+			[],
+			{
+				duration: 300,
+				easing: "ease-in-out"
+			}
+		);
+		let starty = this.scrollTop;
+		let endy = this.scrollTop + this.offsetHeight*0.8;
+		a.onsample = (fraction, e, a) => {
+			if (fraction != null)
+				this.scrollTop = starty - fraction*(starty-endy);
+		};
+
+		document.timeline.play(a);
+	},
+});
+
+
+})();
+</script>
+</dom-module>

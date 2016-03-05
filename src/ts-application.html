@@ -4,13 +4,12 @@
 <link rel="import" href="../bower_components/iron-icons/social-icons.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
-<link rel="import" href="../bower_components/paper-fab-transitions/paper-fab-speed-dial.html">
-<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/neon-animation/neon-animated-pages.html">
 <link rel="import" href="../bower_components/neon-animation/neon-animatable.html">
 <link rel="import" href="ts-document.html">
 <link rel="import" href="ts-editor.html">
+<link rel="import" href="ts-game-page.html">
 <link rel="import" href="ts-game-settings.html">
 <link rel="import" href="ts-globals.html">
 <link rel="import" href="ts-login.html">
@@ -40,72 +39,6 @@
 		@apply(--layout-fit);
 		@apply(--layout-center-center);
 		@apply(--layout-vertical);
-	}
-
-	#game {
-		@apply(--layout-fit);
-		@apply(--layout-vertical);
-		@apply(--layout-center);
-		overflow-y: scroll;
-	}
-
-	.gameContainer {
-		@apply(--shadow-elevation-4dp);
-		width: 100%;
-		max-width: 800px;
-		background-color: white;
-	}
-
-	#game ts-transcript {
-		@apply(--layout-flex);
-	}
-
-	#game > paper-fab-speed-dial {
-		position: fixed;
-		top: 20px;
-		right: 20px;
-	}
-
-	#game > paper-fab-speed-dial paper-fab {
-		--paper-fab-background: var(--paper-light-blue-300);
-		--paper-fab-keyboard-focus-background: var(--paper-light-blue-500);
-	}
-
-	#game > paper-fab-speed-dial paper-fab.for-editing {
-		--paper-fab-background: var(--paper-light-red-300);
-		--paper-fab-keyboard-focus-background: var(--paper-light-red-500);
-	}
-
-	#talkboxOuter {
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		height: 4em;
-	}
-
-	#talkboxInner {
-		margin-left: auto;
-		margin-right: auto;
-		height: 5em;
-		max-width: 800px;
-	}
-
-	#talkbox {
-		background-color: rgba(255, 255, 255, 0.9);
-		margin-left: 1em;
-		margin-right: 1em;
-	}
-
-	#talkbox --paper-input-container-input: {
-		font-size: 140%;
-	}
-
-	#scrollButton {
-		margin-left: auto;
-		margin-right: auto;
-		margin-bottom: 0.4em;
-		background-color: var(--paper-grey-300);
 	}
 
 	@media (min-width: 700px) {
@@ -165,7 +98,7 @@
 
 	<paper-dialog id="mapDialogue" modal="true" class="big-dialogue">
 		<ts-map id="map"
-			on-edit-request="onEdit"
+			on-edit-request="onEditRequest"
 			></ts-map>
 	</paper-dialog>
 
@@ -192,54 +125,16 @@
 			<paper-spinner active></paper-spinner>
 		</div>
 
-		<div id="game" on-scroll="onGameScrollbarMoving">
-			<div class="gameContainer">
-				<ts-transcript id="transcript"
-					author="{{author}}"
-					on-edit-request="onEditButton"
-					on-new-content="onGameScrollbarMoving">
-				</ts-transcript>
-			</div>
-			<div id="talkboxOuter">
-				<neon-animated-pages id="talkboxInner">
-					<neon-animatable
-						entry-animation="fade-in-animation"
-						exit-animation="fade-out-animation">
-						<paper-input id="talkbox"
-							label="Type here to talk"
-							on-keydown="onTalkBoxKeydown"
-							always-float-label
-							>
-						</paper-input>
-					</neon-animatable>
-					<neon-animatable
-						entry-animation="slide-from-bottom-animation"
-						exit-animation="slide-down-animation">
-						<div class="vertical layout center fit">
-							<paper-button id="scrollButton" raised
-								on-click="onScrollDownButton">
-								<iron-icon icon="arrow-downward"></iron-icon>
-							</paper-button>
-						</div>
-					</neon-animatable>
-				</neon-animated-pages>
-			</div>
-			<paper-fab-speed-dial direction="bottom">
-				<paper-fab icon="menu" class="dropdown-trigger"></paper-fab>
-				<div class="dropdown-content">
-					<paper-fab mini icon="social:person"
-						on-click="onPreferencesButton"></paper-fab>
-					<paper-fab mini hidden="{{!author}}" icon="settings"
-						class="for-editing"
-						on-click="onSettingsButton"></paper-fab>
-					<paper-fab mini hidden="{{!author}}" icon="explore"
-						class="for-editing"
-						on-click="onMapButton"></paper-fab>
-					<paper-fab mini icon="exit-to-app"
-						on-click="onLogoutButton"></paper-fab>
-				</div>
-			</paper-fab-speed-dial>
-		</div>
+		<ts-game-page id="game"
+			on-edit-request="onEditRequest"
+			on-preferences-request="onPreferencesRequest"
+			on-settings-request="onSettingsRequest"
+			on-map-request="onMapRequest"
+			on-logout-request="onLogoutRequest"
+			on-talk-request="onTalkRequest"
+			is-author="{{isAuthor}}"
+			is-single-player="{{isSinglePlayer}}"
+			></ts-game-page>
 
 		<ts-login id="login"
 			on-click="doExplicitLogin"
@@ -289,12 +184,14 @@ class Player {
 
 Polymer({
 	is: "ts-application",
+	properties: {
+		isAuthor: Boolean,
+		isSinglePlayer: Boolean
+	},
 
 	ready: function() {
 		$ = this.$;
 		G = $.globals.G;
-		$.transcript.scrollTarget = $.game;
-		this.author = false;
 
 		this.doImplicitLogin();
 	},
@@ -369,10 +266,13 @@ Polymer({
 		G.rooms = $.roomstore;
 		G.rooms.startWatching();
 
-		this.author = !($.doc.world.getModel().isReadOnly);
-		console.log(`I am ${this.author ? "the author" : "not the author"}`);
+		this.isSinglePlayer = !$.doc.hub.isInGoogleDrive;
+		console.log(`This game is ${this.isSinglePlayer ? "single player" : "multi player"}`);
 
-		if (this.author)
+		this.isAuthor = !($.doc.world.getModel().isReadOnly);
+		console.log(`I am ${this.isAuthor ? "the author" : "not the author"}`);
+
+		if (this.isAuthor)
 			$.settingsDialogue.worldConfig = G.worldConfig;
 		$.preferencesDialogue.playerStateNode = G.playerState;
 
@@ -422,7 +322,7 @@ Polymer({
 		}
 
 		let parsed = newRoom.parse();
-		$.transcript.newRoom(
+		G.transcript.newRoom(
 			{
 				title: newRoom.title,
 				bodyDom: parsed.dom,
@@ -443,16 +343,16 @@ Polymer({
 		switch (e.kind) {
 			case "tellOthers":
 				if (e.player != G.player.id)
-					$.transcript.append(e.text);
+					G.transcript.append(e.text);
 				break;
 
 			case "tell":
 				if (e.player == G.player.id)
-					$.transcript.append(e.text);
+					G.transcript.append(e.text);
 				break;
 
 			case "broadcast":
-				$.transcript.append(e.text);
+				G.transcript.append(e.text);
 				break;
 
 			default:
@@ -461,11 +361,7 @@ Polymer({
 		}
 	},
 
-	onEditButton: function(e) {
-		this.onEdit(e, G.player.location.id);
-	},
-
-	onEdit: function(e, id) {
+	onEditRequest: function(e, id) {
 		let room = G.rooms.get(id);
 		if (room) {
 			$.editor.room = G.rooms.get(id);
@@ -481,18 +377,23 @@ Polymer({
 		$.editorDialogue.open();
 	},
 		
-	onMapButton: function() {
-		$.mapDialogue.open();
-	},
-
-	onSettingsButton: function() {
+	onSettingsRequest: function() {
 		$.settingsDialogue.fit();
 		$.settingsDialogue.open();
 	},
 
-	onPreferencesButton: function() {
+	onPreferencesRequest: function() {
 		$.preferencesDialogue.fit();
 		$.preferencesDialogue.open();
+	},
+
+	onMapRequest: function() {
+		$.mapDialogue.fit();
+		$.mapDialogue.open();
+	},
+
+	onLogoutRequest: function() {
+		window.location = G.URI.path;
 	},
 
 	onTalkBoxKeydown: function(e) {
@@ -515,7 +416,7 @@ Polymer({
 	onRoomChanged: function(event, room) {
 		if (room && (G.player.location == room)) {
 			let parsed = G.player.location.parse();
-			$.transcript.updateRoom(
+			G.transcript.updateRoom(
 				{
 					title: G.player.location.title,
 					bodyDom: parsed.dom,
@@ -536,8 +437,8 @@ Polymer({
 	},
 
 	onUserAction: function(e, actions) {
-		$.transcript.hideChoices();
-		$.transcript.setMark();
+		G.transcript.hideChoices();
+		G.transcript.setMark();
 
 		const actionHandler = {
 			tellPlayerAction: (text) => G.player.location.tell(G.player, text),
@@ -549,7 +450,7 @@ Polymer({
 				if (room == null)
 					this.onHyperspaceJump(null, G.player.location);
 				else {
-					$.transcript.scrollToMark();
+					G.transcript.scrollToMark();
 					G.player.location.tellOthers(G.player, `${G.player.name} goes to ${room.title}.`);
 					room.tellOthers(G.player, `${G.player.name} arrives from ${G.player.location.title}.`);
 					G.player.location = room;
@@ -563,38 +464,7 @@ Polymer({
 		/* TODO: fix this, it's horrible. This gives enough time for the event
 		 * handlers to fire and tell the transcript what to do, so showChoices()
 		 * always runs last. */
-		this.async(() => $.transcript.showChoices(), 500);
-	},
-
-	onGameScrollbarMoving: function() {
-		if ($.transcript.atBottom()) {
-			$.talkboxInner.selected = 0;
-		} else {
-			$.talkboxInner.selected = 1;
-		}
-	},
-
-	onScrollDownButton: function() {
-		let a = new KeyframeEffect(
-			this.scrollTarget,
-			[],
-			{
-				duration: 300,
-				easing: "ease-in-out"
-			}
-		);
-		let starty = $.game.scrollTop;
-		let endy = $.game.scrollTop + $.game.offsetHeight*0.8;
-		a.onsample = (fraction, e, a) => {
-			if (fraction != null)
-				$.game.scrollTop = starty - fraction*(starty-endy);
-		};
-
-		document.timeline.play(a);
-	},
-
-	onLogoutButton: function() {
-		window.location = G.URI.path;
+		this.async(() => G.transcript.showChoices(), 500);
 	},
 });
 
