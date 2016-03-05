@@ -55,7 +55,6 @@
 
 		transition: opacity 2.0s ease-in-out;
 	}
-
 </style>
 
 <dom-module id="ts-transcript">
@@ -63,8 +62,6 @@
 	<style>
 
 	:host {
-		@apply(--layout-vertical);
-		display: block;
 		min-height: 100%;
 	}
 
@@ -75,6 +72,8 @@
 	}
 	
 	#container {
+		margin-left: 3%;
+		margin-right: 3%;
 	}
 
 	#container li p {
@@ -82,7 +81,7 @@
 	}
 
 	#blank {
-		height: 200vh;
+		height: 100vh;
 	}
 
 	#textbox {

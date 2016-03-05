@@ -27,10 +27,13 @@
 	:host {
 		@apply(--layout-fit);
 		background-color: var(--paper-blue-grey-100);
+		overflow: hidden;
+
 	}
 
 	#page {
 		@apply(--layout-fit);
+		overflow: hidden;
 	}
 
 	#loading, #login, #welcome {
@@ -54,8 +57,7 @@
 	}
 
 	#game ts-transcript {
-		margin-left: 3%;
-		margin-right: 3%;
+		@apply(--layout-flex);
 	}
 
 	#game > paper-fab-speed-dial {
