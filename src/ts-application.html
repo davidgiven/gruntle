@@ -193,6 +193,32 @@ Polymer({
 		$ = this.$;
 		G = $.globals.G;
 
+		/* If there's a state parameter supplied by Google Drive,, reform it to
+		 * something we understand. */
+
+		if (G.URI.queryKey.state) {
+			let state = JSON.parse(decodeURIComponent(G.URI.queryKey.state));
+			switch (state.action) {
+				case "open": {
+					let id = state.ids[0];
+					window.history.replaceState(null, "",
+						`${G.URI.path}?id=${id}`); 
+					G.URI.queryKey.id = id;
+					break;
+				}
+
+				case "create": {
+					G.URI.queryKey.action = "create";
+					G.URI.queryKey.title = state.title;
+					G.URI.queryKey.folderId = state.folderId;
+					break;
+				}
+
+				default:
+					console.log("unrecognised google action", state);
+			}
+		}
+
 		this.doImplicitLogin();
 	},
 
