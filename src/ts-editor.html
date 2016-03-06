@@ -159,7 +159,6 @@ Polymer({
 	<h2>Editing room: {{roomId}}</h2>
 	<ts-editor-ui>
 		<div class="editorPane">
-			<paper-input label="Name visible to players" value="{{titleContent}}"></paper-input>
 			<paper-textarea label="Room content" value="{{textContent}}"></paper-textarea>
 		</div>
 		<div class="previewPane transcript">
@@ -268,10 +267,6 @@ Polymer({
 	ready: function() {
 		G = this.$.globals.G;
 
-		this.onTitleChangedByOther = (e) => {
-			this.titleContent = this.room.pendingTitle.getText();
-		};
-
 		this.onTextChangedByOther = (e) => {
 			this.textContent = this.room.pendingText.getText();
 		};
@@ -284,15 +279,7 @@ Polymer({
 	bind: function() {
 		this.roomId = this.room.id;
 
-		this.titleContent = this.room.pendingTitle.getText();
 		this.textContent = this.room.pendingText.getText();
-
-		this.room.pendingTitle.addEventListener(
-			gapi.drive.realtime.EventType.TEXT_INSERTED,
-			this.onTitleChangedByOther);
-		this.room.pendingTitle.addEventListener(
-			gapi.drive.realtime.EventType.TEXT_DELETED,
-			this.onTitleChangedByOther);
 
 		this.room.pendingText.addEventListener(
 			gapi.drive.realtime.EventType.TEXT_INSERTED,
@@ -303,13 +290,6 @@ Polymer({
 	},
 
 	unbind: function() {
-		this.room.pendingTitle.removeEventListener(
-			gapi.drive.realtime.EventType.TEXT_INSERTED,
-			this.onTitleChangedByOther);
-		this.room.pendingTitle.removeEventListener(
-			gapi.drive.realtime.EventType.TEXT_DELETED,
-			this.onTitleChangedByOther);
-
 		this.room.pendingText.removeEventListener(
 			gapi.drive.realtime.EventType.TEXT_INSERTED,
 			this.onTextChangedByOther);
@@ -323,12 +303,6 @@ Polymer({
 
 		if (this.room)
 			this.bind();
-	},
-
-	onTitleChangedByUI: function(s) {
-		if (this.room)
-			this.room.pendingTitle.setText(s);
-		this.updatePreview();
 	},
 
 	onTextChangedByUI: function(s) {
@@ -353,16 +327,15 @@ Polymer({
 				if (!this.room)
 					return;
 
-				let title = this.room.pendingTitle.getText();
+				let parsed = this.$.parser.parse(
+					this.room.pendingText.getText(),
+					(actions) => {}
+				);
+
 				let titlePreview = this.$$(".titlePreview");
 				empty(titlePreview);
 				titlePreview.appendChild(
-					document.createTextNode(title)
-				);
-
-				let parsed = this.$.parser.parse(
-					this.room.pendingText.getText(),
-					G.player.name
+					document.createTextNode(parsed.title)
 				);
 
 				let bodyPreview = this.$$(".bodyPreview");

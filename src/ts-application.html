@@ -350,7 +350,7 @@ Polymer({
 		let parsed = newRoom.parse();
 		G.transcript.newRoom(
 			{
-				title: newRoom.title,
+				title: parsed.title,
 				bodyDom: parsed.dom,
 				choicesDom: parsed.choicesDom
 			}
@@ -444,7 +444,7 @@ Polymer({
 			let parsed = G.player.location.parse();
 			G.transcript.updateRoom(
 				{
-					title: G.player.location.title,
+					title: parsed.title,
 					bodyDom: parsed.dom,
 					choicesDom: parsed.choicesDom
 				}
@@ -477,8 +477,8 @@ Polymer({
 					this.onHyperspaceJump(null, G.player.location);
 				else {
 					G.transcript.scrollToMark();
-					G.player.location.tellOthers(G.player, `${G.player.name} goes to ${room.title}.`);
-					room.tellOthers(G.player, `${G.player.name} arrives from ${G.player.location.title}.`);
+					G.player.location.tellOthers(G.player, `${G.player.name} goes to ${room.parse().title}.`);
+					room.tellOthers(G.player, `${G.player.name} arrives from ${G.player.location.parse().title}.`);
 					G.player.location = room;
 				}
 			}

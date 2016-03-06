@@ -87,13 +87,11 @@ class ParsedText {
 			return link;
 		}
 
-		function parseActionName(name) {
-			switch (name.toLowerCase()) {
-				case "goto":       return "gotoAction";
-				case "tellplayer": return "tellPlayerAction";
-				case "tellothers": return "tellOthersAction";
-				case "tellall":    return "tellAllAction";
-			}
+		function queueAction(name, arg) {
+			if (currentAction == null)
+				appendErrorNode(currentParagraph, "can't add an action without a link first");
+			else
+				currentAction.push([name, expandVariables(arg)]);
 		}
 
 		source += '\n';
@@ -112,20 +110,30 @@ class ParsedText {
 				continue;
 			}
 
-			let actionresult = line.match(/^#(\w+)\s+(.*)$/);
-			if (actionresult) {
-				let name = parseActionName(actionresult[1]);
+			let commentresult = line.match(/^##/);
+			if (commentresult) {
+				continue;
+			}
 
-				if (name == "gotoAction")
-					exits.push(actionresult[2]);
+			let commandresult = line.match(/^#(\w+)\s+(.*)$/);
+			if (commandresult) {
+				let name = commandresult[1];
+				let argument = commandresult[2];
+				switch (name.toLowerCase()) {
+					case "goto":
+						exits.push(argument);
+						queueAction("gotoAction", argument);
+						break;
 
-				if (currentAction == null)
-					appendErrorNode(currentParagraph, "can't add an action without a link first");
-				else {
-					if (name)
-						currentAction.push([name, expandVariables(actionresult[2])]);
-					else
-						currentAction.push(["onUnknownAction", name]);
+					case "tellplayer": queueAction("tellPlayerAction", argument); break;
+					case "tellothers": queueAction("tellOthersAction", argument); break;
+					case "tellall":    queueAction("tellAllAction", argument); break;
+
+					case "title":      this.title = argument; break;
+
+					default:
+						appendErrorNode(currentParagraph, `unknown command '${name}'`);
+						break;
 				}
 			} else {
 				addLink(parseAndAppend(currentParagraph, line));

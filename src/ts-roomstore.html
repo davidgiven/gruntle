@@ -28,11 +28,6 @@ class Room {
 			);
 		};
 
-		this.node.get("title").addEventListener(
-			gapi.drive.realtime.EventType.OBJECT_CHANGED,
-			onChange
-		);
-
 		this.node.get("text").addEventListener(
 			gapi.drive.realtime.EventType.OBJECT_CHANGED,
 			onChange
@@ -43,18 +38,10 @@ class Room {
 		return $.doc.world.getModel();
 	}
 
-	get title() {
-		return this.node.get("title");
-	}
-
 	get text() {
 		return this.node.get("text");
 	}
 	
-	get pendingTitle() {
-		return this._ensurePending("title", "pendingTitle");
-	}
-
 	get pendingText() {
 		return this._ensurePending("text", "pendingText");
 	}
@@ -85,7 +72,6 @@ class Room {
 	}
 
 	commitPending() {
-		this._commitPending("title", "pendingTitle");
 		this._commitPending("text", "pendingText");
 	}
 
@@ -96,7 +82,6 @@ class Room {
 	}
 
 	revertPending() {
-		this._revertPending("title", "pendingTitle");
 		this._revertPending("text", "pendingText");
 	}
 
@@ -108,7 +93,7 @@ class Room {
 			}
 		);
 
-		console.log(`${e.time}: ${kind} in ${this.title}: ${player ? player.name : 'null'}: ${text}`);
+		console.log(`${e.time}: ${kind} in ${this.id}: ${player ? player.name : 'null'}: ${text}`);
 	}
 
 	tell(player, text) {
@@ -168,11 +153,8 @@ Polymer({
 		return rooms;
 	},
 
-	createRoom: function(id, title, text) {
+	createRoom: function(id, text) {
 		let r = G.worldDoc.getModel().createMap();
-		r.set("title", G.worldDoc.getModel().createString(
-			(title != null) ? title : "Room title goes here"
-		));
 		r.set("text", G.worldDoc.getModel().createString(
 			(text != null) ? text : "Room text goes here"
 		));
