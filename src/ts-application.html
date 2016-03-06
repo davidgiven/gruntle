@@ -422,13 +422,9 @@ Polymer({
 		window.location = G.URI.path;
 	},
 
-	onTalkBoxKeydown: function(e) {
-		if (e.keyCode == 13) {
-			let s = $.talkbox.value;
-			G.player.location.tellOthers(G.player, `${G.player.name} says, "${s}"`);
-			G.player.location.tell(G.player, `You say "${s}"`);
-			$.talkbox.value = "";
-		}
+	onTalkRequest: function(e, s) {
+		G.player.location.tellOthers(G.player, `${G.player.name} says, "${s}"`);
+		G.player.location.tell(G.player, `You say "${s}"`);
 	},
 
 	onDocumentDisconnected: function() {
