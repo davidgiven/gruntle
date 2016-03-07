@@ -1,0 +1,38 @@
+<dom-module id="ts-codeeditor">
+<style>
+	:host {
+		@apply(--layout-fit);
+		@apply(--layout-vertical);
+	}
+
+	textarea {
+		@apply(--layout-flex);
+		box-sizing: border-box;
+		resize: none;
+		border: 1px solid transparent;
+	}
+</style>
+<template>
+	<textarea id="textarea" value="{{value::input}}"></textarea>
+</template>
+<script>
+(function () {
+"use strict";
+
+Polymer({
+	is: "ts-codeeditor",
+	properties: {
+		value: {
+			type: String,
+			notify: true,
+		},
+	},
+
+	ready: function() {
+	},
+});
+
+})()
+</script>
+</dom-module>
+

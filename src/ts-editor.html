@@ -9,6 +9,7 @@
 <link rel="import" href="ts-transcript.html">
 <link rel="import" href="ts-parser.html">
 <link rel="import" href="ts-globals.html">
+<link rel="import" href="ts-codeeditor.html">
 
 <dom-module id="ts-editor-help">
 <template>
@@ -26,7 +27,7 @@ Polymer({ is: "ts-editor-help" });
 	}
 
 	.scrollable {
-		@apply(--layout-flex);
+		@apply(--layout-fit);
 		overflow-y: scroll;
 		padding: 0.5em;
 	}
@@ -49,7 +50,12 @@ Polymer({ is: "ts-editor-help" });
 	}
 
 	paper-tab {
-		@apply(--layout-flex};
+		@apply(--layout-flex);
+	}
+
+	iron-pages {
+		position: relative;
+		@apply(--layout-flex);
 	}
 </style>
 <template>
@@ -61,7 +67,7 @@ Polymer({ is: "ts-editor-help" });
 				<paper-tab>Source</paper-tab>
 			</paper-tabs>
 				
-			<iron-pages class="scrollable" selected="{{leftPanePage}}">
+			<iron-pages selected="{{leftPanePage}}">
 				<content select=".editorPane"></content>
 			</iron-pages>
 		</paper-material>
@@ -71,9 +77,13 @@ Polymer({ is: "ts-editor-help" });
 				<paper-tab>Help</paper-tab>
 			</paper-tabs>
 				
-			<iron-pages class="scrollable" selected="{{rightPanePage}}">
-				<content select=".previewPane"></content>
-				<content select=".helpPane"></content>
+			<iron-pages selected="{{rightPanePage}}">
+				<div class="scrollable">
+					<content select=".previewPane"></content>
+				</div>
+				<div class="scrollable">
+					<content select=".helpPane"></content>
+				</div>
 			</iron-pages>
 		</paper-material>
 	</template>
@@ -86,10 +96,16 @@ Polymer({ is: "ts-editor-help" });
 				<paper-tab>Help</paper-tab>
 			</paper-tabs>
 				
-			<iron-pages class="scrollable" selected="{{combinedPanePage}}">
-				<content select=".editorPane"></content>
-				<content select=".previewPane"></content>
-				<content select=".helpPane"></content>
+			<iron-pages selected="{{combinedPanePage}}">
+				<div class="scrollable">
+					<content select=".editorPane"></content>
+				</div>
+				<div class="scrollable">
+					<content select=".previewPane"></content>
+				</div>
+				<div class="scrollable">
+					<content select=".helpPane"></content>
+				</div>
 			</iron-pages>
 		</paper-material>
 	</template>
@@ -158,9 +174,7 @@ Polymer({
 
 	<h2>Editing room: {{roomId}}</h2>
 	<ts-editor-ui>
-		<div class="editorPane">
-			<paper-textarea label="Room content" value="{{textContent}}"></paper-textarea>
-		</div>
+		<ts-codeeditor class="editorPane" value="{{textContent}}"></ts-codeeditor>
 		<div class="previewPane transcript">
 			<h1 class="titlePreview"></h1>
 			<div class="bodyPreview"></div>
