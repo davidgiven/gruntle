@@ -178,19 +178,23 @@ Polymer({
 			like. It's recommended that you only have one per source line,
 			however, because...</p>
 
-			<p><b>A line beginning with <code>#</code> adds an action to the
-			most recent link.</b> You can have as many actions per link as you
-			like (although having multiple <code>#goto</code> actions prodably
-			isn't useful).</p>
-
 			<p><b>A line beginning with <code>-</code> adds an entry to the
 			'What would you like to do?' list.</b> This probably wants to be a
 			link with actions. These are all collected together at the end of
 			your text; see the preview.</p>
 
-			<p>Actions include:</p>
+			<p><b>A line beginning with <code>#</code> is a command.</b></p>
+			
+			<p>Ordinary commands:</p>
+			
+			<p><b><code>#title</code> sets the page's title.</b> You don't have
+			to have one, but it helps.</p>
 
-			<p><b><code>#goto</code></b>: moves the player to the room with the
+			<p>These commands add an action to the most recent link. You can
+			have as many actions per link as you like (although having multiple
+			<code>#goto</code> actions prodably isn't useful).</p>
+
+			<p><b><code>#goto</code></b>: moves a player to the room with the
 			specified id. (Room ids are short names used to identify rooms to
 			the game; they must be unique. They're not shown to the player, and
 			can be quite different to the room titles themselves.)</p>
@@ -210,6 +214,8 @@ Polymer({
 			<p>Here's an example of a basic room description:</p>
 
 			<pre>
+#title A room.
+
 You're in a room. A thing is here.
 
 - {Look at the thing.}
