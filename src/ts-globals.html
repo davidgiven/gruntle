@@ -60,29 +60,34 @@ G.ensureMap = function(rt, node, name) {
 };
 
 G.MessageQueue = class MessageQueue {
-	constructor(hubDocNode, onMessage) {
-		this.hubDocNode = hubDocNode;
-		this.handler = (e) => {
-			let values = e.values.slice(0);
-			values.sort(
-				(a, b) => a.time - b.time
-			);
+	constructor(node, onMessage) {
+		this.node = node;
 
-			for (let event of values) {
-				if (onMessage != null)
-					onMessage(event);
-			}
-		};
+		this.handler = null;
+		if (onMessage != null) {
+			this.handler = (e) => {
+				let values = e.values.slice(0);
+				values.sort(
+					(a, b) => a.time - b.time
+				);
 
-		this.hubDocNode.addEventListener(
-			gapi.drive.realtime.EventType.VALUES_ADDED,
-			this.handler);
+				for (let event of values) {
+					if (onMessage != null)
+						onMessage(event);
+				}
+			};
+
+			this.node.addEventListener(
+				gapi.drive.realtime.EventType.VALUES_ADDED,
+				this.handler);
+		}
 	}
 
 	detach() {
-		this.hubDocNode.removeEventListener(
-			gapi.drive.realtime.EventType.VALUES_ADDED,
-			this.handler);
+		if (this.handler != null)
+			this.node.removeEventListener(
+				gapi.drive.realtime.EventType.VALUES_ADDED,
+				this.handler);
 	}
 
 	post(kind, params) {
@@ -90,11 +95,11 @@ G.MessageQueue = class MessageQueue {
 		for (let k in params)
 			e[k] = params[k];
 		e.kind = kind;
-		e.time = G.hubDoc.getModel().serverRevision;
+		e.time = G.hub.hubRT.getModel().serverRevision;
 
-		if (this.hubDocNode.length > 20)
-			this.hubDocNode.removeRange(0, this.hubDocNode.length-20);
-		this.hubDocNode.push(e);
+		if (this.node.length > 20)
+			this.node.removeRange(0, this.hubDocNode.length-20);
+		this.node.push(e);
 
 		return e;
 	}

@@ -308,62 +308,61 @@ Polymer({
 		G.hub.worldId = G.world.documentId;
 		G.hub.hubId = G.world.data.settings.hubId;
 		G.hub.connect().then(
-			() => {
-				console.log("hub connected");
-
-				this.isSinglePlayer = !G.hub.hubRT.isInGoogleDrive;
-				console.log(`This game is ${this.isSinglePlayer ? "single player" : "multi player"}`);
-
-				this.isAuthor = G.world.isAuthor;
-				console.log(`I am ${this.isAuthor ? "the author" : "not the author"}`);
-
-				G.player = new Player;
-				if (!G.player.name)
-					G.player.name = G.hub.myself.displayName;
-				console.log("my usename is", G.player.name);
-
-				if (!G.player.location)
-				{
-					let entrypoint = G.world.data.settings.entrypoint;
-					G.player.location = G.rooms.get(entrypoint);
-				}
-			}
+			() => this.onHubConnected()
 		);
+	},
 
-		if (false) {
+	onHubConnected: function() {
+		console.log("hub connected");
 
-		this._onPlayerLocationChanged(
+		this.isSinglePlayer = !G.hub.hubRT.isInGoogleDrive;
+		console.log(`This game is ${this.isSinglePlayer ? "single player" : "multi player"}`);
+
+		this.isAuthor = G.world.isAuthor;
+		console.log(`I am ${this.isAuthor ? "the author" : "not the author"}`);
+
+		G.player = new Player;
+		if (!G.player.name)
+			G.player.name = G.hub.myself.displayName;
+		console.log("my usename is", G.player.name);
+
+		if (!G.player.location)
+		{
+			let entrypoint = G.world.data.settings.entrypoint;
+			G.player.location = G.rooms.get(entrypoint);
+		}
+
+		this.onPlayerLocationChanged(
 			{
 				oldValue: null,
 				newValue: G.player.location.id
 			}
 		);
 
-		G.player.location.tellOthers(G.player, `${G.player.name} teleports in.`);
-
-		G.playerState.addEventListener(
+		G.hub.playerNode.addEventListener(
 			gapi.drive.realtime.EventType.VALUE_CHANGED,
 			(e) => {
 				if (e.oldValue == e.newValue)
 					return;
 
 				switch (e.property) {
-					case "location": return this._onPlayerLocationChanged(e);
+					case "location": return this.onPlayerLocationChanged(e);
 				}
 			}
 		);
 
+		G.player.location.tellOthers(G.player, `${G.player.name} teleports in.`);
+
 		$.page.selected = 1;
-		}
 	},
 
-	_onPlayerLocationChanged: function(e) {
+	onPlayerLocationChanged: function(e) {
 		let oldRoom = e.oldValue ? G.rooms.get(e.oldValue) : null;
 		let newRoom = G.player.location;
 
 		/* If this is a bad room name, put the player back at the entrypoint. */
 
-		if (!newRoom.node) {
+		if (!newRoom.exists) {
 			this.onHyperspaceJump(null, oldRoom);
 			return;
 		}

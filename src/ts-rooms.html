@@ -46,12 +46,6 @@ class Room {
 		return this._ensurePending("text", "pendingText");
 	}
 
-	parse() {
-		return $.parser.parse(this.text,
-			(actions) => G.rooms.fire("user-action", actions)
-		);
-	}
-	
 	_ensurePending(original, pending) {
 		let p = this.node.get(pending);
 		if (!p) {
@@ -85,42 +79,10 @@ class Room {
 		this._revertPending("text", "pendingText");
 	}
 
-	postEvent(kind, player, text) {
-		let e = this.queue.post(kind,
-			{
-				player: player ? player.id : null,
-				text: text,
-			}
-		);
-
-		console.log(`${e.time}: ${kind} in ${this.id}: ${player ? player.name : 'null'}: ${text}`);
-	}
-
-	tell(player, text) {
-		this.postEvent("tell", player, text);
-	}
-
-	tellOthers(player, text) {
-		this.postEvent("tellOthers", player, text);
-	}
-
-	broadcast(text) {
-		this.postEvent("broadcast", null, text);
-	}
-
 }
 
 function loadRoom(id) {
 	return new Room(id);
-}
-
-function cacheGet(id) {
-	let r = cache[id];
-	if ((r == null) && G.worldRooms.get(id)) {
-		r = loadRoom(id);
-		cache[id] = r;
-	}
-	return r;
 }
 
 Polymer({
@@ -131,14 +93,54 @@ Polymer({
 	},
 
 	ready: function() {
-		let G = this.$.globals.G;
+		let $ = this.$;
+		let G = $.globals.G;
 
 		this._cache = {};
 		this._Room = class Room {
-			constructor(id, hub) {
+			constructor(id) {
 				this.id = id;
-				this._hub = hub;
+				this.log = G.ensureList(G.hub.hubRT, G.hub.roomsNode, this.id);
+				this.queue = new G.MessageQueue(this.log);
 			}
+
+			get exists() {
+				return this.id in G.world.data.rooms;
+			}
+
+			get text() {
+				return G.world.data.rooms[this.id].text;
+			}
+
+			parse() {
+				return $.parser.parse(this.text,
+					(actions) => G.rooms.fire("user-action", actions)
+				);
+			}
+	
+			postEvent(kind, player, text) {
+				let e = this.queue.post(kind,
+					{
+						player: player ? player.id : null,
+						text: text,
+					}
+				);
+
+				console.log(`${e.time}: ${kind} in ${this.id}: ${player ? player.name : 'null'}: ${text}`);
+			}
+
+			tell(player, text) {
+				this.postEvent("tell", player, text);
+			}
+
+			tellOthers(player, text) {
+				this.postEvent("tellOthers", player, text);
+			}
+
+			broadcast(text) {
+				this.postEvent("broadcast", null, text);
+			}
+
 		}
 	},
 

@@ -41,6 +41,8 @@ Polymer({
 
 		switch (this.hubId) {
 			case "private":
+			case null:
+			case undefined:
 				console.log("using in-memory hub");
 				p = new Promise(
 					(pass, fail) => {
