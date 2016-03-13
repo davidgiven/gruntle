@@ -1,0 +1,159 @@
+<link rel="import" href="ts-globals.html">
+
+<dom-module id="ts-world">
+<template>
+	<style>
+	  :host {
+		display: none;
+	  }
+	</style>
+
+	<ts-globals id="globals"></ts-globals>
+</template>
+<script>
+(function () {
+"use strict";
+
+let G;
+
+const defaultDocument = {
+	settings: {
+		entrypoint: "entrypoint",
+		hubId: "this"
+	},
+	rooms: {
+		entrypoint: {
+			text: `
+#title My First Room
+
+This is the first and only room in my brand new game.
+Eventually this will be replaced with a rather more 
+useful template. We Apologise For The Inconvenience.
+
+To add more rooms, edit this one and add exits --- the
+new rooms will appear automatically on the map. (This
+all needs smoothing out.)
+
+Note that this game is set to single player mode by
+default. You can change this in the settings. Remember
+you still need to share it with someone before they can
+play (go to the Drive UI to do that).
+`
+		},
+	},
+};
+
+function save_document_promise(id, json) {
+	return new Promise(
+		(pass, fail) => {
+			/* gapi does not return a real promise. */
+			gapi.client.request(
+				{
+					path: `/upload/drive/v3/files/${id}`,
+					method: "PATCH",
+					params: {
+						uploadType: "media",
+					},
+					headers: {
+						"Content-Type": G.MIME_TYPE
+					},
+					body: json
+				}
+			).then(pass, fail);
+		}
+	);
+}
+
+function load_document_promise(id) {
+	return new Promise(
+		(pass, fail) =>
+			/* gapi does not return a real promise. */
+			gapi.client.drive.files.get(
+				{
+					fileId: id,
+					alt: "media",
+				}
+			).then(pass, fail)
+	).then(
+		(r) => r.result
+	);
+}
+
+Polymer({
+	is: "ts-world",
+	properties: {
+		documentId: String,
+	},
+
+	ready: function() {
+		G = this.$.globals.G;
+	},
+
+	create: function(title, folderId) {
+		let parents = folderId ? [folderId] : null;
+		let id;
+
+		return new Promise(
+			(pass, fail) => {
+				/* gapi does not return a real promise. */
+				return gapi.client.drive.files.create(
+					{
+						resource: {
+							mimeType: G.MIME_TYPE,
+							name: title,
+							parents: parents
+						},
+					}
+				).then(pass, fail);
+			}
+		).then(
+			(r) => {
+				id = r.result.id;
+				console.log("new document id", id);
+			}
+		).then(
+			() => save_document_promise(id, defaultDocument)
+		).then(
+			(r) => console.log(r)
+		).then(
+			() => id
+		);
+	},
+
+	connect: function() {
+		return new Promise(
+			(pass, fail) => {
+				/* gapi does not return a real promise. */
+				return gapi.client.drive.files.get(
+					{
+						fileId: this.documentId,
+						fields: "capabilities/canEdit,md5Checksum"
+					}
+				).then(pass, fail);
+			}
+		).then(
+			(r) => {
+				this.isAuthor = r.result.capabilities.canEdit;
+				this.md5Checksum = r.result.md5Checksum;
+			}
+		).then(
+			() => this.reload()
+		);
+	},
+
+	reload: function() {
+		return load_document_promise(
+			this.documentId
+		).then(
+			(r) => {
+				this.data = r;
+				this.fire("world-changed");
+			}
+		);
+	},
+});
+
+})();
+</script>
+</dom-module>
+

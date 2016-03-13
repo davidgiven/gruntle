@@ -17,7 +17,7 @@ G.SCOPES = [
 	"https://www.googleapis.com/auth/drive.file"
 ];
 
-G.MIME_TYPE = "application/vnd.google-apps.drive-sdk";
+G.MIME_TYPE = "application/vnd.cowlark.gruntle";
 
 G.THEATRE = "0ByWQADzU1i2wampHaEZ0OEJLOVk";
 G.PUBLIC_HUB = "0ByWQADzU1i2wa3N1VmVweS1EOE0";
@@ -41,19 +41,19 @@ G.findRelativeYOffset = function(element, top) {
 	return y;
 };
 
-G.ensureList = function(doc, node, name) {
+G.ensureList = function(rt, node, name) {
 	let v = node.get(name);
 	if (!v) {
-		v = doc.getModel().createList();
+		v = rt.getModel().createList();
 		node.set(name, v);
 	}
 	return v
 };
 
-G.ensureMap = function(doc, node, name) {
+G.ensureMap = function(rt, node, name) {
 	let v = node.get(name);
 	if (!v) {
-		v = doc.getModel().createMap();
+		v = rt.getModel().createMap();
 		node.set(name, v);
 	}
 	return v

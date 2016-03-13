@@ -1,0 +1,102 @@
+<link rel="import" href="../bower_components/google-apis/google-js-api.html">
+<link rel="import" href="ts-globals.html">
+
+<dom-module id="ts-auth">
+<template>
+	<style>
+	  :host {
+		display: none;
+	  }
+	</style>
+
+	<ts-globals id="globals"></ts-globals>
+	<google-js-api id="api"></google-js-api>
+</template>
+<script>
+(function () {
+"use strict";
+
+let G;
+
+Polymer({
+	is: "ts-auth",
+	properties: {
+		authRefreshTime: {
+			type: Number,
+			value: 45 * 60 * 1000, /* 45 minutes in milliseconds */
+		},
+	},
+
+	ready: function() {
+		G = this.$.globals.G;
+
+		this.apiLoadPromise = new Promise(
+			(pass, fail) =>
+				this.$.api.addEventListener("js-api-load", pass)
+		).then(
+			() => new Promise(
+				(pass, fail) =>
+					gapi.load("auth:client,drive-realtime,picker", pass, fail)
+			)
+		).then(
+			() => gapi.client.load("drive", "v3")
+		).then(
+			() => console.log("api loaded")
+		);
+
+	},
+
+	authenticate: function(silent) {
+		if (silent == null)
+			silent = true;
+
+		this.loginPromise = this.apiLoadPromise.then(
+			() => new Promise(
+				(pass, fail) => {
+					gapi.auth.authorize(
+						{
+							client_id: G.CLIENT_ID,
+							scope: G.SCOPES,
+							immediate: silent
+						},
+						(r) => {
+							if (r && !r.error)
+								pass();
+							else
+								fail(r);
+						}
+					);
+				}
+			)
+		).then(
+			() => {
+				/* Enable token refresh every 45 minutes. */
+				setTimeout(
+					() => {
+						console.log("refreshing auth token");
+						gapi.auth.authorize(
+							{
+								client_id: G.CLIENT_ID,
+								scope: G.SCOPES,
+								immediate: true
+							},
+							(r) => {
+								if (!r || !r.error)
+									this.fire("server-error", e);
+							}
+						);
+					},
+					this.authRefreshTime
+				);
+				this.fire("auth-success");
+			}
+		).catch(
+			(e) => this.fire("auth-failure", e)
+		);
+	},
+});
+
+})();
+</script>
+</dom-module>
+

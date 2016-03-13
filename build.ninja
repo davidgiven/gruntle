@@ -40,22 +40,25 @@ rule cp
 
 ¬ MODULES = {
 ¬   "ts-application",
+¬   "ts-auth",
 ¬   "ts-codeeditor",
 ¬   "ts-document",
 ¬   "ts-editor",
 ¬   "ts-game-page",
 ¬   "ts-game-settings",
 ¬   "ts-globals",
-¬   "ts-gruntle",
 ¬   "ts-grt-binding",
+¬   "ts-gruntle",
+¬   "ts-hub",
 ¬   "ts-login",
 ¬   "ts-map",
 ¬   "ts-parser",
-¬   "ts-roomstore",
+¬   "ts-rooms",
 ¬   "ts-transcript",
 ¬   "ts-transformer",
 ¬   "ts-user-preferences",
 ¬   "ts-welcome",
+¬   "ts-world",
 ¬ }
 
 ¬ for _, m in pairs(MODULES) do

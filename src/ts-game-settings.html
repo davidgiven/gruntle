@@ -80,7 +80,8 @@
 	</paper-dialog-scrollable>
 
 	<div class="buttons">
-		<paper-button dialog-dismiss>Close</paper-button>
+		<paper-button dialog-dismiss>Cancel</paper-button>
+		<paper-button dialog-confirm on-click="onSave">Save</paper-button>
 	</div>
 </template>
 <script>
@@ -159,6 +160,9 @@ Polymer({
 	onToggle: function(e) {
 		let target = Polymer.dom(e.currentTarget).nextElementSibling;
 		target.toggle();
+	},
+
+	onSave: function(e) {
 	},
 });
 

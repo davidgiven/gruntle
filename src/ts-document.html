@@ -1,4 +1,3 @@
-<link rel="import" href="../bower_components/google-apis/google-js-api.html">
 <link rel="import" href="ts-globals.html">
 
 <dom-module id="ts-document">
@@ -10,13 +9,39 @@
 	</style>
 
 	<ts-globals id="globals"></ts-globals>
-	<google-js-api id="api"></google-js-api>
 </template>
 <script>
 (function () {
 "use strict";
 
 let G;
+
+const defaultDocument = {
+	settings: {
+		entrypoint: "entrypoint",
+		hub_id: "private"
+	},
+	rooms: {
+		entrypoint: {
+			text: `
+#title My First Room
+
+This is the first and only room in my brand new game.
+Eventually this will be replaced with a rather more 
+useful template. We Apologise For The Inconvenience.
+
+To add more rooms, edit this one and add exits --- the
+new rooms will appear automatically on the map. (This
+all needs smoothing out.)
+
+Note that this game is set to single player mode by
+default. You can change this in the settings. Remember
+you still need to share it with someone before they can
+play (go to the Drive UI to do that).
+`
+		},
+	},
+};
 
 Polymer({
 	is: "ts-document",
@@ -28,100 +53,20 @@ Polymer({
 		G = this.$.globals.G;
 
 		this.people = new Map();
-
-		this.apiLoadPromise = new Promise(
-			(pass, fail) =>
-				this.$.api.addEventListener("js-api-load", pass)
-		).then(
-			() => new Promise(
-				(pass, fail) =>
-					gapi.load("auth:client,drive-realtime,picker", pass, fail)
-			)
-		).then(
-			() => gapi.client.load("drive", "v2")
-		).then(
-			() => console.log("api loaded")
-		);
-
-	},
-
-	authenticate: function(silent) {
-		if (silent == null)
-			silent = true;
-
-		this.loginPromise = this.apiLoadPromise.then(
-			() => new Promise(
-				(pass, fail) => {
-					gapi.auth.authorize(
-						{
-							client_id: G.CLIENT_ID,
-							scope: G.SCOPES,
-							immediate: silent
-						},
-						(r) => {
-							if (r && !r.error)
-								pass();
-							else
-								fail(r);
-						}
-					);
-				}
-			)
-		).then(
-			() => {
-				/* Enable token refresh every 45 minutes. */
-				setTimeout(
-					() => {
-						console.log("refreshing auth token");
-						gapi.auth.authorize(
-							{
-								client_id: G.CLIENT_ID,
-								scope: G.SCOPES,
-								immediate: true
-							},
-							(r) => {
-								if (!r || !r.error)
-									this.fire("server-error", e);
-							}
-						);
-					},
-					45 * 60 * 1000
-				);
-				this.fire("auth-success");
-			}
-		).catch(
-			(e) => this.fire("auth-failure", e)
-		);
-	},
-		
-	create: function(title, folderId) {
-		return this.loginPromise.then(
-			() => new Promise(
-				(pass, fail) => {
-					let parents = folderId ? [folderId] : null;
-
-					gapi.client.drive.files.insert(
-						{
-							resource: {
-								mimeType: G.MIME_TYPE,
-								title: title,
-								parents: parents
-							}
-						}
-					).execute(
-						(r) => {
-							if (r.result)
-								pass(r.result.id);
-							else
-								fail(r);
-						}
-					);
-				}
-			)
-		);
 	},
 
 	connect: function() {
+		gapi.client.drive.files.get(
+			{
+				fileId: this.worldDocument,
+				alt: "media",
+			}
+		).then(
+			(r) =>
+				console.log(r)
+		);
+
+		return;
 		this.loginPromise.then(
 			() => new Promise(
 				(pass, fail) =>
@@ -202,25 +147,21 @@ Polymer({
 	},
 
 	createFile: function(filename) {
-		return this.loginPromise.then(
-			() => gapi.client.drive.files.insert(
-				{
-					mimeType: G.MIME_TYPE,
-					title: filename
-				}
-			)
+		gapi.client.drive.files.insert(
+			{
+				mimeType: G.MIME_TYPE,
+				title: filename
+			}
 		).then(
 			(r) => r.result.id
 		);
 	},
 
 	getFile: function(id, json) {
-		return this.loginPromise.then(
-			() => gapi.client.drive.realtime.get(
-				{
-					fileId: id
-				}
-			)
+		gapi.client.drive.realtime.get(
+			{
+				fileId: id
+			}
 		).then(
 			(r) => r
 		);
@@ -263,37 +204,6 @@ Polymer({
 	},
 
 	_onInitialise: function(model) {
-		let root = model.getRoot();
-
-		let config = model.createMap();
-		root.set("config", config);
-		config.set("entrypoint", "entrypoint");
-		config.set("hubDocument", "private");
-
-		let rooms = model.createMap();
-		root.set("rooms", rooms);
-
-		let entrypoint = model.createMap();
-		rooms.set("entrypoint", entrypoint);
-
-		entrypoint.set("title", model.createString("My first room"));
-		entrypoint.set("text", model.createString(`
-#title My First Room
-
-This is the first and only room in my brand new game.
-Eventually this will be replaced with a rather more 
-useful template. We Apologise For The Inconvenience.
-
-To add more rooms, edit this one and add exits --- the
-new rooms will appear automatically on the map. (This
-all needs smoothing out.)
-
-Note that this game is set to single player mode by
-default. You can change this in the settings. Remember
-you still need to share it with someone before they can
-play (go to the Drive UI to do that).
-`
-		));
 	},
 });
 

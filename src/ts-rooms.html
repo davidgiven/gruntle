@@ -1,7 +1,7 @@
 <link rel="import" href="ts-parser.html">
 <link rel="import" href="ts-globals.html">
 
-<dom-module id="ts-roomstore">
+<dom-module id="ts-rooms">
 <template>
 	<ts-globals id="globals"></ts-globals>
 	<ts-parser id="parser"></ts-parser>
@@ -124,11 +124,22 @@ function cacheGet(id) {
 }
 
 Polymer({
-	is: "ts-roomstore",
+	is: "ts-rooms",
+	properties: {
+		world: HTMLElement,
+		hub: HTMLElement,
+	},
 
 	ready: function() {
-		roomstore = this;
-		G = this.$.globals.G;
+		let G = this.$.globals.G;
+
+		this._cache = {};
+		this._Room = class Room {
+			constructor(id, hub) {
+				this.id = id;
+				this._hub = hub;
+			}
+		}
 	},
 
 	startWatching: function() {
@@ -142,13 +153,18 @@ Polymer({
 	},
 
 	get: function(id) {
-		return cacheGet(id);
+		let room = this._cache[id];
+		if (room == null) {
+			room = new this._Room(id);
+			this._cache[id] = room;
+		}
+		return room;
 	},
 
 	getAll: function() {
 		let rooms = [];
-		for (let id of G.worldRooms.keys()) {
-			rooms.push(cacheGet(id));
+		for (let id in G.world.rooms) {
+			rooms.push(this.get(id));
 		}
 		return rooms;
 	},

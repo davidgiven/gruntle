@@ -7,17 +7,20 @@
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/neon-animation/neon-animated-pages.html">
 <link rel="import" href="../bower_components/neon-animation/neon-animatable.html">
+<link rel="import" href="ts-auth.html">
 <link rel="import" href="ts-document.html">
 <link rel="import" href="ts-editor.html">
 <link rel="import" href="ts-game-page.html">
 <link rel="import" href="ts-game-settings.html">
 <link rel="import" href="ts-globals.html">
+<link rel="import" href="ts-hub.html">
 <link rel="import" href="ts-login.html">
 <link rel="import" href="ts-map.html">
-<link rel="import" href="ts-roomstore.html">
+<link rel="import" href="ts-rooms.html">
 <link rel="import" href="ts-transcript.html">
 <link rel="import" href="ts-user-preferences.html">
 <link rel="import" href="ts-welcome.html">
+<link rel="import" href="ts-world.html">
 
 <dom-module id="ts-application">
 <template>
@@ -75,22 +78,39 @@
 
 	</style>
 
+	<ts-globals id="globals">
+	</ts-globals>
+
+	<ts-auth id="auth"
+		on-auth-success="onAuthSuccess"
+		on-auth-failure="onAuthFailure"
+		on-server-error="onServerError"
+		>
+	</ts-auth>
+
+	<ts-world id="world"
+		on-world-changed="onWorldChanged"
+		>
+	</ts-world>
+
+	<ts-hub id="hub"
+		>
+	</ts-hub>
+
 	<ts-document id="doc"
 		on-player-visible="onDocumentConnected"
-		on-auth-success="onDocumentAuthSuccess"
-		on-auth-failure="onDocumentAuthFailure"
 		on-connection-error="onServerError"
 		on-disconnected="onDocumentDisconnected"
 		on-arrivals-departures="onArrivalsDepartures"
 		>
 	</ts-document>
 
-	<ts-globals id="globals"></ts-globals>
-	<ts-roomstore id="roomstore"
+	<ts-rooms id="rooms"
 		on-room-changed="onRoomChanged"
 		on-hyperspace="onHyperspaceJump"
 		on-user-action="onUserAction"
-		></ts-roomstore>
+		>
+	</ts-rooms>
 
 	<paper-dialog id="editorDialogue" modal="true" class="big-dialogue">
 		<ts-editor id="editor"></ts-editor>
@@ -158,27 +178,27 @@ class Player {
 	}
 
 	get location() {
-		let name = G.playerState.get("location");
+		let name = G.hub.playerNode.get("location");
 		if (!name)
 			return null;
 
-		return $.roomstore.get(name);
+		return G.rooms.get(name);
 	}
 
 	set location(v) {
-		G.playerState.set("location", v.id);
+		G.hub.playerNode.set("location", v.id);
 	}
 
 	get name() {
-		return G.playerState.get("useName");
+		return G.hub.playerNode.get("useName");
 	}
 
 	set name(v) {
-		G.playerState.set("useName", v);
+		G.hub.playerNode.set("useName", v);
 	}
 
 	get id() {
-		return $.doc.myself.userId;
+		return G.hub.myself.userId;
 	}
 }
 
@@ -192,6 +212,9 @@ Polymer({
 	ready: function() {
 		$ = this.$;
 		G = $.globals.G;
+		G.world = $.world;
+		G.hub = $.hub;
+		G.rooms = $.rooms;
 
 		/* If there's a state parameter supplied by Google Drive,, reform it to
 		 * something we understand. */
@@ -224,23 +247,27 @@ Polymer({
 
 	doImplicitLogin: function() {
 		$.page.selected = 0;
-		$.doc.authenticate(true);
+		$.auth.authenticate(true);
 	},
 
 	doExplicitLogin: function() {
 		$.page.selected = 0;
-		$.doc.authenticate(false);
+		$.auth.authenticate(false);
 	},
 
 	onServerError: function(e) {
 		console.log("server error", e);
-		location.reload();
+		//location.reload();
 	},
 
-	onDocumentAuthSuccess: function() {
+	onAuthSuccess: function() {
 		if (G.URI.queryKey.id != null) {
-			$.doc.worldDocument = G.URI.queryKey.id;
-			$.doc.connect();
+			$.world.documentId = G.URI.queryKey.id;
+			$.world.connect().then(
+				() => this.onDocumentConnected()
+			).catch(
+				(e) => this.onServerError(e)
+			);
 		} else if (G.URI.queryKey.action == "create") {
 			this.onCreateRequest(
 				{
@@ -252,7 +279,7 @@ Polymer({
 			$.page.selected = 3;
 	},
 
-	onDocumentAuthFailure: function(e, f) {
+	onAuthFailure: function(e, f) {
 		console.log(e, f);
 		$.page.selected = 2;
 	},
@@ -268,7 +295,7 @@ Polymer({
 		if (params.title == null)
 			params.title = "My new Gruntle game";
 
-		$.doc.create(params.title, params.folderId).then(
+		$.world.create(params.title, params.folderId).then(
 			(id) => {
 				window.location = `${G.URI.path}?id=${id}`;
 			}
@@ -278,39 +305,32 @@ Polymer({
 	onDocumentConnected: function() {
 		console.log("connected");
 
-		G.hubDoc = $.doc.hub;
-		G.hub = G.ensureMap(
-			$.doc.hub,
-			G.ensureMap($.doc.hub, $.doc.hub.getModel().getRoot(), "hub"),
-			$.doc.worldDocument);
-		G.playerState = G.ensureMap(G.hubDoc, G.hub, $.doc.myself.userId);
+		G.hub.worldId = G.world.documentId;
+		G.hub.hubId = G.world.data.settings.hubId;
+		G.hub.connect().then(
+			() => {
+				console.log("hub connected");
 
-		G.worldDoc = $.doc.world;
-		G.worldConfig = $.doc.worldRoot.get("config");
+				this.isSinglePlayer = !G.hub.hubRT.isInGoogleDrive;
+				console.log(`This game is ${this.isSinglePlayer ? "single player" : "multi player"}`);
 
-		G.worldRooms = $.doc.worldRoot.get("rooms");
-		G.rooms = $.roomstore;
-		G.rooms.startWatching();
+				this.isAuthor = G.world.isAuthor;
+				console.log(`I am ${this.isAuthor ? "the author" : "not the author"}`);
 
-		this.isSinglePlayer = !$.doc.hub.isInGoogleDrive;
-		console.log(`This game is ${this.isSinglePlayer ? "single player" : "multi player"}`);
+				G.player = new Player;
+				if (!G.player.name)
+					G.player.name = G.hub.myself.displayName;
+				console.log("my usename is", G.player.name);
 
-		this.isAuthor = !($.doc.world.getModel().isReadOnly);
-		console.log(`I am ${this.isAuthor ? "the author" : "not the author"}`);
+				if (!G.player.location)
+				{
+					let entrypoint = G.world.data.settings.entrypoint;
+					G.player.location = G.rooms.get(entrypoint);
+				}
+			}
+		);
 
-		if (this.isAuthor)
-			$.settingsDialogue.worldConfig = G.worldConfig;
-		$.preferencesDialogue.playerStateNode = G.playerState;
-
-		G.player = new Player;
-		if (!G.player.name)
-			G.player.name = $.doc.myself.displayName;
-
-		if (!G.player.location)
-		{
-			let entrypoint = G.worldConfig.get("entrypoint");
-			G.player.location = G.rooms.get(entrypoint);
-		}
+		if (false) {
 
 		this._onPlayerLocationChanged(
 			{
@@ -334,6 +354,7 @@ Polymer({
 		);
 
 		$.page.selected = 1;
+		}
 	},
 
 	_onPlayerLocationChanged: function(e) {
