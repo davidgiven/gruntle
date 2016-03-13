@@ -83,6 +83,7 @@ Polymer({
 	is: "ts-world",
 	properties: {
 		documentId: String,
+		documentRT: Object,
 	},
 
 	ready: function() {
@@ -135,6 +136,16 @@ Polymer({
 			(r) => {
 				this.isAuthor = r.result.capabilities.canEdit;
 				this.md5Checksum = r.result.md5Checksum;
+				
+				if (this.isAuthor) {
+					return Promise.all(
+						[
+							this.reload(),
+							this.connectRealtimeDocument()
+						]
+					);
+				} else
+					return this.reload();
 			}
 		).then(
 			() => this.reload()
@@ -148,6 +159,27 @@ Polymer({
 			(r) => {
 				this.data = r;
 				this.fire("world-changed");
+			}
+		);
+	},
+
+	connectRealtimeDocument: function() {
+		return new Promise(
+			(pass, fail) => {
+				/* gapi does not return real promises */
+				return gapi.drive.realtime.load(
+					this.documentId,
+					pass,
+					null,
+					fail
+				);
+			}
+		).then(
+			(rt) => {
+				this.documentRT = rt;
+				console.log("hub revision:", rt.getModel().serverRevision);
+
+				this.roomsNode = G.ensureMap(rt, rt.getModel().getRoot(), "rooms");
 			}
 		);
 	},

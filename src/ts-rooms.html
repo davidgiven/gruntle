@@ -141,6 +141,14 @@ Polymer({
 				this.postEvent("broadcast", null, text);
 			}
 
+			get pendingText() {
+				let node = G.world.roomsNode.get(this.id);
+				if (node == null) {
+					node = G.world.documentRT.getModel().createString(this.text);
+					G.world.roomsNode.set(this.id, node);
+				}
+				return node;
+			}
 		}
 	},
 
