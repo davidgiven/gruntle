@@ -137,6 +137,7 @@ class ParsedText {
 				}
 			} else {
 				addLink(parseAndAppend(currentParagraph, line));
+				parseAndAppend(currentParagraph, " ");
 			}
 		}
 		pushParagraph();
