@@ -74,7 +74,7 @@
 			</paper-radio-group>
 
 			<p>
-				<i>Warning!</i> Changes will only take effect when players reload.
+				<i>Warning!</i> Changes may only take effect when players reload.
 			</p>
 		</iron-collapse>
 	</paper-dialog-scrollable>
@@ -95,65 +95,18 @@ Polymer({
 	behaviors: [
 		Polymer.PaperDialogBehavior
 	],
-	properties: {
-		multiplayerMode: {
-			type: String,
-			observer: "onMultiplayerChange"
-		},
-		worldConfig: {
-			type: Object,
-			observer: "onWorldConfigChange"
-		},
-	},
 
 	ready: function() {
 		G = this.$.globals.G;
-		this.PUBLIC_HUB = G.PUBLIC_HUB;
-
-		this._handler = () => {
-			let hubDocument = this.worldConfig.get("hubDocument");
-			switch (hubDocument) {
-				case "private":
-				case "this":       this.multiplayerMode = hubDocument; break;
-				case G.PUBLIC_HUB: this.multiplayerMode = "public"; break;
-				default:           this.multiplayerMode = "external"; break;
-			}
-		};
-
-		this.multiplayerMode = "multiplayer";
-	},
-	
-	onWorldConfigChange: function(n, o) {
-		if (o != null) {
-			o.removeEventListener(
-				gapi.drive.realtime.EventType.VALUE_CHANGED,
-				this._handler
-			);
-		}
-
-		if (n != null) {
-			n.addEventListener(
-				gapi.drive.realtime.EventType.VALUE_CHANGED,
-				this._handler
-			);
-			this._handler();
-		}
 	},
 
-	onMultiplayerChange: function() {
-		console.log("multiplayer mode", this.multiplayerMode);
-		switch (this.multiplayerMode) {
+	init: function() {
+		let hubId = G.world.data.settings.hubId;
+		switch (hubId) {
 			case "private":
-			case "this":
-				this.worldConfig.set("hubDocument", this.multiplayerMode);
-				break;
-
-			case "public":
-				this.worldConfig.set("hubDocument", G.PUBLIC_HUB);
-				break;
-
-			case "external":
-				break;
+			case "this":       this.multiplayerMode = hubId; break;
+			case G.PUBLIC_HUB: this.multiplayerMode = "public"; break;
+			default:           this.multiplayerMode = "external"; break;
 		}
 	},
 
@@ -163,6 +116,21 @@ Polymer({
 	},
 
 	onSave: function(e) {
+		switch (this.multiplayerMode) {
+			case "private":
+			case "this":
+				G.world.data.settings.hubId = this.multiplayerMode;
+				break;
+
+			case "public":
+				G.world.data.settings.hubId = G.PUBLIC_HUB;
+				break;
+
+			case "external":
+				break;
+		}
+
+		G.world.save();
 	},
 });
 
