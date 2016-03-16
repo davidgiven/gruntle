@@ -27,17 +27,17 @@ const defaultDocument = {
 #title My First Room
 
 This is the first and only room in my brand new game.
-Eventually this will be replaced with a rather more 
-useful template. We Apologise For The Inconvenience.
+ Eventually this will be replaced with a rather more 
+ useful template. We Apologise For The Inconvenience.
 
 To add more rooms, edit this one and add exits --- the
-new rooms will appear automatically on the map. (This
-all needs smoothing out.)
+ new rooms will appear automatically on the map. (This
+ all needs smoothing out.)
 
 Note that this game is set to single player mode by
-default. You can change this in the settings. Remember
-you still need to share it with someone before they can
-play (go to the Drive UI to do that).
+ default. You can change this in the settings. Remember
+ you still need to share it with someone before they can
+ play (go to the Drive UI to do that).
 `
 		},
 	},
@@ -177,11 +177,15 @@ Polymer({
 		).then(
 			(rt) => {
 				this.documentRT = rt;
-				console.log("hub revision:", rt.getModel().serverRevision);
+				console.log("world collaboration revision:", rt.getModel().serverRevision);
 
 				this.roomsNode = G.ensureMap(rt, rt.getModel().getRoot(), "rooms");
 			}
 		);
+	},
+
+	save: function() {
+		return save_document_promise(this.documentId, this.data);
 	},
 });
 

@@ -15,6 +15,16 @@ let $;
 let G;
 let cache = {};
 
+const defaultRoomText = `
+#title New room title
+
+New room text here.
+
+- {New room action}
+#tellPlayer You perform an action.
+#tellOthers {player.name} performs an action.
+`;
+
 class Room {
 	constructor(id) {
 		this.id = id;
@@ -94,7 +104,7 @@ Polymer({
 
 	ready: function() {
 		let $ = this.$;
-		let G = $.globals.G;
+		G = $.globals.G;
 
 		this._cache = {};
 		this._Room = class Room {
@@ -110,6 +120,13 @@ Polymer({
 
 			get text() {
 				return G.world.data.rooms[this.id].text;
+			}
+
+			set text(s) {
+				let r = G.world.data.rooms[this.id];
+				if (r == null)
+					r = G.world.data.rooms[this.id] = {};
+				r.text = s;
 			}
 
 			parse() {
@@ -149,17 +166,18 @@ Polymer({
 				}
 				return node;
 			}
+
+			revertPending() {
+				G.world.roomsNode.get(this.id).setText(this.text);
+			}
+
+			commitPending() {
+				this.text = G.world.roomsNode.get(this.id).getText();
+				G.world.save().then(
+					() => G.rooms.fire("world-changed")
+				);
+			}
 		}
-	},
-
-	startWatching: function() {
-		$ = this.$;
-
-		G.worldRooms.addEventListener(
-			gapi.drive.realtime.EventType.VALUE_CHANGED,
-			() =>
-				this.fire("room-changed", null)
-		);
 	},
 
 	get: function(id) {
@@ -173,20 +191,16 @@ Polymer({
 
 	getAll: function() {
 		let rooms = [];
-		for (let id in G.world.rooms) {
+		for (let id in G.world.data.rooms) {
 			rooms.push(this.get(id));
 		}
 		return rooms;
 	},
 
 	createRoom: function(id, text) {
-		let r = G.worldDoc.getModel().createMap();
-		r.set("text", G.worldDoc.getModel().createString(
-			(text != null) ? text : "Room text goes here"
-		));
-		G.worldRooms.set(id, r);
-
-		return cacheGet(id);
+		let r = this.get(id);
+		r.text = defaultRoomText;
+		return r;
 	},
 });
 

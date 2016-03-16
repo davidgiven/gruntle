@@ -103,7 +103,7 @@ Polymer({
 			nodes.push(r);
 
 			for (let exit of parsed.exits) {
-				if (!G.rooms.get(exit))
+				if (!G.rooms.get(exit).exists)
 					nodes.push(
 						{
 							id: exit,
@@ -135,7 +135,7 @@ Polymer({
 			let classes = [];
 			if (room.fake)
 				classes.push("fake");
-			if (room.id == G.worldConfig.get("entrypoint"))
+			if (room.id == G.world.data.settings.entrypoint)
 				classes.push("entrypoint");
 
 			g.setNode(room.id,

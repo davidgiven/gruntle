@@ -106,7 +106,7 @@
 	</ts-document>
 
 	<ts-rooms id="rooms"
-		on-room-changed="onRoomChanged"
+		on-world-changed="onWorldChanged"
 		on-hyperspace="onHyperspaceJump"
 		on-user-action="onUserAction"
 		>
@@ -409,7 +409,7 @@ Polymer({
 
 	onEditRequest: function(e, id) {
 		let room = G.rooms.get(id);
-		if (room) {
+		if (room.exists) {
 			$.editor.room = G.rooms.get(id);
 			$.editorDialogue.open();
 		} else {
@@ -455,8 +455,8 @@ Polymer({
 		console.log("arriving/departing", changes);
 	},
 
-	onRoomChanged: function(event, room) {
-		if (room && (G.player.location == room)) {
+	onWorldChanged: function(event) {
+		if ((G.player != null) && (G.player.location != null)) {
 			let parsed = G.player.location.parse();
 			G.transcript.updateRoom(
 				{
@@ -489,7 +489,7 @@ Polymer({
 
 			gotoAction: (name) => {
 				let room = G.rooms.get(name);
-				if (room == null)
+				if (!room.exists)
 					this.onHyperspaceJump(null, G.player.location);
 				else {
 					G.transcript.scrollToMark();
