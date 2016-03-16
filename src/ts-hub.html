@@ -86,6 +86,7 @@ Polymer({
 				let hubs = G.ensureMap(rt, rt.getModel().getRoot(), "hub");
 				this.hubNode = G.ensureMap(rt, hubs, this.worldId);
 
+				this.worldHashNode = G.ensureString(rt, this.hubNode, "md5Checksum");
 				this.roomsNode = G.ensureMap(rt, this.hubNode, "rooms");
 
 				let playersNode = G.ensureMap(rt, this.hubNode, "player");

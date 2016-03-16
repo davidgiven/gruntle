@@ -59,6 +59,15 @@ G.ensureMap = function(rt, node, name) {
 	return v
 };
 
+G.ensureString = function(rt, node, name) {
+	let v = node.get(name);
+	if (!v) {
+		v = rt.getModel().createString();
+		node.set(name, v);
+	}
+	return v
+};
+
 G.MessageQueue = class MessageQueue {
 	constructor(node, onMessage) {
 		this.node = node;

@@ -53,6 +53,7 @@ function save_document_promise(id, json) {
 					method: "PATCH",
 					params: {
 						uploadType: "media",
+						fields: "md5Checksum"
 					},
 					headers: {
 						"Content-Type": G.MIME_TYPE
@@ -185,7 +186,12 @@ Polymer({
 	},
 
 	save: function() {
-		return save_document_promise(this.documentId, this.data);
+		return save_document_promise(this.documentId, this.data).then(
+			(r) => {
+				this.md5Checksum = r.result.md5Checksum;
+				G.hub.worldHashNode.setText(this.md5Checksum);
+			}
+		);
 	},
 });
 
