@@ -107,7 +107,7 @@ G.MessageQueue = class MessageQueue {
 		e.time = G.hub.hubRT.getModel().serverRevision;
 
 		if (this.node.length > 20)
-			this.node.removeRange(0, this.hubDocNode.length-20);
+			this.node.removeRange(0, this.node.length-20);
 		this.node.push(e);
 
 		return e;
