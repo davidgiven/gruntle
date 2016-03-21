@@ -43,40 +43,66 @@ play (go to the Drive UI to do that).
 	},
 };
 
-function save_document_promise(id, json) {
+function xhr_promise({method, url, params, data, mimetype}) {
 	return new Promise(
 		(pass, fail) => {
-			/* gapi does not return a real promise. */
-			gapi.client.request(
-				{
-					path: `/upload/drive/v3/files/${id}`,
-					method: "PATCH",
-					params: {
-						uploadType: "media",
-						fields: "md5Checksum"
-					},
-					headers: {
-						"Content-Type": G.MIME_TYPE
-					},
-					body: json
+			let q = url;
+			if (params != null) {
+				url += "?";
+				let first = true;
+				for (let k in params) {
+					if (!first)
+						url += "&";
+					url += encodeURIComponent(k);
+					url += "=";
+					url += encodeURIComponent(params[k]);
+					first = false;
 				}
-			).then(pass, fail);
+			}
+			let xhr = new XMLHttpRequest();
+			xhr.open(method, url);
+			xhr.setRequestHeader("Authorization",
+				`Bearer ${gapi.auth.getToken().access_token}`);
+			if (mimetype != null)
+				xhr.setRequestHeader("Content-Type", mimetype);
+			xhr.onreadystatechange = (e) => {
+				switch (xhr.readyState) {
+					case 4: /* complete */
+					{
+						if (xhr.status == 200)
+							pass(JSON.parse(xhr.response));
+						else
+							fail(xhr);
+						break;
+					}
+				}
+			};
+			xhr.send(data);
+		}
+	);
+}
+
+function save_document_promise(id, json) {
+	return xhr_promise(
+		{
+			method: "PATCH",
+			url: `https://www.googleapis.com/upload/drive/v3/files/${id}`,
+			params: {
+				uploadType: "media",
+				fields: "md5Checksum"
+			},
+			data: JSON.stringify(json),
+			mimetype: G.MIME_TYPE,
 		}
 	);
 }
 
 function load_document_promise(id) {
-	return new Promise(
-		(pass, fail) =>
-			/* gapi does not return a real promise. */
-			gapi.client.drive.files.get(
-				{
-					fileId: id,
-					alt: "media",
-				}
-			).then(pass, fail)
-	).then(
-		(r) => r.result
+	return xhr_promise(
+		{
+			method: "GET",
+			url: `https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
+		}
 	);
 }
 
@@ -188,8 +214,8 @@ Polymer({
 	save: function() {
 		return save_document_promise(this.documentId, this.data).then(
 			(r) => {
-				console.log("saved to drive; hash", r.result.md5Checksum);
-				this.md5Checksum = r.result.md5Checksum;
+				console.log("saved to drive; hash", r.md5Checksum);
+				this.md5Checksum = r.md5Checksum;
 				G.hub.worldHashNode.setText(this.md5Checksum);
 			}
 		);
