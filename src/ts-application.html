@@ -422,6 +422,7 @@ Polymer({
 	},
 
 	onPreferencesRequest: function() {
+		$.preferencesDialogue.playerStateNode = G.hub.playerNode;
 		$.preferencesDialogue.fit();
 		$.preferencesDialogue.open();
 	},
