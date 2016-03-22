@@ -94,6 +94,7 @@
 	</ts-world>
 
 	<ts-hub id="hub"
+		on-new-world-available="onNewWorldAvailable"
 		>
 	</ts-hub>
 
@@ -454,6 +455,10 @@ Polymer({
 
 	onArrivalsDepartures: function(e, changes) {
 		console.log("arriving/departing", changes);
+	},
+
+	onNewWorldAvailable: function(e) {
+		G.world.reload();
 	},
 
 	onWorldChanged: function(event) {

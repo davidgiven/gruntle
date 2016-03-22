@@ -86,8 +86,19 @@ Polymer({
 				let hubs = G.ensureMap(rt, rt.getModel().getRoot(), "hub");
 				this.hubNode = G.ensureMap(rt, hubs, this.worldId);
 
-				this.worldHashNode = G.ensureString(rt, this.hubNode, "md5Checksum");
-				this.worldHashNode.setText(G.world.md5Checksum);
+				this.worldPropertiesNode = G.ensureMap(rt, this.hubNode, "worldProperties");
+				this.worldPropertiesNode.set("md5Checksum", G.world.md5Checksum);
+				this.worldPropertiesNode.addEventListener(
+					gapi.drive.realtime.EventType.VALUE_CHANGED,
+					(e) => {
+						switch (e.property) {
+							case "md5Checksum":
+								console.log("md5 changed", e.newValue);
+								this.fire("new-world-available");
+								break;
+						}
+					}
+				);
 
 				this.roomsNode = G.ensureMap(rt, this.hubNode, "rooms");
 

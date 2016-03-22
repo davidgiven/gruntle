@@ -174,17 +174,17 @@ Polymer({
 				} else
 					return this.reload();
 			}
-		).then(
-			() => this.reload()
 		);
 	},
 
 	reload: function() {
+		console.log("reloading world");
 		return load_document_promise(
 			this.documentId
 		).then(
 			(r) => {
 				this.data = r;
+				console.log("world reloaded");
 				this.fire("world-changed");
 			}
 		);
@@ -216,7 +216,7 @@ Polymer({
 			(r) => {
 				console.log("saved to drive; hash", r.md5Checksum);
 				this.md5Checksum = r.md5Checksum;
-				G.hub.worldHashNode.setText(this.md5Checksum);
+				G.hub.worldPropertiesNode.set("md5Checksum", this.md5Checksum);
 			}
 		);
 	},
