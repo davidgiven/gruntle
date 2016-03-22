@@ -34,7 +34,6 @@ rule htmlminifier
     --minify-css $
     -o $out $in $
 
-
 rule cp
   command = cp $in $out
 
@@ -42,7 +41,6 @@ rule cp
 ¬   "ts-application",
 ¬   "ts-auth",
 ¬   "ts-codeeditor",
-¬   "ts-document",
 ¬   "ts-editor",
 ¬   "ts-game-page",
 ¬   "ts-game-settings",
