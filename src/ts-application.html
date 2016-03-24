@@ -22,22 +22,15 @@
 <link rel="import" href="ts-world.html">
 
 <dom-module id="ts-application">
-<template>
-	<style>
+<style>
 
 	:host {
-		@apply(--layout-fit);
+		display: block;
 		background-color: var(--paper-blue-grey-100);
-		overflow: hidden;
-
+		background-repeat: repeat-y;
 	}
 
-	#page {
-		@apply(--layout-fit);
-		overflow: hidden;
-	}
-
-	#loading, #login, #welcome {
+	#loading {
 		@apply(--layout-fit);
 		@apply(--layout-center-center);
 		@apply(--layout-vertical);
@@ -64,18 +57,8 @@
 		}
 	}
 
-	:host > paper-dialog {
-	}
-
-	paper-dialog > *:first-child {
-		margin-top: 1em;
-	}
-
-	paper-dialog > *:last-child {
-		margin-bottom: 0;
-	}
-
-	</style>
+</style>
+<template>
 
 	<ts-globals id="globals">
 	</ts-globals>
@@ -104,15 +87,12 @@
 		>
 	</ts-rooms>
 
-	<paper-dialog id="editorDialogue" modal="true" class="big-dialogue">
-		<ts-editor id="editor"></ts-editor>
-	</paper-dialog>
+	<ts-editor id="editor" modal="true" class="big-dialogue"
+		></ts-editor>
 
-	<paper-dialog id="mapDialogue" modal="true" class="big-dialogue">
-		<ts-map id="map"
-			on-edit-request="onEditRequest"
-			></ts-map>
-	</paper-dialog>
+	<ts-map id="map" modal="true" class="big-dialogue"
+		on-edit-request="onEditRequest"
+		></ts-map>
 
 	<ts-game-settings id="settingsDialogue" modal="true" class="big-dialogue">
 	</ts-game-settings>
@@ -132,30 +112,31 @@
 		</div>
     </paper-dialog>
 
-	<iron-pages id="page" selected="0">
-		<div id="loading">
-			<paper-spinner active></paper-spinner>
-		</div>
+	<ts-login id="login"
+		modal="true"
+		on-click="doExplicitLogin"
+		></ts-login>
 
-		<ts-game-page id="game"
-			on-edit-request="onEditRequest"
-			on-preferences-request="onPreferencesRequest"
-			on-settings-request="onSettingsRequest"
-			on-map-request="onMapRequest"
-			on-logout-request="onLogoutRequest"
-			on-talk-request="onTalkRequest"
-			is-author="{{isAuthor}}"
-			is-single-player="{{isSinglePlayer}}"
-			></ts-game-page>
+	<ts-welcome id="welcome"
+		modal="true"
+		on-load-request="onLoadRequest"
+		on-create-request="onCreateRequest"
+		></ts-welcome>
 
-		<ts-login id="login"
-			on-click="doExplicitLogin"
-			></ts-login>
+	<div id="loading" hidden$="{{!loading}}">
+		<paper-spinner active></paper-spinner>
+	</div>
 
-		<ts-welcome id="welcome"
-			on-load-request="onLoadRequest"
-			on-create-request="onCreateRequest"
-			></ts-welcome>
+	<ts-game-page id="game" hidden$="{{loading}}"
+		on-edit-request="onEditRequest"
+		on-preferences-request="onPreferencesRequest"
+		on-settings-request="onSettingsRequest"
+		on-map-request="onMapRequest"
+		on-logout-request="onLogoutRequest"
+		on-talk-request="onTalkRequest"
+		is-author="{{isAuthor}}"
+		is-single-player="{{isSinglePlayer}}"
+		></ts-game-page>
 	</iron-pages>
 </template>
 <script>
@@ -198,7 +179,12 @@ Polymer({
 	is: "ts-application",
 	properties: {
 		isAuthor: Boolean,
-		isSinglePlayer: Boolean
+		isSinglePlayer: Boolean,
+		
+		loading: {
+			type: Boolean,
+			value: true
+		},
 	},
 
 	ready: function() {
@@ -238,12 +224,12 @@ Polymer({
 	},
 
 	doImplicitLogin: function() {
-		$.page.selected = 0;
+		this.loading = true;
 		$.auth.authenticate(true);
 	},
 
 	doExplicitLogin: function() {
-		$.page.selected = 0;
+		this.loading = true;
 		$.auth.authenticate(false);
 	},
 
@@ -253,6 +239,7 @@ Polymer({
 	},
 
 	onAuthSuccess: function() {
+		$.login.close();
 		if (G.URI.queryKey.id != null) {
 			$.world.documentId = G.URI.queryKey.id;
 			$.world.connect().then(
@@ -268,21 +255,21 @@ Polymer({
 				}
 			);
 		} else
-			$.page.selected = 3;
+			$.welcome.open();
 	},
 
 	onAuthFailure: function(e, f) {
 		console.log(e, f);
-		$.page.selected = 2;
+		$.login.open();
 	},
 
 	onLoadRequest: function(e, id) {
-		$.page.selected = 0;
+		this.loading = true;
 		window.location = `${G.URI.path}?id=${id}`;
 	},
 
 	onCreateRequest: function(e, params={}) {
-		$.page.selected = 0;
+		this.loading = true;
 
 		if (params.title == null)
 			params.title = "My new Gruntle game";
@@ -345,7 +332,7 @@ Polymer({
 
 		G.player.location.tellOthers(G.player, `${G.player.name} teleports in.`);
 
-		$.page.selected = 1;
+		this.loading = false;
 	},
 
 	onPlayerLocationChanged: function(e) {
@@ -403,7 +390,7 @@ Polymer({
 		let room = G.rooms.get(id);
 		if (room.exists) {
 			$.editor.room = G.rooms.get(id);
-			$.editorDialogue.open();
+			$.editor.open();
 		} else {
 			$.implicitCreationDialogue.roomId = id;
 			$.implicitCreationDialogue.open();
@@ -412,7 +399,7 @@ Polymer({
 
 	onConfirmEdit: function(e) {
 		$.editor.room = G.rooms.createRoom($.implicitCreationDialogue.roomId);
-		$.editorDialogue.open();
+		$.editor.open();
 	},
 		
 	onSettingsRequest: function() {
@@ -428,8 +415,8 @@ Polymer({
 	},
 
 	onMapRequest: function() {
-		$.mapDialogue.fit();
-		$.mapDialogue.open();
+		$.map.fit();
+		$.map.open();
 	},
 
 	onLogoutRequest: function() {

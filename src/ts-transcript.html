@@ -62,15 +62,9 @@
 	<style>
 
 	:host {
-		min-height: 100%;
+		display: block;
 	}
 
-	@media (min-width: 800px) {
-		:host {
-			font-size: 110%;
-		}
-	}
-	
 	#container {
 		margin-left: 3%;
 		margin-right: 3%;
@@ -140,7 +134,6 @@ Polymer({
 	is: "ts-transcript",
 	properties: {
 		isAuthor: Boolean,
-		scrollTarget: HTMLElement
 	},
 
 	ready: function() {
@@ -324,25 +317,24 @@ Polymer({
 				if (this.mark == null)
 					return;
 
-				if (this.scrollTarget != null) {
-					let a = new KeyframeEffect(
-						this.scrollTarget,
-						[],
-						{
-							duration: 1000,
-							easing: "ease-in-out"
-						}
-					);
-					let starty = this.scrollTarget.scrollTop;
-					a.onsample = (fraction, e, a) => {
-						let endy = G.findRelativeYOffset(this.mark, this.scrollTarget);
+				let body = document.body;
+				let a = new KeyframeEffect(
+					body,
+					[],
+					{
+						duration: 1000,
+						easing: "ease-in-out"
+					}
+				);
+				let starty = body.scrollTop;
+				a.onsample = (fraction, e, a) => {
+					let endy = G.findRelativeYOffset(this.mark, body);
 
-						if (fraction != null)
-							this.scrollTarget.scrollTop = starty - fraction*(starty-endy);
-					};
+					if (fraction != null)
+						body.scrollTop = starty - fraction*(starty-endy);
+				};
 
-					document.timeline.play(a);
-				}
+				document.timeline.play(a);
 				
 				pass();
 			}
@@ -352,8 +344,8 @@ Polymer({
 	isVisible: function(ypos) {
 		let fontSize = parseFloat(getComputedStyle(this).getPropertyValue("font-size"));
 		let margin = fontSize * 2;
-		let windowHeight = this.scrollTarget.offsetHeight;
-		let top = this.scrollTarget.scrollTop;
+		let windowHeight = document.documentElement.clientHeight;
+		let top = document.body.scrollTop;
 		return (top + windowHeight) > (ypos + margin);
 	},
 

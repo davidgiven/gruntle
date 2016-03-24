@@ -3,9 +3,9 @@
 <script src="../bower_components/dagre/dist/dagre.core.min.js"></script>
 <script src="../bower_components/d3/d3.min.js"></script>
 <script src="../bower_components/dagre-d3/dist/dagre-d3.core.min.js"></script>
-<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
+<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-shared-styles.html">
 <link rel="import" href="ts-globals.html">
 
 <style>
@@ -29,7 +29,7 @@
 </style>
 
 <dom-module id="ts-map">
-<style>
+<style include="paper-dialog-shared-styles">
 	:host {
 		@apply(--layout-fit);
 		@apply(--layout-vertical);
@@ -38,6 +38,9 @@
 	#mapContainer {
 		@apply(--layout-flex);
 		overflow: hidden;
+		display: block;
+		padding-left: 0;
+		padding-right: 0;
 	}
 
 	#map {
@@ -45,15 +48,19 @@
 		height: 100vh;
 	}
 
+	svg {
+		background-color: var(--paper-blue-grey-100);
+	}
+		
 </style>
 
 <template>
 	<ts-globals id="globals"></ts-globals>
 
 	<h2>Map</h2>
-	<paper-material id="mapContainer">
+	<div id="mapContainer">
 		<svg id="map"><g/></svg>
-	</paper-material>
+	</div>
 
 	<div class="buttons">
 		<paper-button dialog-dismiss>Close</paper-button>
@@ -68,28 +75,26 @@ let G;
 Polymer({
 	is: "ts-map",
 	properties: {
-		opened: {
-			type: Boolean,
-			observer: "onOpenClose"
-		},
 	},
 	behaviors: [
-		Polymer.IronResizableBehavior
+		Polymer.PaperDialogBehavior
 	],
-	listeners: {
-		"iron-resize": "onResize"
-	},
+	observers: [
+		"onOpenClose(opened)",
+	],
 
 	ready: function() {
 		G = this.$.globals.G;
-		this.oldWidth = 0;
 		this.drawn = false;
 	},
 
 	updateMap: function() {
+		let $ = this.$;
+
 		/* Only update the map if we're visible. */
 
-		if (this.$.mapContainer.offsetWidth == 0)
+		console.log("map width is ", $.mapContainer.offsetWidth);
+		if ($.mapContainer.offsetWidth == 0)
 			return;
 
 		/* Construct the map from the room data. */
@@ -122,11 +127,11 @@ Polymer({
 
 		/* Remove the old graph. */
 
-		d3.select(this.$.map).select("g *").remove();
+		d3.select($.map).select("g *").remove();
 
 		/* Now render the graph to the canvas. */
 
-		let svg = d3.select(this.$.map);
+		let svg = d3.select($.map);
 		let inner = svg.select("g");
 
 		let g = new dagreD3.graphlib.Graph().setGraph({});
@@ -176,8 +181,8 @@ Polymer({
 			svg.call(zoom);
 
 			let scale = 0.75;
-			let width = this.$.mapContainer.offsetWidth;
-			let height = this.$.mapContainer.offsetHeight;
+			let width = $.mapContainer.offsetWidth;
+			let height = $.mapContainer.offsetHeight;
 			zoom
 				.translate([
 					(width - g.graph().width * scale) / 2,
@@ -190,23 +195,28 @@ Polymer({
 		this.drawn = true;
 	},
 
-	onResize: function(e) {
-		let width = this.$.mapContainer.offsetWidth;
-		if ((width > 0) && (this.oldWidth == 0))
-			this.onOpen();
-		else if ((width == 0) && (this.oldWidth > 0))
-			this.onClose();
-		this.oldWidth = width;
-	},
+	onOpenClose: function(opened) {
+		let $ = this.$;
 
-	onOpen: function() {
-		this.updateMap();
-	},
+		if (opened) {
+			/* This is some horrible, horrible, horrible code which waits until
+			 * the map container gets sized. I haven't found a sane, portable
+			 * way of doing this more cleanly. */
 
-	onClose: function() {
-		console.log("onclose");
-		d3.select(this.$.map).on(".zoom", null);
-		this.drawn = false;
+			let f = () => {
+				if ($.mapContainer.offsetWidth > 0)
+					this.updateMap();
+				else {
+					console.log("waiting for map sizing...");
+					setTimeout(f, 10);
+				}
+			};
+			f();
+		} else {
+			d3.select(this.$.map).on(".zoom", null);
+			this.drawn = false;
+		}
+		console.log("map opened = ", opened);
 	},
 });
 

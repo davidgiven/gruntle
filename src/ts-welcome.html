@@ -1,14 +1,15 @@
 <link rel="import" href="../bower_components/google-signin/google-icons.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
+<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-shared-styles.html">
 <link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
 <link rel="import" href="ts-globals.html">
 <link rel="import" href="ts-gruntle.html">
 
 <dom-module id="ts-welcome">
-<style>
-	paper-card {
+<style include="paper-dialog-shared-styles">
+	:host {
 		@apply(--layout-vertical);
 		@apply(--layout-center);
 		padding: 1em;
@@ -93,41 +94,39 @@
 <template>
 	<ts-globals id="globals"></ts-globals>
 
-	<paper-card>
-		<ts-gruntle></ts-gruntle>
-		<p>
-			Welcome to Gruntle, the BYO CYOA MMORPG!
-		</p>
-		<p>
-			What would you like to do?
-		</p>
-		<div class="choices">
-				<div class="row">
-					<paper-button class="create-game" on-click="onCreateGame" raised>
-						<iron-icon icon="add-box"></iron-icon>
-						<div>Create a game</div>
-					</paper-button>
+	<ts-gruntle></ts-gruntle>
+	<p>
+		Welcome to Gruntle, the BYO CYOA MMORPG!
+	</p>
+	<p>
+		What would you like to do?
+	</p>
+	<div class="choices">
+			<div class="row">
+				<paper-button class="create-game" on-click="onCreateGame" raised>
+					<iron-icon icon="add-box"></iron-icon>
+					<div>Create a game</div>
+				</paper-button>
 
-					<paper-button class="load-game" on-click="onLoadGame" raised>
-						<iron-icon icon="open-in-browser"></iron-icon>
-						<div>Load a game</div>
-					</paper-button>
-				</div>
-				<div class="row">
-					<paper-button class="theatre" on-click="onTheatre" raised>
-						<iron-icon icon="home"></iron-icon>
-						<div>Go to the Theatre</div>
-					</paper-button>
+				<paper-button class="load-game" on-click="onLoadGame" raised>
+					<iron-icon icon="open-in-browser"></iron-icon>
+					<div>Load a game</div>
+				</paper-button>
+			</div>
+			<div class="row">
+				<paper-button class="theatre" on-click="onTheatre" raised>
+					<iron-icon icon="home"></iron-icon>
+					<div>Go to the Theatre</div>
+				</paper-button>
 
-					<paper-button class="drive" on-click="onDrive" raised>
-						<iron-icon icon="google:google"></iron-icon>
-						<div>Add to Drive</div>
-					</paper-button>
-				</div>
+				<paper-button class="drive" on-click="onDrive" raised>
+					<iron-icon icon="google:google"></iron-icon>
+					<div>Add to Drive</div>
+				</paper-button>
 			</div>
 		</div>
-		<p>© 2013-2016 <a href="http://cowlark.com">David Given</a></p>
-	</paper-card>
+	</div>
+	<p>© 2013-2016 <a href="http://cowlark.com">David Given</a></p>
 </template>
 <script>
 (function () {
@@ -137,6 +136,9 @@ let G;
 
 Polymer({
 	is: "ts-welcome",
+	behaviors: [
+		Polymer.PaperDialogBehavior
+	],
 
 	ready: function() {
 		G = this.$.globals.G;

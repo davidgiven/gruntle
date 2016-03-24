@@ -1,11 +1,13 @@
-<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
+<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-shared-styles.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
-<link rel="import" href="../bower_components/paper-material/paper-material.html">
 <link rel="import" href="ts-transcript.html">
 <link rel="import" href="ts-parser.html">
 <link rel="import" href="ts-globals.html">
@@ -129,7 +131,7 @@ Polymer({
 </dom-module>
 
 <dom-module id="ts-editor">
-<style>
+<style include="paper-dialog-shared-styles">
 	:host {
 		@apply(--layout-fit);
 		@apply(--layout-vertical);
@@ -264,6 +266,9 @@ function empty(element) {
 
 Polymer({
 	is: "ts-editor",
+	behaviors: [
+		Polymer.PaperDialogBehavior
+	],
 	properties: {
 		room: {
 			observer: "onRoomChanged"

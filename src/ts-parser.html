@@ -49,7 +49,10 @@ class ParsedText {
 			if (link != null) {
 				/* a becomes a reference to the new currentAction value */
 				let a = currentAction = [];
-				link.onclick = () => handler(a);
+				link.onclick = (e) => {
+					e.preventDefault();
+					handler(a);
+				};
 			}
 		}
 

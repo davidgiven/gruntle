@@ -1,5 +1,17 @@
 <script src="../bower_components/bower-parseUri/parseuri.js"></script>
 
+<style is="custom-style">
+	:root {
+		--layout-fitscroll: {
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 0;
+			min-height: 100%;
+		};
+	}
+</style>
+
 <dom-module id="ts-globals">
 <script>
 (function () {
@@ -112,6 +124,10 @@ G.MessageQueue = class MessageQueue {
 
 		return e;
 	}
+};
+
+G.later = function(cb) {
+	setTimeout(cb, 0);
 };
 
 Polymer({

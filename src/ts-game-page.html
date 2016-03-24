@@ -14,21 +14,19 @@
 
 	:host {
 		display: block;
-		@apply(--layout-fit);
-		@apply(--layout-vertical);
-		@apply(--layout-center);
-		overflow-y: scroll;
-	}
-
-	.gameContainer {
-		@apply(--shadow-elevation-4dp);
-		width: 100%;
-		max-width: 800px;
-		background-color: white;
 	}
 
 	ts-transcript {
-		@apply(--layout-flex);
+		max-width: 800px;
+		margin-left: auto;
+		margin-right: auto;
+		background: white;
+	}
+
+	@media (min-width: 800px) {
+		ts-transcript {
+			font-size: 110%;
+		}
 	}
 
 	paper-fab-speed-dial {
@@ -83,13 +81,12 @@
 <template>
 	<ts-globals id="globals"></ts-globals>
 
-	<div class="gameContainer">
-		<ts-transcript id="transcript"
-			is-author="{{isAuthor}}"
-			on-edit-request="onEditButton"
-			on-new-content="onScroll">
-		</ts-transcript>
-	</div>
+	<ts-transcript id="transcript"
+		is-author="{{isAuthor}}"
+		on-edit-request="onEditButton"
+		on-new-content="onScroll">
+	</ts-transcript>
+
 	<div id="talkboxOuter">
 		<neon-animated-pages id="talkboxInner">
 			<neon-animatable
@@ -143,16 +140,16 @@ Polymer({
 		isAuthor: Boolean,
 		isSinglePlayer: Boolean
 	},
-	listeners: {
-		scroll: "onScroll"
-	},
 
 	ready: function() {
 		let $ = this.$;
 		G = $.globals.G;
 		G.transcript = $.transcript;
 
-		$.transcript.scrollTarget = this;
+		window.addEventListener(
+			"scroll",
+			(e) => this.onScroll()
+		);
 	},
 
 	onEditButton: function(e) {
@@ -199,19 +196,21 @@ Polymer({
 	},
 
 	onScrollDownButton: function() {
+		let body = document.body;
 		let a = new KeyframeEffect(
-			this.scrollTarget,
+			body,
 			[],
 			{
 				duration: 300,
 				easing: "ease-in-out"
 			}
 		);
-		let starty = this.scrollTop;
-		let endy = this.scrollTop + this.offsetHeight*0.8;
+
+		let starty = body.scrollTop;
+		let endy = body.scrollTop + document.documentElement.clientHeight*0.8;
 		a.onsample = (fraction, e, a) => {
 			if (fraction != null)
-				this.scrollTop = starty - fraction*(starty-endy);
+				body.scrollTop = starty - fraction*(starty-endy);
 		};
 
 		document.timeline.play(a);
