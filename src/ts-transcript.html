@@ -29,7 +29,15 @@
 		padding-bottom: 1em;
 	}
 
-	.transcript H3 {
+	.transcript UL {
+		margin: 0;
+		padding-top: 0.2em;
+		padding-bottom: 0.2em;
+		padding-left: 0;
+	}
+
+	.transcript UL:before {
+		content: "What would you like to do?";
 		font-size: 100%;
 		font-weight: bold;
 		margin: 0;
@@ -37,11 +45,8 @@
 		padding-bottom: 0.5em;
 	}
 
-	.transcript UL {
-		margin: 0;
-		padding-top: 0.2em;
-		padding-bottom: 0.2em;
-		padding-left: 7%;
+	.transcript UL LI {
+		margin-left: 7vh;
 	}
 
 	.transcript UL P {
@@ -339,7 +344,7 @@ Polymer({
 					body,
 					[],
 					{
-						duration: 1000,
+						duration: 500,
 						easing: "ease-in-out"
 					}
 				);
@@ -351,9 +356,7 @@ Polymer({
 						body.scrollTop = starty - fraction*(starty-endy);
 				};
 
-				document.timeline.play(a);
-				
-				pass();
+				document.timeline.play(a).onfinish = pass;
 			}
 		);
 	},

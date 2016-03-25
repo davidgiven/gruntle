@@ -152,10 +152,6 @@ class ParsedText {
 		if (choices.length > 0) {
 			this.choicesDom = document.createElement("DIV");
 
-			let p = document.createElement("H3");
-			appendTextNode(p, "What would you like to do?");
-			Polymer.dom(this.choicesDom).appendChild(p);
-
 			let ul = document.createElement("UL");
 			Polymer.dom(this.choicesDom).appendChild(ul);
 
