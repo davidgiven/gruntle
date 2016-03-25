@@ -60,13 +60,15 @@
 		max-width: 800px;
 	}
 
-	#talkbox {
-		background-color: rgba(255, 255, 255, 0.9);
+	#talkboxBox {
+		background-color: white;
 		margin-left: 1em;
 		margin-right: 1em;
+		padding-left: 0.5em;
+		padding-right: 0.5em;
 	}
 
-	#talkbox --paper-input-container-input: {
+	#talkboxBox --paper-input-container-input: {
 		font-size: 140%;
 	}
 
@@ -91,14 +93,16 @@
 		<neon-animated-pages id="talkboxInner">
 			<neon-animatable
 				hidden="{{isSinglePlayer}}"
-				entry-animation="fade-in-animation"
-				exit-animation="fade-out-animation">
-				<paper-input id="talkbox"
-					label="Type here to talk"
-					on-keydown="onTalkBoxKeydown"
-					always-float-label
-					>
-				</paper-input>
+				entry-animation="slide-from-bottom-animation"
+				exit-animation="slide-down-animation">
+				<paper-material id="talkboxBox" elevation="3">
+					<paper-input id="talkbox"
+						label="Type here to talk"
+						on-keydown="onTalkBoxKeydown"
+						always-float-label
+						>
+					</paper-input>
+				</paper-material>
 			</neon-animatable>
 			<neon-animatable
 				entry-animation="slide-from-bottom-animation"

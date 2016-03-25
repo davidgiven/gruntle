@@ -55,6 +55,21 @@
 
 		transition: opacity 2.0s ease-in-out;
 	}
+
+	.transcript .text {
+		padding-left: 3%;
+		padding-right: 3%;
+	}
+
+	.transcript .unmarked {
+		background-color: white;
+		transition: background-color 2.0s ease-in-out;
+	}
+
+	.transcript .marked {
+		background-color: #fffde7;
+		transition: background-color 2.0s ease-in-out;
+	}
 </style>
 
 <dom-module id="ts-transcript">
@@ -66,8 +81,6 @@
 	}
 
 	#container {
-		margin-left: 3%;
-		margin-right: 3%;
 	}
 
 	#container li p {
@@ -87,8 +100,10 @@
 	</style>
 
 	<ts-globals id="globals"></ts-globals>
-	<div id="container" class="transcript"></div>
-	<div id="blank"></div>
+	<div class="transcript">
+		<div id="container"></div>
+		<div id="blank" class="marked"></div>
+	</div>
 </template>
 <script>
 (function () {
@@ -145,7 +160,6 @@ Polymer({
 		this.choicesT = null;
 		this.bodyDom = null;
 		this.choicesDom = null;
-		this.mark = null;
 
 		this._chain = [];
 		this._running = false;
@@ -208,6 +222,7 @@ Polymer({
 
 				this.roomDiv = createElementWithClass("DIV", "transcript");
 				this.titleT = document.createElement("ts-transformer");
+				this.markDiv = createElementWithClass("DIV", "text marked");
 				this.bodyT = document.createElement("ts-transformer");
 				this.choicesT = document.createElement("ts-transformer");
 
@@ -215,9 +230,10 @@ Polymer({
 				this.choicesDom = choicesDom;
 
 				$.container.appendChild(this.roomDiv);
-				this.roomDiv.appendChild(this.titleT);
-				this.roomDiv.appendChild(this.bodyT);
-				this.roomDiv.appendChild(this.choicesT);
+				this.roomDiv.appendChild(this.markDiv);
+				this.markDiv.appendChild(this.titleT);
+				this.markDiv.appendChild(this.bodyT);
+				this.markDiv.appendChild(this.choicesT);
 
 				this.titleT.content = this._createTitleNode(title);
 				this.bodyT.content = bodyDom;
@@ -252,7 +268,7 @@ Polymer({
 					/* Choices are already visible. */
 					pass();
 				} else {
-					this.roomDiv.appendChild(this.choicesT);
+					this.markDiv.appendChild(this.choicesT);
 
 					this.choicesT.content = this.choicesDom;
 					this.choicesT.then(pass);
@@ -290,7 +306,7 @@ Polymer({
 				let t = document.createElement("ts-transformer");
 				t.animation = "fast-fade-zoom";
 				t.content = createTextNode("P", text);
-				this.roomDiv.appendChild(t);
+				this.markDiv.appendChild(t);
 
 				this.fire("new-content");
 				t.then(pass);
@@ -302,8 +318,9 @@ Polymer({
 		this._queue(
 			(pass, fail) => {
 				console.log("-> setmark");
-				this.mark = createElementWithClass("DIV", "mark");
-				this.roomDiv.appendChild(this.mark);
+				this.markDiv.setAttribute("class", "text unmarked");
+				this.markDiv = createElementWithClass("DIV", "text marked");
+				this.roomDiv.appendChild(this.markDiv);
 
 				pass();
 			}
@@ -314,7 +331,7 @@ Polymer({
 		this._queue(
 			(pass, fail) => {
 				console.log("-> scrollToMark");
-				if (this.mark == null)
+				if (this.markDiv == null)
 					return;
 
 				let body = document.body;
@@ -328,7 +345,7 @@ Polymer({
 				);
 				let starty = body.scrollTop;
 				a.onsample = (fraction, e, a) => {
-					let endy = G.findRelativeYOffset(this.mark, body);
+					let endy = G.findRelativeYOffset(this.markDiv, body);
 
 					if (fraction != null)
 						body.scrollTop = starty - fraction*(starty-endy);
