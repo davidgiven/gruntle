@@ -424,6 +424,7 @@ Polymer({
 	},
 
 	onTalkRequest: function(e, s) {
+		G.transcript.setMark();
 		G.player.location.tellOthers(G.player, `${G.player.name} says, "${s}"`);
 		G.player.location.tell(G.player, `You say "${s}"`);
 	},

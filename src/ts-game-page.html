@@ -200,9 +200,8 @@ Polymer({
 	},
 
 	onScrollDownButton: function() {
-		let body = document.body;
 		let a = new KeyframeEffect(
-			body,
+			document.body,
 			[],
 			{
 				duration: 300,
@@ -210,11 +209,11 @@ Polymer({
 			}
 		);
 
-		let starty = body.scrollTop;
-		let endy = body.scrollTop + document.documentElement.clientHeight*0.8;
+		let starty = window.scrollY;
+		let endy = window.scrollY + document.documentElement.clientHeight*0.8;
 		a.onsample = (fraction, e, a) => {
 			if (fraction != null)
-				body.scrollTop = starty - fraction*(starty-endy);
+				scroll(0, starty - fraction*(starty-endy));
 		};
 
 		document.timeline.play(a);

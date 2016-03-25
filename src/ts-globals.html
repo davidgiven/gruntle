@@ -46,7 +46,7 @@ G.findScrollable = function(element) {
 
 G.findRelativeYOffset = function(element, top) {
 	let y = 0;
-	while (element != top) {
+	while ((element != null) && (element != top)) {
 		y += element.offsetTop;
 		element = element.offsetParent;
 	}

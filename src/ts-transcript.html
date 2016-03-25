@@ -181,8 +181,8 @@ Polymer({
 	_consumeQueueItem: function() {
 		let next = this._chain.shift();
 		if (!next) {
-			console.log("queue runner terminate");
 			this._running = false;
+			this._queueFlushed();
 			return null;
 		}
 
@@ -339,21 +339,20 @@ Polymer({
 				if (this.markDiv == null)
 					return;
 
-				let body = document.body;
 				let a = new KeyframeEffect(
-					body,
+					document.body,
 					[],
 					{
 						duration: 500,
 						easing: "ease-in-out"
 					}
 				);
-				let starty = body.scrollTop;
+				let starty = window.scrollY;
 				a.onsample = (fraction, e, a) => {
-					let endy = G.findRelativeYOffset(this.markDiv, body);
+					let endy = G.findRelativeYOffset(this.markDiv);
 
 					if (fraction != null)
-						body.scrollTop = starty - fraction*(starty-endy);
+						window.scroll(0, starty - fraction*(starty-endy));
 				};
 
 				document.timeline.play(a).onfinish = pass;
@@ -361,16 +360,50 @@ Polymer({
 		);
 	},
 
-	isVisible: function(ypos) {
+	_getMargin: function() {
 		let fontSize = parseFloat(getComputedStyle(this).getPropertyValue("font-size"));
-		let margin = fontSize * 2;
+		return fontSize * 4;
+	},
+
+	isVisible: function(ypos) {
+		let margin = this._getMargin();
+
 		let windowHeight = document.documentElement.clientHeight;
-		let top = document.body.scrollTop;
+		let top = window.scrollY;
 		return (top + windowHeight) > (ypos + margin);
 	},
 
 	atBottom: function() {
 		return this.isVisible(this.$.container.offsetHeight);
+	},
+
+	_queueFlushed: function() {
+		let $ = this.$;
+		let margin = this._getMargin();
+
+		let contentHeight = $.container.offsetHeight;
+		let windowHeight = document.documentElement.clientHeight;
+		let markHeight = G.findRelativeYOffset(this.markDiv);
+		if (!this.isVisible(contentHeight) && (window.scrollY < markHeight)) {
+			console.log("scrolling to expose new content");
+			let a = new KeyframeEffect(
+				document.body,
+				[],
+				{
+					duration: 500,
+					easing: "ease-in-out"
+				}
+			);
+
+			let starty = window.scrollY;
+			let endy = Math.min(markHeight, contentHeight - windowHeight + margin*1.1);
+			a.onsample = (fraction, e, a) => {
+				if (fraction != null)
+					window.scroll(0, starty - fraction*(starty-endy));
+			};
+
+			document.timeline.play(a);
+		}
 	},
 });
 
