@@ -173,9 +173,7 @@ Polymer({
 
 			commitPending() {
 				this.text = G.world.roomsNode.get(this.id).getText();
-				G.world.save().then(
-					() => G.rooms.fire("world-changed")
-				);
+				G.rooms.save();
 			}
 		}
 	},
@@ -197,9 +195,16 @@ Polymer({
 		return rooms;
 	},
 
+	save: function() {
+		G.world.save().then(
+			() => G.rooms.fire("world-changed")
+		);
+	},
+
 	createRoom: function(id, text) {
 		let r = this.get(id);
 		r.text = defaultRoomText;
+		G.rooms.save();
 		return r;
 	},
 });
