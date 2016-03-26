@@ -1,13 +1,13 @@
-<link href="https://fonts.googleapis.com/css?family=Lora:400,400italic,700,700italic" rel="stylesheet" type="text/css">
+<link href="https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic" rel="stylesheet" type="text/css">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../bower_components/iron-icons/social-icons.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/neon-animation/neon-animated-pages.html">
 <link rel="import" href="../bower_components/neon-animation/neon-animatable.html">
 <link rel="import" href="ts-auth.html">
+<link rel="import" href="ts-confirmation.html">
 <link rel="import" href="ts-editor.html">
 <link rel="import" href="ts-game-page.html">
 <link rel="import" href="ts-game-settings.html">
@@ -100,18 +100,6 @@
 	<ts-user-preferences id="preferencesDialogue" modal="true">
 	</ts-user-preferences>
 
-	<paper-dialog id="implicitCreationDialogue">
-		<h2>Create room?</h2>
-		<p>
-			This room has been referred to by an action in another room, but
-			hasn't been created yet. Do you want to create it now?
-		</p>
-		<div class="buttons">
-			<paper-button dialog-dismiss>No</paper-button>
-			<paper-button dialog-confirm autofocus on-click="onConfirmEdit">Yes</paper-button>
-		</div>
-    </paper-dialog>
-
 	<ts-login id="login"
 		modal="true"
 		on-click="doExplicitLogin"
@@ -190,6 +178,7 @@ Polymer({
 	ready: function() {
 		$ = this.$;
 		G = $.globals.G;
+		G.application = this;
 		G.world = $.world;
 		G.hub = $.hub;
 		G.rooms = $.rooms;
@@ -392,16 +381,26 @@ Polymer({
 			$.editor.room = G.rooms.get(id);
 			$.editor.open();
 		} else {
-			$.implicitCreationDialogue.roomId = id;
-			$.implicitCreationDialogue.open();
+			G.confirmationDialog(
+				{
+					title: "Create room?",
+					message: `
+						This room has been referred to by an action in
+						another room, but hasn't been created yet. Do you
+						want to create it now?`
+				}
+			).then(
+				() => {
+					console.log("creating room");
+					$.editor.room = G.rooms.createRoom(id);
+					$.editor.open();
+				}
+			).catch(
+				() => {console.log("not creating room");}
+			);
 		}
 	},
 
-	onConfirmEdit: function(e) {
-		$.editor.room = G.rooms.createRoom($.implicitCreationDialogue.roomId);
-		$.editor.open();
-	},
-		
 	onSettingsRequest: function() {
 		$.settingsDialogue.fit();
 		$.settingsDialogue.init();

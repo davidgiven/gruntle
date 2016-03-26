@@ -130,6 +130,26 @@ G.later = function(cb) {
 	setTimeout(cb, 0);
 };
 
+G.confirmationDialog = function(
+	{title, message, yesButton="Yes", noButton="No"}
+) {
+	return new Promise(
+		(pass, fail) => {
+			let o = document.createElement("ts-confirmation");
+			o.title = title;
+			o.message = message;
+			o.yesButton = yesButton;
+			o.noButton = noButton;
+			o.modal = true;
+			o.onConfirm = pass;
+			o.onCancel = fail;
+
+			G.application.appendChild(o);
+			o.open();
+		}
+	);
+};
+
 Polymer({
 	is: "ts-globals",
 

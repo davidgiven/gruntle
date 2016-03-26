@@ -1,0 +1,71 @@
+<link rel="import" href="../bower_components/google-signin/google-icons.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
+<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-shared-styles.html">
+
+<dom-module id="ts-confirmation">
+<style include="paper-dialog-shared-styles">
+	:host {
+	}
+</style>
+<template>
+	<h2>{{title}}</h2>
+	<p>{{message}}</p>
+	<div class="buttons">
+		<paper-button dialog-dismiss>{{noButton}}</paper-button>
+		<paper-button dialog-confirm autofocus>{{yesButton}}</paper-button>
+	</div>
+</template>
+<script>
+(function () {
+"use strict";
+
+Polymer({
+	is: "ts-confirmation",
+	behaviors: [
+		Polymer.PaperDialogBehavior
+	],
+	properties: {
+		title: String,
+		message: String,
+		onConfirm: {
+			type: Object,
+			value: () => {}
+		},
+		onCancel: {
+			type: Object,
+			value: () => {}
+		},
+
+		noButton: {
+			type: String,
+			value: "No",
+		},
+		yesButton: {
+			type: String,
+			value: "Yes",
+		},
+	},
+	listeners: {
+		"iron-overlay-closed": "onClose"
+	},
+
+	ready: function() {
+	},
+
+	onClose: function(e, closingReason) {
+		if (closingReason.confirmed) {
+			if (this.onConfirm)
+				this.onConfirm();
+		} else { 
+			if (this.onCancel)
+				this.onCancel();
+		}
+	},
+});
+
+})()
+</script>
+</dom-module>
+
+
