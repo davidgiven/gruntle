@@ -109,9 +109,18 @@ function load_document_promise(id) {
 Polymer({
 	is: "ts-world",
 	properties: {
+		connected: Boolean,
 		documentId: String,
 		documentRT: Object,
+
+		hubId: {
+			type: String,
+			notify: true
+		},
 	},
+	observers: [
+		"_reconnect(connected, documentId)",
+	],
 
 	ready: function() {
 		G = this.$.globals.G;
@@ -148,7 +157,19 @@ Polymer({
 		);
 	},
 
-	connect: function() {
+	_reconnect: function(connected, documentId) {
+		if ((documentId == null) || !connected) {
+			if (this.documentRT != null) {
+				console.log("world disconnection");
+				this.documentRT.close();
+				this.documentRT = null;
+			}
+			return;
+		} else {
+			console.log("connecting to world", documentId);
+		}
+
+		this.hubId = null;
 		return new Promise(
 			(pass, fail) => {
 				/* gapi does not return a real promise. */
@@ -186,11 +207,13 @@ Polymer({
 				this.data = r;
 				console.log("world reloaded");
 				this.fire("world-changed");
+				this.hubId = this.data.settings.hubId;
 			}
 		);
 	},
 
 	connectRealtimeDocument: function() {
+		console.log("connecting world realtime doc");
 		return new Promise(
 			(pass, fail) => {
 				/* gapi does not return real promises */

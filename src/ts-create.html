@@ -1,0 +1,43 @@
+<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
+<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-shared-styles.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="ts-globals.html">
+
+<dom-module id="ts-create">
+<style include="paper-dialog-shared-styles">
+	:host {
+		@apply(--layout-vertical);
+		@apply(--layout-center);
+		padding: 1em;
+	}
+	
+	P {
+		text-align: center;
+	}
+
+</style>
+<template>
+	<ts-globals id="globals"></ts-globals>
+
+	<p>
+		Creating your game...
+	</p>
+	<paper-spinner active></paper-spinner>
+</template>
+<script>
+(function () {
+"use strict";
+
+let G;
+
+Polymer({
+	is: "ts-create",
+	behaviors: [
+		Polymer.PaperDialogBehavior
+	],
+});
+
+})()
+</script>
+</dom-module>
+

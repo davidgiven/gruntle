@@ -3,15 +3,22 @@
 <script src="../bower_components/dagre/dist/dagre.core.min.js"></script>
 <script src="../bower_components/d3/d3.min.js"></script>
 <script src="../bower_components/dagre-d3/dist/dagre-d3.core.min.js"></script>
+<link rel="import" href="../bower_components/iron-dropdown/iron-dropdown.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
 <link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-shared-styles.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="ts-globals.html">
 
 <style>
 	svg#map .node rect {
-		stroke: #333;
+		stroke: #000;
 		fill: #fff;
+	}
+
+	svg#map .node:hover {
+		stroke-width: 2.5px !important;
 	}
 
 	svg#map .node.fake rect {
@@ -23,7 +30,7 @@
 	}
 
 	svg#map .edgePath path {
-		stroke: #333;
+		stroke: #000;
 		stroke-width: 1.5px;
 	}
 </style>
@@ -51,26 +58,56 @@
 	svg {
 		background-color: var(--paper-blue-grey-100);
 	}
-		
+	
+	#controls {
+		position: absolute;
+		left: 1em;
+		bottom: 1em;
+	}
+
+	#dropdown paper-menu {
+        padding: 12px;
+		@apply(--shadow-elevation-6dp);
+	}
 </style>
 
 <template>
 	<ts-globals id="globals"></ts-globals>
 
 	<h2>Map</h2>
-	<div id="mapContainer">
+	<div id="mapContainer" class="relative">
 		<svg id="map"><g/></svg>
+		<div id="controls" class="layout vertical">
+			<paper-button raised>Create room</paper-button>
+		</div>
 	</div>
 
 	<div class="buttons">
 		<paper-button dialog-dismiss>Close</paper-button>
 	</div>
+
+	<iron-dropdown id="dropdown"
+		vertical-align="top"
+		horizontal-align="left"
+		vertical-offset="0"
+		horizontal-offset="0"
+		>
+		<paper-menu>
+			<paper-item>Edit</paper-item>
+			<paper-item>Make the entrypoint</paper-item>
+			<paper-item>Rename</paper-item>
+			<paper-item>Delete</paper-item>
+		</paper-menu>
+	<iron-dropdown>
 </template>
 <script>
 (function () {
 "use strict";
 
 let G;
+
+let class_for_room = (id) =>
+	"room_class_" + encodeURIComponent(id);
 
 Polymer({
 	is: "ts-map",
@@ -137,7 +174,7 @@ Polymer({
 		let g = new dagreD3.graphlib.Graph().setGraph({});
 
 		for (let room of nodes) {
-			let classes = [];
+			let classes = [class_for_room(room.id)];
 			if (room.fake)
 				classes.push("fake");
 			if (room.id == G.world.data.settings.entrypoint)
@@ -165,7 +202,12 @@ Polymer({
 
 		/* Add click behaviours. */
 
-		let onClick = (d, i) => this.fire("edit-request", d);
+		let onClick = (d, i) => {
+			let node = d3.select("." + class_for_room(d))[0][0];
+			console.log(node);
+			$.dropdown.positionTarget = node;
+			$.dropdown.open();
+		};
 		svg.selectAll(".node rect").on("click", onClick);
 		svg.selectAll(".node tspan").on("click", onClick);
 

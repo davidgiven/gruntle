@@ -3,9 +3,13 @@
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
 <link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-shared-styles.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
 <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="ts-transcript.html">
@@ -190,16 +194,18 @@ Polymer({
 			<p><b>Blank lines separate paragraphs.</b> Newlines are
 			otherwise ignored.</p>
 
-			<p><b>{Some text} makes a link.</b> You can have as many as you
-			like. It's recommended that you only have one per source line,
-			however, because...</p>
-
 			<p><b>A line beginning with <code>-</code> adds an entry to the
 			'What would you like to do?' list.</b> This probably wants to be a
 			link with actions. These are all collected together at the end of
 			your text; see the preview.</p>
 
-			<p><b>A line beginning with <code>#</code> is a command.</b></p>
+			<p><b>{Some text} makes a link.</b> You can have as many as you
+			like. It's recommended that you only have one per source line,
+			however, because...</p>
+
+			<p><b>A line beginning with <code>#</code> is a command</b>;
+			frequently commands will immediately follow a line, in order to
+			apply to that line.</p>
 			
 			<p>Ordinary commands:</p>
 			
@@ -224,7 +230,7 @@ Polymer({
 			<p><b><code>#tellAll</code></b>: tells everybody, including
 			the player, something.</p>
 
-			<p>In addition: <b><code>${name}</code> expands to the
+			<p>In addition: <b><code>${player.name}</code> expands to the
 			current player's name</b> everywhere.</p>
 
 			<p>Here's an example of a basic room description:</p>

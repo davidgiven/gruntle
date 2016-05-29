@@ -40,8 +40,9 @@ rule cp
 ¬ MODULES = {
 ¬   "ts-application",
 ¬   "ts-auth",
-¬   "ts-confirmation",
 ¬   "ts-codeeditor",
+¬   "ts-confirmation",
+¬   "ts-create",
 ¬   "ts-editor",
 ¬   "ts-game-page",
 ¬   "ts-game-settings",

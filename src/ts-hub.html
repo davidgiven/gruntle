@@ -26,9 +26,20 @@ function getMyself(rt) {
 Polymer({
 	is: "ts-hub",
 	properties: {
+		connected: Boolean,
 		hubId: String,
-		worldId: String,
+		documentId: String,
+		hubRT: Object,
+
+		hubReady: {
+			type: Boolean,
+			notify: true,
+			value: false,
+		}
 	},
+	observers: [
+		"_reconnect(documentId, hubId, connected)",
+	],
 
 	ready: function() {
 		G = this.$.globals.G;
@@ -36,87 +47,101 @@ Polymer({
 		this.people = new Map();
 	},
 
-	connect: function() {
-		let p;
-
-		switch (this.hubId) {
-			case "private":
-			case null:
-			case undefined:
-				console.log("using in-memory hub");
-				p = new Promise(
-					(pass, fail) => {
-						/* gapi does not return real promises */
-						return gapi.drive.realtime.newInMemoryDocument(
-							pass,
-							null,
-							fail
-						);
-					}
-				);
-				break;
-
-			case "this":
-				this.hubId = this.worldId;
-				/* fall through */
-
-			default:
-				console.log("using shared hub");
-				p = new Promise(
-					(pass, fail) => {
-						/* gapi does not return real promises */
-						return gapi.drive.realtime.load(
-							this.hubId,
-							pass,
-							null,
-							fail
-						);
-					}
-				);
-				break;
-		}
-
-		return p.then(
-			(rt) => {
-				this.hubRT = rt;
-				console.log("hub revision:", this.hubRT.getModel().serverRevision);
-
-				this.myself = getMyself(rt);
-
-				let hubs = G.ensureMap(rt, rt.getModel().getRoot(), "hub");
-				this.hubNode = G.ensureMap(rt, hubs, this.worldId);
-
-				this.worldPropertiesNode = G.ensureMap(rt, this.hubNode, "worldProperties");
-				this.worldPropertiesNode.set("md5Checksum", G.world.md5Checksum);
-				this.worldPropertiesNode.addEventListener(
-					gapi.drive.realtime.EventType.VALUE_CHANGED,
-					(e) => {
-						switch (e.property) {
-							case "md5Checksum":
-								console.log("md5 changed", e.newValue);
-								this.fire("new-world-available");
-								break;
-						}
-					}
-				);
-
-				this.roomsNode = G.ensureMap(rt, this.hubNode, "rooms");
-
-				let playersNode = G.ensureMap(rt, this.hubNode, "player");
-				this.playerNode = G.ensureMap(rt, playersNode, this.myself.userId);
-				
-				this.playersHeartbeatNode = G.ensureMap(rt, this.hubNode, "playersHeartbeat");
-				this.playersHeartbeatNode.addEventListener(
-					gapi.drive.realtime.EventType.VALUE_CHANGED,
-					(e) => {
-						if (e.oldValue == e.newValue)
-							return;
-
-						console.log("player", e.property, "changed");
-					}
-				);
+	_reconnect: function(documentId, hubId, connected) {
+		if ((documentId == null) || (hubId == null) || !connected) {
+			if (this.hubRT != null) {
+				console.log("hub disconnection");
+				this.hubRT.close();
+				this.hubRT = null;
+				this.hubReady = false;
 			}
-		);
+		} else {
+			console.log(`hub connecting to document ${documentId} hub ${hubId}`);
+			let p;
+
+			switch (hubId) {
+				case "private":
+				case null:
+				case undefined:
+					console.log("using in-memory hub");
+					p = new Promise(
+						(pass, fail) => {
+							/* gapi does not return real promises */
+							return gapi.drive.realtime.newInMemoryDocument(
+								pass,
+								null,
+								fail
+							);
+						}
+					);
+					break;
+
+				case "this":
+					hubId = documentId;
+					/* fall through */
+
+				default:
+					console.log("using shared hub");
+					p = new Promise(
+						(pass, fail) => {
+							/* gapi does not return real promises */
+							return gapi.drive.realtime.load(
+								hubId,
+								pass,
+								null,
+								fail
+							);
+						}
+					);
+					break;
+			}
+
+			p.then(
+				(rt) => {
+					this.hubRT = rt;
+					console.log("hub revision:", this.hubRT.getModel().serverRevision);
+
+					this.myself = getMyself(rt);
+
+					let hubs = G.ensureMap(rt, rt.getModel().getRoot(), "hub");
+					this.hubNode = G.ensureMap(rt, hubs, documentId);
+
+					this.worldPropertiesNode = G.ensureMap(rt, this.hubNode, "worldProperties");
+					this.worldPropertiesNode.set("md5Checksum", G.world.md5Checksum);
+					this.worldPropertiesNode.addEventListener(
+						gapi.drive.realtime.EventType.VALUE_CHANGED,
+						(e) => {
+							switch (e.property) {
+								case "md5Checksum":
+									console.log("md5 changed", e.newValue);
+									this.fire("new-world-available");
+									break;
+							}
+						}
+					);
+
+					this.roomsNode = G.ensureMap(rt, this.hubNode, "rooms");
+
+					let playersNode = G.ensureMap(rt, this.hubNode, "player");
+					this.playerNode = G.ensureMap(rt, playersNode, this.myself.userId);
+					
+					this.playersHeartbeatNode = G.ensureMap(rt, this.hubNode, "playersHeartbeat");
+					this.playersHeartbeatNode.addEventListener(
+						gapi.drive.realtime.EventType.VALUE_CHANGED,
+						(e) => {
+							if (e.oldValue == e.newValue)
+								return;
+
+							console.log("player", e.property, "changed");
+						}
+					);
+
+					console.log("hub ready");
+					this.hubReady = true;
+					this.fire("hub-ready");
+				}
+			);
+		}
 	},
 });
 

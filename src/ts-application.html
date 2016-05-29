@@ -1,4 +1,6 @@
 <link href="https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic" rel="stylesheet" type="text/css">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../bower_components/iron-icons/social-icons.html">
@@ -8,12 +10,12 @@
 <link rel="import" href="../bower_components/neon-animation/neon-animatable.html">
 <link rel="import" href="ts-auth.html">
 <link rel="import" href="ts-confirmation.html">
+<link rel="import" href="ts-create.html">
 <link rel="import" href="ts-editor.html">
 <link rel="import" href="ts-game-page.html">
 <link rel="import" href="ts-game-settings.html">
 <link rel="import" href="ts-globals.html">
 <link rel="import" href="ts-hub.html">
-<link rel="import" href="ts-login.html">
 <link rel="import" href="ts-map.html">
 <link rel="import" href="ts-rooms.html">
 <link rel="import" href="ts-transcript.html">
@@ -28,12 +30,16 @@
 		display: block;
 		background-color: var(--paper-blue-grey-100);
 		background-repeat: repeat-y;
+		@apply(--layout-fitscroll);
 	}
 
 	#loading {
 		@apply(--layout-fit);
 		@apply(--layout-center-center);
 		@apply(--layout-vertical);
+	}
+
+	iron-pages {
 	}
 
 	@media (min-width: 700px) {
@@ -63,20 +69,41 @@
 	<ts-globals id="globals">
 	</ts-globals>
 
+	<app-location
+		route="{{route}}"
+		use-hash-as-path
+		>
+	</app-location>
+
+	<app-route
+		route="{{route}}"
+		pattern=":document/:command"
+		data="{{routeData}}"
+		tail="{{routeTail}}"
+		active="{{routeWellFormed}}"
+		>
+	</app-route>
+		
 	<ts-auth id="auth"
-		on-auth-success="onAuthSuccess"
-		on-auth-failure="onAuthFailure"
-		on-server-error="onServerError"
+		connected="{{hasAuth}}"
 		>
 	</ts-auth>
 
 	<ts-world id="world"
 		on-world-changed="onWorldChanged"
+		connected="{{hasAuth}}"
+		hub-id="{{hubId}}"
+		document-id="{{documentId}}"
 		>
 	</ts-world>
 
 	<ts-hub id="hub"
 		on-new-world-available="onNewWorldAvailable"
+		document-id="{{documentId}}"
+		hub-id="{{hubId}}"
+		connected="{{hasAuth}}"
+		hub-ready="{{hubReady}}"
+		on-hub-ready="_onHubReady"
 		>
 	</ts-hub>
 
@@ -92,39 +119,49 @@
 
 	<ts-map id="map" modal="true" class="big-dialogue"
 		on-edit-request="onEditRequest"
-		></ts-map>
+		>
+	</ts-map>
 
-	<ts-game-settings id="settingsDialogue" modal="true" class="big-dialogue">
+	<ts-create id="createDialogue"
+		modal="true"
+		>
+	</ts-create>
+
+	<ts-game-settings id="settingsDialogue"
+		modal="true"
+		class="big-dialogue"
+		>
 	</ts-game-settings>
 
-	<ts-user-preferences id="preferencesDialogue" modal="true">
+	<ts-user-preferences id="preferencesDialogue"
+		modal="true"
+		>
 	</ts-user-preferences>
 
-	<ts-login id="login"
-		modal="true"
-		on-click="doExplicitLogin"
-		></ts-login>
+	<iron-pages
+		attr-for-selected="id"
+		selected="{{currentView}}"
+		>
 
-	<ts-welcome id="welcome"
-		modal="true"
-		on-load-request="onLoadRequest"
-		on-create-request="onCreateRequest"
-		></ts-welcome>
+		<div id="loading">
+			<paper-spinner active></paper-spinner>
+		</div>
 
-	<div id="loading" hidden$="{{!loading}}">
-		<paper-spinner active></paper-spinner>
-	</div>
+		<ts-welcome id="welcome"
+			on-load-request="_onLoadRequest"
+			on-create-request="_onCreateRequest"
+			></ts-welcome>
 
-	<ts-game-page id="game" hidden$="{{loading}}"
-		on-edit-request="onEditRequest"
-		on-preferences-request="onPreferencesRequest"
-		on-settings-request="onSettingsRequest"
-		on-map-request="onMapRequest"
-		on-logout-request="onLogoutRequest"
-		on-talk-request="onTalkRequest"
-		is-author="{{isAuthor}}"
-		is-single-player="{{isSinglePlayer}}"
-		></ts-game-page>
+		<ts-game-page id="game"
+			on-edit-request="onEditRequest"
+			on-preferences-request="onPreferencesRequest"
+			on-settings-request="onSettingsRequest"
+			on-map-request="onMapRequest"
+			on-logout-request="onLogoutRequest"
+			on-talk-request="onTalkRequest"
+			is-author="{{isAuthor}}"
+			is-single-player="{{isSinglePlayer}}"
+			></ts-game-page>
 	</iron-pages>
 </template>
 <script>
@@ -168,12 +205,33 @@ Polymer({
 	properties: {
 		isAuthor: Boolean,
 		isSinglePlayer: Boolean,
-		
-		loading: {
-			type: Boolean,
-			value: true
+		hasAuth: Boolean,
+		hubReady: Boolean,
+		currentView: String,
+
+		documentId: {
+			type: String,
+			notify: true
 		},
+
+		hubId: {
+			type: String,
+			notify: true
+		},
+
+		route: {
+			type: Object,
+			notify: true
+		},
+
+		routeData: {
+			type: Object,
+			notify: true,
+		}
 	},
+	observers: [
+		"_computeViewAndDocument(routeData, hasAuth, hubReady, routeWellFormed)"
+	],
 
 	ready: function() {
 		$ = this.$;
@@ -183,7 +241,7 @@ Polymer({
 		G.hub = $.hub;
 		G.rooms = $.rooms;
 
-		/* If there's a state parameter supplied by Google Drive,, reform it to
+		/* If there's a state parameter supplied by Google Drive, reform it to
 		 * something we understand. */
 
 		if (G.URI.queryKey.state) {
@@ -191,16 +249,15 @@ Polymer({
 			switch (state.action) {
 				case "open": {
 					let id = state.ids[0];
-					window.history.replaceState(null, "",
-						`${G.URI.path}?id=${id}`); 
-					G.URI.queryKey.id = id;
+					this.set("route.path", `${id}/game`);
 					break;
 				}
 
 				case "create": {
-					G.URI.queryKey.action = "create";
-					G.URI.queryKey.title = state.title;
-					G.URI.queryKey.folderId = state.folderId;
+					this.set("route.path", ``);
+					//	+ encodeURIComponent(state.title)
+					//	+ "/"
+					//	+ state.folderId;
 					break;
 				}
 
@@ -208,79 +265,43 @@ Polymer({
 					console.log("unrecognised google action", state);
 			}
 		}
-
-		this.doImplicitLogin();
 	},
 
-	doImplicitLogin: function() {
-		this.loading = true;
-		$.auth.authenticate(true);
+	_computeViewAndDocument(routeData, hasAuth, hubReady, routeWellFormed) {
+		if (!routeWellFormed) {
+			this.documentId = null;
+			this.hubId = null;
+			this.currentView = "welcome";
+			return;
+		}
+
+		this.documentId = routeData.document;
+		if (!hasAuth)
+			this.currentView = "loading";
+		else if ((routeData.command == "game") && !hubReady)
+			this.currentView = "loading";
+		else
+			this.currentView = routeData.command;
 	},
 
-	doExplicitLogin: function() {
-		this.loading = true;
-		$.auth.authenticate(false);
+	_onLoadRequest: function(e, id) {
+		this.set("route.path", `${id}/game`);
 	},
 
-	onServerError: function(e) {
-		console.log("server error", e);
-		//location.reload();
-	},
-
-	onAuthSuccess: function() {
-		$.login.close();
-		if (G.URI.queryKey.id != null) {
-			$.world.documentId = G.URI.queryKey.id;
-			$.world.connect().then(
-				() => this.onDocumentConnected()
-			).catch(
-				(e) => this.onServerError(e)
-			);
-		} else if (G.URI.queryKey.action == "create") {
-			this.onCreateRequest(
-				{
-					title: G.URI.queryKey.title,
-					folderId: G.URI.queryKey.folderId
-				}
-			);
-		} else
-			$.welcome.open();
-	},
-
-	onAuthFailure: function(e, f) {
-		console.log(e, f);
-		$.login.open();
-	},
-
-	onLoadRequest: function(e, id) {
-		this.loading = true;
-		window.location = `${G.URI.path}?id=${id}`;
-	},
-
-	onCreateRequest: function(e, params={}) {
-		this.loading = true;
-
+	_onCreateRequest: function(e, params={}) {
 		if (params.title == null)
 			params.title = "My new Gruntle game";
 
+		$.createDialogue.open();
 		$.world.create(params.title, params.folderId).then(
 			(id) => {
-				window.location = `${G.URI.path}?id=${id}`;
+				$.createDialogue.close();
+				this.set("route.path", `${id}/game`);
 			}
 		);
 	},
 
-	onDocumentConnected: function() {
-		console.log("connected");
-
-		G.hub.worldId = G.world.documentId;
-		G.hub.hubId = G.world.data.settings.hubId;
-		G.hub.connect().then(
-			() => this.onHubConnected()
-		);
-	},
-
-	onHubConnected: function() {
+	_onHubReady: function() {
 		console.log("hub connected");
 
 		this.isSinglePlayer = !G.hub.hubRT.isInGoogleDrive;
@@ -320,8 +341,6 @@ Polymer({
 		);
 
 		G.player.location.tellOthers(G.player, `${G.player.name} teleports in.`);
-
-		this.loading = false;
 	},
 
 	onPlayerLocationChanged: function(e) {
@@ -419,7 +438,7 @@ Polymer({
 	},
 
 	onLogoutRequest: function() {
-		window.location = G.URI.path;
+		this.set("route.path", ``);
 	},
 
 	onTalkRequest: function(e, s) {

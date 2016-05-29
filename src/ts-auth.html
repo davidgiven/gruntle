@@ -1,16 +1,17 @@
 <link rel="import" href="../bower_components/google-apis/google-js-api.html">
 <link rel="import" href="ts-globals.html">
+<link rel="import" href="ts-login.html">
 
 <dom-module id="ts-auth">
 <template>
-	<style>
-	  :host {
-		display: none;
-	  }
-	</style>
-
 	<ts-globals id="globals"></ts-globals>
 	<google-js-api id="api"></google-js-api>
+
+	<ts-login id="login"
+		modal="true"
+		on-click="doExplicitLogin"
+		>
+	</ts-login>
 </template>
 <script>
 (function () {
@@ -24,6 +25,12 @@ Polymer({
 		authRefreshTime: {
 			type: Number,
 			value: 45 * 60 * 1000, /* 45 minutes in milliseconds */
+		},
+
+		connected: {
+			type: Boolean,
+			value: false,
+			notify: true,
 		},
 	},
 
@@ -41,15 +48,45 @@ Polymer({
 		).then(
 			() => gapi.client.load("drive", "v3")
 		).then(
-			() => console.log("api loaded")
+			() => {
+				console.log("api loaded")
+				this.authenticate(true);
+			}
 		);
-
 	},
 
-	authenticate: function(silent) {
-		if (silent == null)
-			silent = true;
 
+	doExplicitLogin: function() {
+		this.authenticate(false);
+	},
+		
+	authenticate: function(silent=true) {
+		let $ = this.$;
+
+		/* Enable token refresh every 45 minutes. */
+		let queue_refresh = () => {
+			setTimeout(
+				() => {
+					console.log("auth refresh");
+					gapi.auth.authorize(
+						{
+							client_id: G.CLIENT_ID,
+							scope: G.SCOPES,
+							immediate: true
+						},
+						(r) => {
+							if (!r || !r.error)
+								this.loginFailure(r);
+							else
+								queue_refresh();
+						}
+					);
+				},
+				this.authRefreshTime
+			);
+		};
+			
+		console.log("beginning authentication");
 		this.loginPromise = this.apiLoadPromise.then(
 			() => new Promise(
 				(pass, fail) => {
@@ -60,6 +97,7 @@ Polymer({
 							immediate: silent
 						},
 						(r) => {
+							console.log("auth result", r);
 							if (r && !r.error)
 								pass();
 							else
@@ -70,29 +108,23 @@ Polymer({
 			)
 		).then(
 			() => {
-				/* Enable token refresh every 45 minutes. */
-				setTimeout(
-					() => {
-						console.log("refreshing auth token");
-						gapi.auth.authorize(
-							{
-								client_id: G.CLIENT_ID,
-								scope: G.SCOPES,
-								immediate: true
-							},
-							(r) => {
-								if (!r || !r.error)
-									this.fire("server-error", e);
-							}
-						);
-					},
-					this.authRefreshTime
-				);
-				this.fire("auth-success");
+				queue_refresh();
+				console.log("auth successful");
+				$.login.close();
+				this.connected = true;
 			}
 		).catch(
-			(e) => this.fire("auth-failure", e)
+			(e) => {
+				this.loginFailure(e);
+			}
 		);
+	},
+
+	loginFailure: function(e) {
+		let $ = this.$;
+		console.log("auth failure", e);
+		this.connected = false;
+		$.login.open();
 	},
 });
 
