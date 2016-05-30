@@ -103,8 +103,12 @@ Polymer({
 	},
 
 	ready: function() {
+		G = this.$.globals.G;
+		this.reset();
+	},
+
+	reset: function() {
 		let $ = this.$;
-		G = $.globals.G;
 
 		this._cache = {};
 		this._Room = class Room {

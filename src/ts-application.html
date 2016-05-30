@@ -270,12 +270,13 @@ Polymer({
 
 	_computeViewAndDocument(routeData, hasAuth, hubReady, routeWellFormed) {
 		if (!routeWellFormed) {
-			this.documentId = null;
-			this.hubId = null;
+			this._reset();
 			this.currentView = "welcome";
 			return;
 		}
 
+		if (routeData.document != this.documentId)
+			this._reset();
 		this.documentId = routeData.document;
 		if (!hasAuth)
 			this.currentView = "loading";
@@ -283,6 +284,16 @@ Polymer({
 			this.currentView = "loading";
 		else
 			this.currentView = routeData.command;
+	},
+
+	_reset: function() {
+		this.documentId = null;
+		this.hubId = null;
+		if (G) {
+			G.transcript.reset();
+			G.rooms.reset();
+			G.player = null;
+		}
 	},
 
 	_onLoadRequest: function(e, id) {

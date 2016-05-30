@@ -158,6 +158,12 @@ Polymer({
 
 	ready: function() {
 		G = this.$.globals.G;
+		this.reset();
+	},
+
+	reset: function() {
+		let $ = this.$;
+		empty($.container);
 
 		this.roomDiv = null;
 		this.titleT = null;
