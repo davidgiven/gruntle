@@ -10,26 +10,64 @@
 <dom-module id="ts-welcome">
 <style include="paper-dialog-shared-styles">
 	:host {
+		@apply(--layout-fit);
 		@apply(--layout-vertical);
 		@apply(--layout-center);
-		padding: 1em;
+		@apply(--layout-around-justified);
+		padding: 0.5em;
 	}
-	
+
 	P {
 		text-align: center;
+		margin: 0;
 	}
 
-	.helptext {
-		@apply(--layout-flex);
-		width: 75%;
+	@media (orientation: portrait) {
+		@media (min-width: 25em) {
+			:host {
+				max-width: 25em;
+				margin: auto;
+				height: 40em;
+			}
+		}
+
+		@media (max-width: 25em) {
+			:host {
+				margin: 0;
+			}
+		}
+	
+		.choices {
+			@apply(--layout-vertical);
+		}
+
+		.choices .row {
+			@apply(--layout-horizontal);
+		}
 	}
 
-	.choices {
-		@apply(--layout-vertical);
-	}
+	@media (orientation: landscape) {
+		@media (min-height: 25em) {
+			:host {
+				max-height: 25em;
+				margin: auto;
+				width: 40em;
+			}
+		}
 
-	.choices .row {
-		@apply(--layout-horizontal);
+		@media (max-height: 25em) {
+			:host {
+				margin: 0;
+			}
+		}
+	
+		.choices {
+			@apply(--layout-horizontal);
+		}
+
+		.choices .row {
+			@apply(--layout-horizontal);
+		}
 	}
 
 	.choices .keyboard-focus {
@@ -94,11 +132,10 @@
 <template>
 	<ts-globals id="globals"></ts-globals>
 
-	<ts-gruntle></ts-gruntle>
-	<p>
+	<ts-gruntle class=""></ts-gruntle>
+	<p class="">
 		Welcome to Gruntle, the BYO CYOA MMORPG!
-	</p>
-	<p>
+		<br/>
 		What would you like to do?
 	</p>
 	<div class="choices">
@@ -126,7 +163,9 @@
 			</div>
 		</div>
 	</div>
-	<p>© 2013-2016 <a href="http://cowlark.com">David Given</a></p>
+	<p class="">
+		© 2013-2016 <a href="http://cowlark.com">David Given</a>
+	</p>
 </template>
 <script>
 (function () {
