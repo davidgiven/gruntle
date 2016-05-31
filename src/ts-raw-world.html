@@ -1,0 +1,265 @@
+<link rel="import" href="ts-globals.html">
+
+<dom-module id="ts-world">
+<template>
+	<style>
+	  :host {
+		display: none;
+	  }
+	</style>
+
+</template>
+<script>
+(function () {
+"use strict";
+
+const defaultDocument = {
+	settings: {
+		entrypoint: "entrypoint",
+		hubId: "this"
+	},
+	rooms: {
+		entrypoint: {
+			text: `
+#title My First Room
+
+This is the first and only room in my brand new game.
+Eventually this will be replaced with a rather more 
+useful template. We Apologise For The Inconvenience.
+
+To add more rooms, edit this one and add exits --- the
+new rooms will appear automatically on the map. (This
+all needs smoothing out.)
+
+Note that this game is set to single player mode by
+default. You can change this in the settings. Remember
+you still need to share it with someone before they can
+play (go to the Drive UI to do that).
+`
+		},
+	},
+};
+
+function xhr_promise({method, url, params, data, mimetype}) {
+	return new Promise(
+		(pass, fail) => {
+			let q = url;
+			if (params != null) {
+				url += "?";
+				let first = true;
+				for (let k in params) {
+					if (!first)
+						url += "&";
+					url += encodeURIComponent(k);
+					url += "=";
+					url += encodeURIComponent(params[k]);
+					first = false;
+				}
+			}
+			let xhr = new XMLHttpRequest();
+			xhr.open(method, url);
+			xhr.setRequestHeader("Authorization",
+				`Bearer ${gapi.auth.getToken().access_token}`);
+			if (mimetype != null)
+				xhr.setRequestHeader("Content-Type", mimetype);
+			xhr.onreadystatechange = (e) => {
+				switch (xhr.readyState) {
+					case 4: /* complete */
+					{
+						if (xhr.status == 200)
+							pass(JSON.parse(xhr.response));
+						else
+							fail(xhr);
+						break;
+					}
+				}
+			};
+			xhr.send(data);
+		}
+	);
+}
+
+Polymer({
+	is: "ts-raw-world",
+	properties: {
+		mimeType: String,
+
+		documentId: {
+			type: String,
+			observer: "_documentIdChanged",
+		},
+
+		realtime: {
+			type: Object,
+			notify: true,
+			value: null,
+		},
+
+		data: {
+			type: Object,
+			notify: true,
+			value: null,
+		},
+
+		isAuthor: {
+			type: Boolean,
+			notify: true,
+			value: false,
+		},
+
+		md5Checksum: {
+			type: String,
+			notify: true,
+			value: null,
+		},
+	},
+
+	ready: function() {
+	},
+
+	_save_document_promise(id, json) {
+		return xhr_promise(
+			{
+				method: "PATCH",
+				url: `https://www.googleapis.com/upload/drive/v3/files/${id}`,
+				params: {
+					uploadType: "media",
+					fields: "md5Checksum"
+				},
+				data: JSON.stringify(json),
+				mimetype: this.mimeType,
+			}
+		);
+	},
+
+	_load_document_promise(id) {
+		return xhr_promise(
+			{
+				method: "GET",
+				url: `https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
+			}
+		);
+	},
+
+	create: function(title, folderId) {
+		let parents = folderId ? [folderId] : null;
+		let id;
+
+		return new Promise(
+			(pass, fail) => {
+				/* gapi does not return a real promise. */
+				return gapi.client.drive.files.create(
+					{
+						resource: {
+							mimeType: G.MIME_TYPE,
+							name: title,
+							parents: parents
+						},
+					}
+				).then(pass, fail);
+			}
+		).then(
+			(r) => {
+				id = r.result.id;
+				console.log("new document id", id);
+			}
+		).then(
+			() => save_document_promise(id, defaultDocument)
+		).then(
+			(r) => console.log(r)
+		).then(
+			() => id
+		);
+	},
+
+	_documentIdChanged: function(newId, oldId) {
+		if (oldId == newId)
+			return;
+		if (newId == null) {
+			console.log("disconnecting from world");
+			this.data = null;
+			this.md5Checksum = null;
+			if (this.realtime != null) {
+				this.realtime.close();
+				this.realtime = null;
+			}
+			return;
+		} else {
+			console.log("connecting to world", this.documentId);
+		}
+
+		return new Promise(
+			(pass, fail) => {
+				/* gapi does not return a real promise. */
+				return gapi.client.drive.files.get(
+					{
+						fileId: this.documentId,
+						fields: "capabilities/canEdit,md5Checksum"
+					}
+				).then(pass, fail);
+			}
+		).then(
+			(r) => {
+				this.isAuthor = r.result.capabilities.canEdit;
+				this.md5Checksum = r.result.md5Checksum;
+				
+				if (this.isAuthor) {
+					return Promise.all(
+						[
+							this.refresh(),
+							this._connectRealtimeDocument()
+						]
+					);
+				} else
+					return this.refresh();
+			}
+		);
+	},
+
+	refresh: function() {
+		console.log("refreshing world");
+		return this._load_document_promise(
+			this.documentId
+		).then(
+			(r) => {
+				this.data = r;
+				console.log("world reloaded");
+			}
+		);
+	},
+
+	_connectRealtimeDocument: function() {
+		console.log("connecting world realtime doc");
+		return new Promise(
+			(pass, fail) => {
+				/* gapi does not return real promises */
+				return gapi.drive.realtime.load(
+					this.documentId,
+					pass,
+					null,
+					fail
+				);
+			}
+		).then(
+			(rt) => {
+				this.realtime = rt;
+				console.log("world collaboration revision:", rt.getModel().serverRevision);
+			}
+		);
+	},
+
+	save: function() {
+		return this._save_document_promise(this.documentId, this.data).then(
+			(r) => {
+				console.log("saved to drive; hash", r.md5Checksum);
+				this.md5Checksum = r.md5Checksum;
+				//G.hub.worldPropertiesNode.set("md5Checksum", this.md5Checksum);
+			}
+		);
+	},
+});
+
+})();
+</script>
+</dom-module>
+

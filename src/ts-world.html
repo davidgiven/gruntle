@@ -1,251 +1,430 @@
 <link rel="import" href="ts-globals.html">
+<link rel="import" href="ts-auth.html">
+<link rel="import" href="ts-raw-world.html">
+<link rel="import" href="ts-raw-hub.html">
+<link rel="import" href="ts-parser.html">
 
 <dom-module id="ts-world">
 <template>
 	<style>
-	  :host {
-		display: none;
-	  }
+		:host {
+			display: none;
+		}
 	</style>
 
-	<ts-globals id="globals"></ts-globals>
+	<ts-globals id="globals"
+		globals="{{G}}"
+		>
+	</ts-globals>
+
+	<ts-auth id="auth"
+		authenticated="{{authenticated}}"
+		>
+	</ts-auth>
+
+	<ts-raw-world id="rawWorld"
+		mime-type="{{G.mimeType}}"
+		realtime="{{documentRt}}"
+		data="{{documentData}}"
+		md5-checksum="{{md5Checksum}}"
+		is-author="{{isAuthor}}"
+		>
+	</ts-raw-world>
+
+	<ts-raw-hub id="rawHub"
+		realtime="{{hubRt}}"
+		>
+	</ts-raw-hub>
+
+	<ts-parser id="parser"
+		>
+	</ts-rooms>
+
 </template>
 <script>
 (function () {
 "use strict";
 
-let G;
+const defaultRoomText = `
+#title New room title
 
-const defaultDocument = {
-	settings: {
-		entrypoint: "entrypoint",
-		hubId: "this"
-	},
-	rooms: {
-		entrypoint: {
-			text: `
-#title My First Room
+New room text here.
 
-This is the first and only room in my brand new game.
-Eventually this will be replaced with a rather more 
-useful template. We Apologise For The Inconvenience.
+- {New room action}
+#tellPlayer You perform an action.
+#tellOthers {player.name} performs an action.
+`;
 
-To add more rooms, edit this one and add exits --- the
-new rooms will appear automatically on the map. (This
-all needs smoothing out.)
 
-Note that this game is set to single player mode by
-default. You can change this in the settings. Remember
-you still need to share it with someone before they can
-play (go to the Drive UI to do that).
-`
-		},
-	},
+function getMyself(rt) {
+	for (let c of rt.getCollaborators())
+		if (c.isMe)
+			return c;
+	throw "current player not a collaborator!";
+}
+
+function ensureList(rt, node, name) {
+	let v = node.get(name);
+	if (!v) {
+		v = rt.getModel().createList();
+		node.set(name, v);
+	}
+	return v
 };
 
-function xhr_promise({method, url, params, data, mimetype}) {
-	return new Promise(
-		(pass, fail) => {
-			let q = url;
-			if (params != null) {
-				url += "?";
-				let first = true;
-				for (let k in params) {
-					if (!first)
-						url += "&";
-					url += encodeURIComponent(k);
-					url += "=";
-					url += encodeURIComponent(params[k]);
-					first = false;
-				}
-			}
-			let xhr = new XMLHttpRequest();
-			xhr.open(method, url);
-			xhr.setRequestHeader("Authorization",
-				`Bearer ${gapi.auth.getToken().access_token}`);
-			if (mimetype != null)
-				xhr.setRequestHeader("Content-Type", mimetype);
-			xhr.onreadystatechange = (e) => {
-				switch (xhr.readyState) {
-					case 4: /* complete */
-					{
-						if (xhr.status == 200)
-							pass(JSON.parse(xhr.response));
-						else
-							fail(xhr);
-						break;
-					}
+function ensureMap(rt, node, name) {
+	let v = node.get(name);
+	if (!v) {
+		v = rt.getModel().createMap();
+		node.set(name, v);
+	}
+	return v
+};
+
+class MessageQueue {
+	constructor(hubRt, node, onMessage) {
+		this._hubRt = hubRt;
+		this._node = node;
+
+		this._handler = null;
+		if (onMessage != null) {
+			this._handler = (e) => {
+				let values = e.values.slice(0);
+				values.sort(
+					(a, b) => a.time - b.time
+				);
+
+				for (let event of values) {
+					if (onMessage != null)
+						onMessage(event);
 				}
 			};
-			xhr.send(data);
+
+			this._node.addEventListener(
+				gapi.drive.realtime.EventType.VALUES_ADDED,
+				this._handler);
 		}
-	);
+	}
+
+	detach() {
+		if (this._handler != null)
+			this._node.removeEventListener(
+				gapi.drive.realtime.EventType.VALUES_ADDED,
+				this._handler);
+	}
+
+	post(kind, params) {
+		let e = {};
+		for (let k in params)
+			e[k] = params[k];
+		e.kind = kind;
+		e.time = this._hubRt.getModel().serverRevision;
+
+		if (this._node.length > 20)
+			this._node.removeRange(0, this._node.length-20);
+		this._node.push(e);
+
+		return e;
+	}
 }
 
-function save_document_promise(id, json) {
-	return xhr_promise(
-		{
-			method: "PATCH",
-			url: `https://www.googleapis.com/upload/drive/v3/files/${id}`,
-			params: {
-				uploadType: "media",
-				fields: "md5Checksum"
-			},
-			data: JSON.stringify(json),
-			mimetype: G.MIME_TYPE,
-		}
-	);
+class Player {
+	constructor(element, world, node, id) {
+		this._element = element;
+		this._world = world;
+		this._node = node;
+		this._id = id;
+	}
+
+	get location() {
+		let name = this._node.get("location");
+		if (!name)
+			return null;
+
+		return this._world.rooms.get(name);
+	}
+
+	set location(v) {
+		this._node.set("location", v.id);
+	}
+
+	get name() {
+		return this._node.get("useName");
+	}
+
+	set name(v) {
+		this._node.set("useName", v);
+	}
+
+	get id() {
+		return this._id;
+	}
+
+	get node() {
+		return this._node;
+	}
 }
 
-function load_document_promise(id) {
-	return xhr_promise(
-		{
-			method: "GET",
-			url: `https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
+class Room {
+	constructor(element, world, parser, id) {
+		this._element = element;
+		this._world = world;
+		this._parser = parser;
+		this._id = id;
+
+		this._log = ensureList(world.hubRt, world.roomsNode, this.id);
+		this._queue = new MessageQueue(this._world.hubRt, this._log);
+	}
+
+	get id() {
+		return this._id;
+	}
+
+	get exists() {
+		return this.id in this._world.data.rooms;
+	}
+
+	get text() {
+		return this._world.data.rooms[this.id].text;
+	}
+
+	set text(s) {
+		let r = this._world.data.rooms[this.id];
+		if (r == null)
+			r = this._world.data.rooms[this.id] = {};
+		r.text = s;
+	}
+
+	parse() {
+		return this._parser.parse(this.text,
+			(actions) => this._element.fire("user-action", actions)
+		);
+	}
+
+	postEvent(kind, player, text) {
+		let e = this._queue.post(kind,
+			{
+				player: player ? player.id : null,
+				text: text,
+			}
+		);
+
+		console.log(`${e.time}: ${kind} in ${this.id}: ${player ? player.name : 'null'}: ${text}`);
+	}
+
+	tell(player, text) {
+		this.postEvent("tell", player, text);
+	}
+
+	tellOthers(player, text) {
+		this.postEvent("tellOthers", player, text);
+	}
+
+	broadcast(text) {
+		this.postEvent("broadcast", null, text);
+	}
+
+	get pendingText() {
+		let node = this._world.pending.get(this.id);
+		if (node == null) {
+			node = this._world.documentRT.getModel().createString(this.text);
+			this._world.pending.set(this.id, node);
 		}
-	);
+		return node;
+	}
+
+	revertPending() {
+		this._world.pending.get(this.id).setText(this.text);
+	}
+
+	commitPending() {
+		this.text = this.world.pending.get(this.id).getText();
+		this.world.rooms.save();
+	}
+}
+
+class RoomCache {
+	constructor(element, world, parser) {
+		this._element = element;
+		this._world = world;
+		this._parser = parser;
+
+		this._cache = {};
+	}
+
+	get(id) {
+		let room = this._cache[id];
+		if (room == null) {
+			room = new Room(this._element, this._world, this._parser, id);
+			this._cache[id] = room;
+		}
+		return room;
+	}
+
+	getAll() {
+		let rooms = [];
+		for (let id in this._world.data.rooms) {
+			rooms.push(this.get(id));
+		}
+		return rooms;
+	}
+
+	save() {
+		this._element.save().then(
+			() => this._element.fire("world-changed")
+		);
+	}
+
+	createRoom(id, text) {
+		let r = this.get(id);
+		r.text = defaultRoomText;
+		this.save();
+		return r;
+	}
 }
 
 Polymer({
 	is: "ts-world",
 	properties: {
-		connected: Boolean,
+		G: Object,
+		authenticated: Boolean,
 		documentId: String,
-		documentRT: Object,
+		isAuthor: Boolean,
+		md5Checksum: String,
+		documentData: Object,
+		documentRt: Object,
+		hubRt: Object,
 
-		hubId: {
-			type: String,
-			notify: true
-		},
+		world: {
+			type: Object,
+			notify: true,
+			value: {
+				valid: false,
+			}
+		}
 	},
 	observers: [
-		"_reconnect(connected, documentId)",
+		"_authChanged(authenticated, documentId)",
+		"_documentDataChanged(documentData)",
+		"_hubRtChanged(documentId, documentData, documentRt, hubRt)",
 	],
 
+	_authChanged: function(authenticated, documentId) {
+		this.set("world.authenticated", authenticated);
+		this.$.rawWorld.documentId = authenticated ? documentId : null;
+	},
+
+	_documentDataChanged: function(documentData) {
+		this.$.rawHub.hubId = documentData ? documentData.settings.hubId : null;
+		this.set("world.data", documentData);
+	},
+
 	ready: function() {
-		G = this.$.globals.G;
+		this._playerRoomQueue = null;
 	},
 
-	create: function(title, folderId) {
-		let parents = folderId ? [folderId] : null;
-		let id;
-
-		return new Promise(
-			(pass, fail) => {
-				/* gapi does not return a real promise. */
-				return gapi.client.drive.files.create(
-					{
-						resource: {
-							mimeType: G.MIME_TYPE,
-							name: title,
-							parents: parents
-						},
-					}
-				).then(pass, fail);
+	_hubRtChanged: function(documentId, documentData, documentRt, hubRt) {
+		let $ = this.$;
+		if ((documentId == null) ||
+		    (documentData == null) ||
+	        (documentRt == null) ||
+			(hubRt == null)) {
+			if (this._playerRoomQueue) {
+				this._playerRoomQueue.detach();
+				this._playerRoomQueue = null;
 			}
-		).then(
-			(r) => {
-				id = r.result.id;
-				console.log("new document id", id);
-			}
-		).then(
-			() => save_document_promise(id, defaultDocument)
-		).then(
-			(r) => console.log(r)
-		).then(
-			() => id
-		);
-	},
-
-	_reconnect: function(connected, documentId) {
-		if ((documentId == null) || !connected) {
-			if (this.documentRT != null) {
-				console.log("world disconnection");
-				this.documentRT.close();
-				this.documentRT = null;
-			}
-			return;
+			this.world = null;
 		} else {
-			console.log("connecting to world", documentId);
+			console.log("updating hub");
+			console.log("world md5", this.md5Checksum);
+
+			let world = {
+				md5Checksum: this.md5Checksum,
+				isAuthor: this.isAuthor,
+				singlePlayer: !hubRt.isInGoogleDrive,
+				data: documentData,
+				documentRt: documentRt,
+				hubRt: hubRt,
+				pending: ensureMap(documentRt, documentRt.getModel().getRoot(), "rooms"),
+			};
+
+			let hubs = ensureMap(hubRt, hubRt.getModel().getRoot(), "hub");
+			let hub = world.hub = ensureMap(hubRt, hubs, documentId);
+			world.roomsNode = ensureMap(hubRt, hub, "rooms");
+
+			let worldProperties = this.worldProperties = ensureMap(hubRt, hub, "worldProperties");
+			worldProperties.addEventListener(
+				gapi.drive.realtime.EventType.VALUE_CHANGED,
+				(e) => {
+					switch (e.property) {
+						case "md5Checksum":
+							console.log("md5 changed", e.newValue);
+							this.fire("new-world-available");
+							break;
+					}
+				}
+			);
+
+			let myself = getMyself(hubRt);
+			let playersNode = ensureMap(hubRt, hub, "player");
+			let playerNode = ensureMap(hubRt, playersNode, myself.userId);
+
+			world.rooms = new RoomCache(this, world, $.parser);
+			world.player = new Player(this, world, playerNode, myself.userId);
+			if (!world.player.name)
+				world.player.name = myself.displayName;
+
+			this.world = world;
+			this._initPlayerLocationTracking(world, playerNode);
+		}
+	},
+
+	_initPlayerLocationTracking: function(world, playerNode) {
+		if (!world.player.location)
+		{
+			let entrypoint = world.data.settings.entrypoint;
+			world.player.location = world.rooms.get(entrypoint);
 		}
 
-		this.hubId = null;
-		return new Promise(
-			(pass, fail) => {
-				/* gapi does not return a real promise. */
-				return gapi.client.drive.files.get(
-					{
-						fileId: this.documentId,
-						fields: "capabilities/canEdit,md5Checksum"
-					}
-				).then(pass, fail);
+		playerNode.addEventListener(
+			gapi.drive.realtime.EventType.VALUE_CHANGED,
+			(e) => {
+				if (e.oldValue == e.newValue)
+					return;
+
+				switch (e.property) {
+					case "location": return this._onPlayerLocationChanged(world, e);
+				}
 			}
-		).then(
-			(r) => {
-				this.isAuthor = r.result.capabilities.canEdit;
-				this.md5Checksum = r.result.md5Checksum;
-				
-				if (this.isAuthor) {
-					return Promise.all(
-						[
-							this.reload(),
-							this.connectRealtimeDocument()
-						]
-					);
-				} else
-					return this.reload();
+		);
+
+		this._onPlayerLocationChanged(world,
+			{
+				oldValue: null,
+				newValue: world.player.location.id
 			}
 		);
 	},
 
-	reload: function() {
-		console.log("reloading world");
-		return load_document_promise(
-			this.documentId
-		).then(
-			(r) => {
-				this.data = r;
-				console.log("world reloaded");
-				this.fire("world-changed");
-				this.hubId = this.data.settings.hubId;
+	_onPlayerLocationChanged(world, e) {
+		if (this._playerRoomMessageQueue)
+			this._playerRoomMessageQueue.detach();
+
+		this.fire("player-location-changed", e);
+
+		this._playerRoomMessageQueue = new MessageQueue(
+			world.hubRt,
+			ensureList(world.hubRt, world.roomsNode, e.newValue),
+			(e) => {
+				this.fire("player-room-event", e);
 			}
 		);
-	},
+	}
 
-	connectRealtimeDocument: function() {
-		console.log("connecting world realtime doc");
-		return new Promise(
-			(pass, fail) => {
-				/* gapi does not return real promises */
-				return gapi.drive.realtime.load(
-					this.documentId,
-					pass,
-					null,
-					fail
-				);
-			}
-		).then(
-			(rt) => {
-				this.documentRT = rt;
-				console.log("world collaboration revision:", rt.getModel().serverRevision);
-
-				this.roomsNode = G.ensureMap(rt, rt.getModel().getRoot(), "rooms");
-			}
-		);
-	},
-
-	save: function() {
-		return save_document_promise(this.documentId, this.data).then(
-			(r) => {
-				console.log("saved to drive; hash", r.md5Checksum);
-				this.md5Checksum = r.md5Checksum;
-				G.hub.worldPropertiesNode.set("md5Checksum", this.md5Checksum);
-			}
-		);
-	},
 });
 
-})();
+})()
 </script>
 </dom-module>
+
 

@@ -8,16 +8,13 @@
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../bower_components/neon-animation/neon-animated-pages.html">
 <link rel="import" href="../bower_components/neon-animation/neon-animatable.html">
-<link rel="import" href="ts-auth.html">
 <link rel="import" href="ts-confirmation.html">
 <link rel="import" href="ts-create.html">
 <link rel="import" href="ts-editor.html">
 <link rel="import" href="ts-game-page.html">
 <link rel="import" href="ts-game-settings.html">
 <link rel="import" href="ts-globals.html">
-<link rel="import" href="ts-hub.html">
 <link rel="import" href="ts-map.html">
-<link rel="import" href="ts-rooms.html">
 <link rel="import" href="ts-transcript.html">
 <link rel="import" href="ts-user-preferences.html">
 <link rel="import" href="ts-welcome.html">
@@ -85,35 +82,14 @@
 		>
 	</app-route>
 		
-	<ts-auth id="auth"
-		connected="{{hasAuth}}"
-		>
-	</ts-auth>
-
 	<ts-world id="world"
-		on-world-changed="onWorldChanged"
-		connected="{{hasAuth}}"
-		hub-id="{{hubId}}"
 		document-id="{{documentId}}"
+		world="{{world}}"
+		on-player-location-changed="_onPlayerLocationChanged"
+		on-player-room-event="_onPlayerRoomEvent"
+		on-user-action="_onUserAction"
 		>
 	</ts-world>
-
-	<ts-hub id="hub"
-		on-new-world-available="onNewWorldAvailable"
-		document-id="{{documentId}}"
-		hub-id="{{hubId}}"
-		connected="{{hasAuth}}"
-		hub-ready="{{hubReady}}"
-		on-hub-ready="_onHubReady"
-		>
-	</ts-hub>
-
-	<ts-rooms id="rooms"
-		on-world-changed="onWorldChanged"
-		on-hyperspace="onHyperspaceJump"
-		on-user-action="onUserAction"
-		>
-	</ts-rooms>
 
 	<ts-editor id="editor" modal="true" class="big-dialogue"
 		></ts-editor>
@@ -163,6 +139,9 @@
 			is-author="{{isAuthor}}"
 			is-single-player="{{isSinglePlayer}}"
 			></ts-game-page>
+
+		<ts-ide id="ide"
+			
 	</iron-pages>
 </template>
 <script>
@@ -172,53 +151,16 @@
 let $ = null;
 let G = null;
 
-class Player {
-	constructor() {
-	}
-
-	get location() {
-		let name = G.hub.playerNode.get("location");
-		if (!name)
-			return null;
-
-		return G.rooms.get(name);
-	}
-
-	set location(v) {
-		G.hub.playerNode.set("location", v.id);
-	}
-
-	get name() {
-		return G.hub.playerNode.get("useName");
-	}
-
-	set name(v) {
-		G.hub.playerNode.set("useName", v);
-	}
-
-	get id() {
-		return G.hub.myself.userId;
-	}
-}
-
 Polymer({
 	is: "ts-application",
 	properties: {
 		isAuthor: Boolean,
 		isSinglePlayer: Boolean,
-		hasAuth: Boolean,
+		authenticated: Boolean,
+		world: Object,
 		hubReady: Boolean,
 		currentView: String,
-
-		documentId: {
-			type: String,
-			notify: true
-		},
-
-		hubId: {
-			type: String,
-			notify: true
-		},
+		documentId: String,
 
 		route: {
 			type: Object,
@@ -231,7 +173,8 @@ Polymer({
 		}
 	},
 	observers: [
-		"_computeViewAndDocument(routeData, hasAuth, hubReady, routeWellFormed)"
+		"_computeViewAndDocument(routeData, routeWellFormed, world)",
+		"_worldChanged(world)",
 	],
 
 	ready: function() {
@@ -240,7 +183,6 @@ Polymer({
 		G.application = this;
 		G.world = $.world;
 		G.hub = $.hub;
-		G.rooms = $.rooms;
 
 		/* If there's a state parameter supplied by Google Drive, reform it to
 		 * something we understand. */
@@ -268,19 +210,15 @@ Polymer({
 		}
 	},
 
-	_computeViewAndDocument(routeData, hasAuth, hubReady, routeWellFormed) {
+	_computeViewAndDocument(routeData, routeWellFormed, world) {
 		if (!routeWellFormed) {
-			this._reset();
+			this.documentId = null;
 			this.currentView = "welcome";
 			return;
 		}
 
-		if (routeData.document != this.documentId)
-			this._reset();
 		this.documentId = routeData.document;
-		if (!hasAuth)
-			this.currentView = "loading";
-		else if ((routeData.command == "game") && !hubReady)
+		if (world == null)
 			this.currentView = "loading";
 		else
 			this.currentView = routeData.command;
@@ -291,7 +229,6 @@ Polymer({
 		this.hubId = null;
 		if (G) {
 			G.transcript.reset();
-			G.rooms.reset();
 			G.player = null;
 		}
 	},
@@ -313,51 +250,36 @@ Polymer({
 		);
 	},
 
-	_onHubReady: function() {
-		console.log("hub connected");
+	_worldChanged: function(world) {
+		if (world == null)
+			this._onLogout();
+		else
+			this._onLogin();
+	},
 
-		this.isSinglePlayer = !G.hub.hubRT.isInGoogleDrive;
-		console.log(`This game is ${this.isSinglePlayer ? "single player" : "multi player"}`);
+	_onLogout: function() {
+		console.log("logout");
+	},
 
-		this.isAuthor = G.world.isAuthor;
-		console.log(`I am ${this.isAuthor ? "the author" : "not the author"}`);
+	_onLogin: function() {
+		console.log("login");
 
-		G.player = new Player;
-		if (!G.player.name)
-			G.player.name = G.hub.myself.displayName;
+		console.log(`This game is ${this.world.isSinglePlayer ? "single player" : "multi player"}`);
+
+		console.log(`I am ${this.world.isAuthor ? "the author" : "not the author"}`);
+
+		let $ = this.$;
+		let world = this.world;
+
+		G.player = world.player;
 		console.log("my usename is", G.player.name);
-
-		if (!G.player.location)
-		{
-			let entrypoint = G.world.data.settings.entrypoint;
-			G.player.location = G.rooms.get(entrypoint);
-		}
-
-		this.onPlayerLocationChanged(
-			{
-				oldValue: null,
-				newValue: G.player.location.id
-			}
-		);
-
-		G.hub.playerNode.addEventListener(
-			gapi.drive.realtime.EventType.VALUE_CHANGED,
-			(e) => {
-				if (e.oldValue == e.newValue)
-					return;
-
-				switch (e.property) {
-					case "location": return this.onPlayerLocationChanged(e);
-				}
-			}
-		);
 
 		G.player.location.tellOthers(G.player, `${G.player.name} teleports in.`);
 	},
 
-	onPlayerLocationChanged: function(e) {
-		let oldRoom = e.oldValue ? G.rooms.get(e.oldValue) : null;
-		let newRoom = G.player.location;
+	_onPlayerLocationChanged: function(e) {
+		let oldRoom = e.oldValue ? this.world.rooms.get(e.oldValue) : null;
+		let newRoom = this.world.player.location;
 
 		/* If this is a bad room name, put the player back at the entrypoint. */
 
@@ -374,17 +296,9 @@ Polymer({
 				choicesDom: parsed.choicesDom
 			}
 		);
-
-		if (this.roomQueue)
-			this.roomQueue.detach();
-
-		this.roomQueue = new G.MessageQueue(
-			G.player.location.log,
-			(e) => this._onRoomEvent(e)
-		);
 	},
 
-	_onRoomEvent: function(e) {
+	_onPlayerRoomEvent: function(_, e) {
 		switch (e.kind) {
 			case "tellOthers":
 				if (e.player != G.player.id)
@@ -407,9 +321,9 @@ Polymer({
 	},
 
 	onEditRequest: function(e, id) {
-		let room = G.rooms.get(id);
+		let room = this.world.rooms.get(id);
 		if (room.exists) {
-			$.editor.room = G.rooms.get(id);
+			$.editor.room = this.world.rooms.get(id);
 			$.editor.open();
 		} else {
 			G.confirmationDialog(
@@ -423,7 +337,7 @@ Polymer({
 			).then(
 				() => {
 					console.log("creating room");
-					$.editor.room = G.rooms.createRoom(id);
+					$.editor.room = this.world.rooms.createRoom(id);
 					$.editor.open();
 				}
 			).catch(
@@ -490,11 +404,11 @@ Polymer({
 			oldRoom.tell(G.player, `[That bit of the world hasn't been built yet.]`);
 		} else {
 			let entrypoint = G.worldConfig.get("entrypoint");
-			G.player.location = G.rooms.get(entrypoint);
+			G.player.location = this.world.rooms.get(entrypoint);
 		}
 	},
 
-	onUserAction: function(e, actions) {
+	_onUserAction: function(e, actions) {
 		G.transcript.hideChoices();
 		G.transcript.setMark();
 
@@ -504,7 +418,7 @@ Polymer({
 			tellAllAction:    (text) => G.player.location.broadcast(text),
 
 			gotoAction: (name) => {
-				let room = G.rooms.get(name);
+				let room = this.world.rooms.get(name);
 				if (!room.exists)
 					this.onHyperspaceJump(null, G.player.location);
 				else {

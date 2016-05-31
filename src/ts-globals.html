@@ -60,24 +60,6 @@ G.findRelativeYOffset = function(element, top) {
 	return y;
 };
 
-G.ensureList = function(rt, node, name) {
-	let v = node.get(name);
-	if (!v) {
-		v = rt.getModel().createList();
-		node.set(name, v);
-	}
-	return v
-};
-
-G.ensureMap = function(rt, node, name) {
-	let v = node.get(name);
-	if (!v) {
-		v = rt.getModel().createMap();
-		node.set(name, v);
-	}
-	return v
-};
-
 G.ensureString = function(rt, node, name) {
 	let v = node.get(name);
 	if (!v) {
@@ -159,6 +141,12 @@ G.confirmationDialog = function(
 
 Polymer({
 	is: "ts-globals",
+	properties: {
+		globals: {
+			type: Object,
+			value: G
+		}
+	},
 
 	ready: function() {
 		this.G = G;
