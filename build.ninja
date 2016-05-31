@@ -49,7 +49,6 @@ rule cp
 ¬   "ts-globals",
 ¬   "ts-grt-binding",
 ¬   "ts-gruntle",
-¬   "ts-ide",
 ¬   "ts-login",
 ¬   "ts-map",
 ¬   "ts-parser",
