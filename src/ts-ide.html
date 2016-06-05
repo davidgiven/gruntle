@@ -3,9 +3,9 @@
 <link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html">
 <link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../bower_components/paper-icon-item/paper-icon-item.html">
 <link rel="import" href="../bower_components/paper-styles/classes/shadow.html">
 <link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="ts-globals.html">
 <link rel="import" href="ts-map.html">
 
@@ -31,6 +31,13 @@
 			@apply(--shadow-elevation-4dp);
 		}
     }
+
+	paper-drawer-panel {
+	  --paper-drawer-panel-left-drawer-container: {
+	  	overflow-y: auto;
+	  };
+	}
+
     .drawer-content {
       margin-top: 80px;
       height: calc(100% - 80px);
@@ -55,29 +62,65 @@
 				<span>Return to game</span>
 			</paper-button>
 		</paper-toolbar>
-	<paper-drawer-panel id="drawerLayout"
-		>
-		<div drawer class="drawer-content vertical layout">
-			<template is="dom-repeat" items="{{_calculateRooms(world.rooms)}}">
-				<paper-icon-item>
+
+		<paper-drawer-panel id="drawerLayout">
+			<paper-menu drawer>
+				<paper-item id="mapButton"
+					on-tap="_onMapButton"
+					>
 					<iron-icon
 						item-icon
-						icon="inbox"
+						icon="explore"
 						>
 					</iron-icon>
-					<span>{{item.id}}</span>
-				</paper-icon-item>
-			</template>
-			</paper-icon-item>
-		</div>
+					<span>Map</span>
+				</paper-item>
+				<paper-item id="settingsButton"
+					on-tap="_onSettingsButton"
+					>
+					<iron-icon
+						item-icon
+						icon="settings"
+						>
+					</iron-icon>
+					<span>Game settings</span>
+				</paper-item>
+
+				<template is="dom-repeat" items="{{_calculateRooms(world.rooms)}}">
+					<paper-item
+						on-tap="_onRoomButton"
+						ts-room="{{item.id}}"
+						>
+						<iron-icon
+							item-icon
+							icon="description"
+							>
+						</iron-icon>
+						<span>{{item.id}}</span>
+					</paper-item>
+				</template>
+
+				<paper-item
+					on-tap="_onAddRoomButton"
+					>
+					<iron-icon
+						item-icon
+						icon="add"
+						>
+					</iron-icon>
+					<span>Add a new room...</span>
+				</paper-item>
+			</paper-menu>
       
 			<iron-pages main
+				id="page"
 				class="flex"
 				attr-for-selected="id"
 				selected="map"
 				>
 				<ts-map id="map"
 					world="{{world}}"
+					on-room-click="_onMapClick"
 					>
 				</ts-map>
 
@@ -129,6 +172,22 @@ Polymer({
 		return (rooms != null)
 			? rooms.getAll()
 			: [];
+	},
+
+	_onMapButton: function() {
+		this.$.page.selected = "map";
+	},
+
+	_onRoomButton: function() {
+		this.$.page.selected = "editor";
+	},
+
+	_onMapClick: function(e, room) {
+		let $ = this.$;
+		let buttons = Polymer.dom($.drawerLayout).querySelectorAll("paper-item");
+		for (let b of buttons)
+			if (b.tsRoom == room)
+				b.click();
 	},
 });
 

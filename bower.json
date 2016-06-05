@@ -49,7 +49,6 @@
     "paper-tooltip": "PolymerElements/paper-tooltip#^1.1.2",
     "bower-parseUri": "bower-parseuri#^1.2.2",
     "paper-menu": "PolymerElements/paper-menu#^1.2.2",
-    "iron-dropdown": "PolymerElements/iron-dropdown#^1.4.1",
     "app-route": "PolymerElements/app-route#^0.9.1",
     "paper-drawer-panel": "PolymerElements/paper-drawer-panel#^1.0.9",
     "paper-header-panel": "PolymerElements/paper-header-panel#^1.1.6"
