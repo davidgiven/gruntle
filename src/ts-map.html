@@ -9,12 +9,13 @@
 <link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-shared-styles.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/paper-menu/paper-menu.html">
-<link rel="import" href="ts-globals.html">
+<link rel="import" href="../bower_components/iron-scroll-target-behavior/iron-scroll-target-behavior.html">
 
 <style>
 	svg#map .node rect {
 		stroke: #000;
 		fill: #fff;
+		cursor: pointer;
 	}
 
 	svg#map .node:hover {
@@ -33,17 +34,17 @@
 		stroke: #000;
 		stroke-width: 1.5px;
 	}
+
+	svg#map text {
+		font-family: 'Roboto', 'Noto', sans-serif;	
+		cursor: pointer;
+	}
 </style>
 
 <dom-module id="ts-map">
-<style include="paper-dialog-shared-styles">
+<style>
 	:host {
 		@apply(--layout-fit);
-		@apply(--layout-vertical);
-	}
-
-	#mapContainer {
-		@apply(--layout-flex);
 		overflow: hidden;
 		display: block;
 		padding-left: 0;
@@ -51,8 +52,6 @@
 	}
 
 	#map {
-		width: 100vw;
-		height: 100vh;
 	}
 
 	svg {
@@ -65,46 +64,31 @@
 		bottom: 1em;
 	}
 
-	#dropdown paper-menu {
-        padding: 12px;
-		@apply(--shadow-elevation-6dp);
+	#controls paper-button {
+		background-color: white;
 	}
 </style>
 
 <template>
-	<ts-globals id="globals"></ts-globals>
-
-	<h2>Map</h2>
-	<div id="mapContainer" class="relative">
-		<svg id="map"><g/></svg>
-		<div id="controls" class="layout vertical">
-			<paper-button raised>Create room</paper-button>
-		</div>
-	</div>
-
-	<div class="buttons">
-		<paper-button dialog-dismiss>Close</paper-button>
-	</div>
-
-	<iron-dropdown id="dropdown"
-		vertical-align="top"
-		horizontal-align="left"
-		vertical-offset="0"
-		horizontal-offset="0"
+	<svg id="map"
+		width$="{{realWidth}}px"
+		height$="{{realHeight}}px"
+		viewport$="0 0 {{realWidth}} {{realHeight}}"
 		>
-		<paper-menu>
-			<paper-item>Edit</paper-item>
-			<paper-item>Make the entrypoint</paper-item>
-			<paper-item>Rename</paper-item>
-			<paper-item>Delete</paper-item>
-		</paper-menu>
-	<iron-dropdown>
+		<g/>
+	</svg>
+	<div id="controls" class="layout vertical">
+		<paper-button
+			raised
+			on-tap="_onZoomToFit"
+			>
+			<span>Zoom to fit</span>
+		</paper-button>
+	</div>
 </template>
 <script>
 (function () {
 "use strict";
-
-let G;
 
 let class_for_room = (id) =>
 	"room_class_" + encodeURIComponent(id);
@@ -112,31 +96,72 @@ let class_for_room = (id) =>
 Polymer({
 	is: "ts-map",
 	properties: {
+		world: Object,
+
+		realWidth: {
+			type: Number,
+			value: 1,
+			notify: true
+		},
+
+		realHeight: {
+			type: Number,
+			value: 1,
+			notify: true
+		},
 	},
 	behaviors: [
-		Polymer.PaperDialogBehavior
+		Polymer.IronResizableBehavior,
 	],
 	observers: [
-		"onOpenClose(opened)",
+		"_onWorldChanged(world.valid, world.rooms)",
 	],
+	listeners: {
+		"iron-resize": "_onResize",
+	},
 
 	ready: function() {
-		G = this.$.globals.G;
 		this.drawn = false;
 	},
 
-	updateMap: function() {
+	_onResize: function() {
+
+		/* This is some horrible, horrible, horrible code which waits until
+		 * the map container gets sized. I haven't found a sane, portable
+		 * way of doing this more cleanly. */
+
+		let f = () => {
+			if (this.offsetWidth > 0) {
+				this.realWidth = this.offsetWidth;
+				this.realHeight = this.offsetHeight;
+			}
+			else {
+				console.log("waiting for map sizing...");
+				setTimeout(f, 10);
+			}
+		};
+		f();
+	},
+
+	_onWorldChanged: function(valid, rooms) {
+		if (valid && (rooms != null)) {
+			console.log("map saw world object change");
+			this._updateMap();
+		}
+	},
+
+	_updateMap: function(rezoom = !this.drawn) {
 		let $ = this.$;
 
 		/* Only update the map if we're visible. */
 
-		console.log("map width is ", $.mapContainer.offsetWidth);
-		if ($.mapContainer.offsetWidth == 0)
+		console.log("map width is ", this.offsetWidth);
+		if (this.offsetWidth == 0)
 			return;
 
 		/* Construct the map from the room data. */
 		
-		let rooms = G.rooms.getAll();
+		let rooms = this.world.rooms.getAll();
 		let nodes = [];
 		let edges = [];
 
@@ -145,7 +170,7 @@ Polymer({
 			nodes.push(r);
 
 			for (let exit of parsed.exits) {
-				if (!G.rooms.get(exit).exists)
+				if (!this.world.rooms.get(exit).exists)
 					nodes.push(
 						{
 							id: exit,
@@ -171,13 +196,13 @@ Polymer({
 		let svg = d3.select($.map);
 		let inner = svg.select("g");
 
-		let g = new dagreD3.graphlib.Graph().setGraph({});
+		let g = this.graph = new dagreD3.graphlib.Graph().setGraph({});
 
 		for (let room of nodes) {
 			let classes = [class_for_room(room.id)];
 			if (room.fake)
 				classes.push("fake");
-			if (room.id == G.world.data.settings.entrypoint)
+			if (room.id == this.world.data.settings.entrypoint)
 				classes.push("entrypoint");
 
 			g.setNode(room.id,
@@ -204,9 +229,7 @@ Polymer({
 
 		let onClick = (d, i) => {
 			let node = d3.select("." + class_for_room(d))[0][0];
-			console.log(node);
-			$.dropdown.positionTarget = node;
-			$.dropdown.open();
+			this.fire("room-click", d);
 		};
 		svg.selectAll(".node rect").on("click", onClick);
 		svg.selectAll(".node tspan").on("click", onClick);
@@ -214,51 +237,35 @@ Polymer({
 		/* If this is the first time the map has been shown, set up the zoom/drag
 		 * behaviours and centre it. */
 
-		if (!this.drawn) {
-			let zoom = d3.behavior.zoom().on("zoom",
-				() => inner.attr(
-					"transform", "translate(" + d3.event.translate + ")" +
-						"scale(" + d3.event.scale + ")")
-			);
-			svg.call(zoom);
-
-			let scale = 0.75;
-			let width = $.mapContainer.offsetWidth;
-			let height = $.mapContainer.offsetHeight;
-			zoom
-				.translate([
-					(width - g.graph().width * scale) / 2,
-					(height - g.graph().height * scale) / 2
-				])
-				.scale(scale)
-				.event(svg);
-		}
+		if (rezoom)
+			this._onZoomToFit();
 
 		this.drawn = true;
 	},
 
-	onOpenClose: function(opened) {
+	_onZoomToFit: function() {
 		let $ = this.$;
+		let svg = d3.select($.map);
+		let inner = svg.select("g");
 
-		if (opened) {
-			/* This is some horrible, horrible, horrible code which waits until
-			 * the map container gets sized. I haven't found a sane, portable
-			 * way of doing this more cleanly. */
+		d3.select($.map).on(".zoom", null);
+		let zoom = d3.behavior.zoom().on("zoom",
+			() => inner.attr(
+				"transform", "translate(" + d3.event.translate + ")" +
+					"scale(" + d3.event.scale + ")")
+		);
+		svg.call(zoom);
 
-			let f = () => {
-				if ($.mapContainer.offsetWidth > 0)
-					this.updateMap();
-				else {
-					console.log("waiting for map sizing...");
-					setTimeout(f, 10);
-				}
-			};
-			f();
-		} else {
-			d3.select(this.$.map).on(".zoom", null);
-			this.drawn = false;
-		}
-		console.log("map opened = ", opened);
+		let scale = 0.75;
+		let width = this.offsetWidth;
+		let height = this.offsetHeight;
+		zoom
+			.translate([
+				(width - this.graph.graph().width * scale) / 2,
+				(height - this.graph.graph().height * scale) / 2
+			])
+			.scale(scale)
+			.event(svg);
 	},
 });
 

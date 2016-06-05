@@ -1,20 +1,20 @@
 <link href="https://fonts.googleapis.com/css?family=Merriweather:400,400italic,700,700italic" rel="stylesheet" type="text/css">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../bower_components/iron-icons/social-icons.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/neon-animation/neon-animatable.html">
+<link rel="import" href="../bower_components/neon-animation/neon-animated-pages.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
-<link rel="import" href="../bower_components/neon-animation/neon-animated-pages.html">
-<link rel="import" href="../bower_components/neon-animation/neon-animatable.html">
 <link rel="import" href="ts-confirmation.html">
 <link rel="import" href="ts-create.html">
 <link rel="import" href="ts-editor.html">
 <link rel="import" href="ts-game-page.html">
 <link rel="import" href="ts-game-settings.html">
 <link rel="import" href="ts-globals.html">
-<link rel="import" href="ts-map.html">
+<link rel="import" href="ts-ide.html">
 <link rel="import" href="ts-transcript.html">
 <link rel="import" href="ts-user-preferences.html">
 <link rel="import" href="ts-welcome.html">
@@ -94,11 +94,6 @@
 	<ts-editor id="editor" modal="true" class="big-dialogue"
 		></ts-editor>
 
-	<ts-map id="map" modal="true" class="big-dialogue"
-		on-edit-request="onEditRequest"
-		>
-	</ts-map>
-
 	<ts-create id="createDialogue"
 		modal="true"
 		>
@@ -140,6 +135,9 @@
 			is-single-player="{{isSinglePlayer}}"
 			></ts-game-page>
 
+		<ts-ide id="ide"
+			world="{{world}}"
+			></ts-ide>
 	</iron-pages>
 </template>
 <script>
@@ -172,7 +170,8 @@ Polymer({
 	},
 	observers: [
 		"_computeViewAndDocument(routeData, routeWellFormed, world)",
-		"_worldChanged(world)",
+		"_worldValidityChanged(world.valid)",
+		"_playerLocationChanged(world.valid, world.player.location)",
 	],
 
 	ready: function() {
@@ -248,11 +247,11 @@ Polymer({
 		);
 	},
 
-	_worldChanged: function(world) {
-		if (world == null)
-			this._onLogout();
-		else
+	_worldValidityChanged: function(valid) {
+		if (valid)
 			this._onLogin();
+		else
+			this._onLogout();
 	},
 
 	_onLogout: function() {
@@ -260,29 +259,27 @@ Polymer({
 	},
 
 	_onLogin: function() {
-		console.log("login");
-
-		console.log(`This game is ${this.world.isSinglePlayer ? "single player" : "multi player"}`);
-
-		console.log(`I am ${this.world.isAuthor ? "the author" : "not the author"}`);
-
-		let $ = this.$;
 		let world = this.world;
 
-		G.player = world.player;
-		console.log("my usename is", G.player.name);
+		console.log("login");
 
-		G.player.location.tellOthers(G.player, `${G.player.name} teleports in.`);
+		console.log(`This game is ${world.isSinglePlayer ? "single player" : "multi player"}`);
+
+		console.log(`I am ${world.isAuthor ? "the author" : "not the author"}`);
+
+		console.log("my usename is", world.player.name);
+
+		world.player.location.tellOthers(world.player, `${world.player.name} teleports in.`);
 	},
 
-	_onPlayerLocationChanged: function(e) {
-		let oldRoom = e.oldValue ? this.world.rooms.get(e.oldValue) : null;
-		let newRoom = this.world.player.location;
+	_playerLocationChanged: function(valid, newRoom) {
+		if (!valid || (newRoom == null))
+			return;
 
 		/* If this is a bad room name, put the player back at the entrypoint. */
 
 		if (!newRoom.exists) {
-			this.onHyperspaceJump(null, oldRoom);
+			this.onHyperspaceJump(null);
 			return;
 		}
 

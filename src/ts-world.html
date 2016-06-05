@@ -1,8 +1,9 @@
-<link rel="import" href="ts-globals.html">
 <link rel="import" href="ts-auth.html">
-<link rel="import" href="ts-raw-world.html">
-<link rel="import" href="ts-raw-hub.html">
+<link rel="import" href="ts-globals.html">
+<link rel="import" href="ts-grt-binding.html">
 <link rel="import" href="ts-parser.html">
+<link rel="import" href="ts-raw-hub.html">
+<link rel="import" href="ts-raw-world.html">
 
 <dom-module id="ts-world">
 <template>
@@ -24,22 +25,29 @@
 
 	<ts-raw-world id="rawWorld"
 		mime-type="{{G.mimeType}}"
-		realtime="{{documentRt}}"
-		data="{{documentData}}"
-		md5-checksum="{{md5Checksum}}"
-		is-author="{{isAuthor}}"
+		realtime="{{world.documentRt}}"
+		data="{{world.data}}"
+		md5-checksum="{{world.md5Checksum}}"
+		is-author="{{world.isAuthor}}"
 		>
 	</ts-raw-world>
 
 	<ts-raw-hub id="rawHub"
-		realtime="{{hubRt}}"
+		realtime="{{world.hubRt}}"
 		>
 	</ts-raw-hub>
 
 	<ts-parser id="parser"
+		world="{{world}}"
 		>
-	</ts-rooms>
+	</ts-parser>
 
+	<ts-grt-binding
+		rt="{{world.documentRt}}"
+		node="{{_calculatePendingRoomsNode(world.documentRt)}}"
+		value="{{world.pendingRoomDescriptions}}"
+		>
+	</ts-grt-binding>
 </template>
 <script>
 (function () {
@@ -263,7 +271,7 @@ class RoomCache {
 
 	getAll() {
 		let rooms = [];
-		for (let id in this._world.data.rooms) {
+		for (let id of Object.keys(this._world.data.rooms).sort()) {
 			rooms.push(this.get(id));
 		}
 		return rooms;
@@ -289,138 +297,165 @@ Polymer({
 		G: Object,
 		authenticated: Boolean,
 		documentId: String,
-		isAuthor: Boolean,
-		md5Checksum: String,
-		documentData: Object,
-		documentRt: Object,
-		hubRt: Object,
 
 		world: {
 			type: Object,
 			notify: true,
 			value: {
-				valid: false,
-			}
+				valid: false
+			},
 		}
 	},
 	observers: [
 		"_authChanged(authenticated, documentId)",
-		"_documentDataChanged(documentData)",
-		"_hubRtChanged(documentId, documentData, documentRt, hubRt)",
+		"_documentDataChanged(world.data)",
+		"_updateHubNode(documentId, world.hubRt)",
+		"_updateIsInGoogleDrive(world.hubRt)",
+		"_updateRoomsNode(world.hubRt, world.hub)",
+		"_updatePlayer(world.hub, world.hubRt, world.data)",
+		"_updateValidity(world.player, world.data, world.rooms)",
+		"_updatePlayerLocationTracking(world.valid)",
 	],
+
+	_calculatePendingRoomsNode: function(documentRt) {
+		return (documentRt != null)
+			? ensureMap(documentRt, documentRt.getModel().getRoot(), "rooms")
+			: null;
+	},
 
 	_authChanged: function(authenticated, documentId) {
 		this.set("world.authenticated", authenticated);
 		this.$.rawWorld.documentId = authenticated ? documentId : null;
 	},
 
-	_documentDataChanged: function(documentData) {
-		this.$.rawHub.hubId = documentData ? documentData.settings.hubId : null;
-		this.set("world.data", documentData);
+	_documentDataChanged: function(data) {
+		this.$.rawHub.hubId = (data != null) ? data.settings.hubId : null;
 	},
 
 	ready: function() {
 		this._playerRoomQueue = null;
 	},
 
-	_hubRtChanged: function(documentId, documentData, documentRt, hubRt) {
-		let $ = this.$;
-		if ((documentId == null) ||
-		    (documentData == null) ||
-	        (documentRt == null) ||
-			(hubRt == null)) {
-			if (this._playerRoomQueue) {
-				this._playerRoomQueue.detach();
-				this._playerRoomQueue = null;
-			}
-			this.world = null;
-		} else {
-			console.log("updating hub");
-			console.log("world md5", this.md5Checksum);
-
-			let world = {
-				md5Checksum: this.md5Checksum,
-				isAuthor: this.isAuthor,
-				singlePlayer: !hubRt.isInGoogleDrive,
-				data: documentData,
-				documentRt: documentRt,
-				hubRt: hubRt,
-				pending: ensureMap(documentRt, documentRt.getModel().getRoot(), "rooms"),
-			};
-
+	_updateHubNode: function(documentId, hubRt) {
+		let hub = null;
+		if ((documentId != null) && (hubRt != null)) {
 			let hubs = ensureMap(hubRt, hubRt.getModel().getRoot(), "hub");
-			let hub = world.hub = ensureMap(hubRt, hubs, documentId);
-			world.roomsNode = ensureMap(hubRt, hub, "rooms");
+			hub = ensureMap(hubRt, hubs, documentId);
+		} 
+		this.set("world.hub", hub);
+	},
 
-			let worldProperties = this.worldProperties = ensureMap(hubRt, hub, "worldProperties");
-			worldProperties.addEventListener(
-				gapi.drive.realtime.EventType.VALUE_CHANGED,
-				(e) => {
-					switch (e.property) {
-						case "md5Checksum":
-							console.log("md5 changed", e.newValue);
-							this.fire("new-world-available");
-							break;
-					}
-				}
-			);
+	_updateIsInGoogleDrive: function(hubRt) {
+		let isInGoogleDrive = false;
+		if (hubRt != null)
+			isInGoogleDrive = !hubRt.isInGoogleDrive;
+		this.set("world.singlePlayer", isInGoogleDrive);
 
+	},
+
+	_updateWorldPropertiesNode: function(hubRt, hub) {
+		let node = null;
+		if (hubRt != null)
+			node = ensureMap(hubRt, hub, "worldProperties");
+		this.set("world.worldPropertiesNode", node);
+	},
+
+	_updateRoomsNode: function(hubRt, hub) {
+		let roomsNode = null;
+		if ((hubRt != null) && (hub != null))
+			roomsNode = ensureMap(hubRt, hub, "rooms");
+		this.set("world.roomsNode", roomsNode);
+	},
+
+	_updatePlayer: function(hub, hubRt, data) {
+		let $ = this.$;
+		let rooms = null;
+		let player = null;
+
+		if ((hub != null) || (hubRt != null) || (data != null)) {
 			let myself = getMyself(hubRt);
 			let playersNode = ensureMap(hubRt, hub, "player");
 			let playerNode = ensureMap(hubRt, playersNode, myself.userId);
+				
+			rooms = new RoomCache(this, this.world, $.parser);
 
-			world.rooms = new RoomCache(this, world, $.parser);
-			world.player = new Player(this, world, playerNode, myself.userId);
-			if (!world.player.name)
-				world.player.name = myself.displayName;
-
-			this.world = world;
-			this._initPlayerLocationTracking(world, playerNode);
+			player = new Player(this, this.world, playerNode, myself.userId);
+			if (!player.name)
+				player.name = myself.displayName;
 		}
+		this.set("world.rooms", rooms);
+		this.set("world.player", player);
 	},
 
-	_initPlayerLocationTracking: function(world, playerNode) {
-		if (!world.player.location)
-		{
-			let entrypoint = world.data.settings.entrypoint;
-			world.player.location = world.rooms.get(entrypoint);
+//		let $ = this.$
+//
+//			let worldProperties = this.worldProperties = ensureMap(hubRt, hub, "worldProperties");
+//			worldProperties.addEventListener(
+//				gapi.drive.realtime.EventType.VALUE_CHANGED,
+//				(e) => {
+//					switch (e.property) {
+//						case "md5Checksum":
+//							console.log("md5 changed", e.newValue);
+//							this.fire("new-world-available");
+//							break;
+//					}
+//				}
+//			);
+//
+//
+//
+//			this.world = world;
+//		}
+//	},
+
+	_updateValidity(player, data, rooms) {
+		let valid = (player != null) && (data != null) && (rooms != null);
+
+		if (valid) {
+			if (!player.location) {
+				let entrypoint = world.data.settings.entrypoint;
+				this.set("world.player.location", world.rooms.get(entrypoint));
+			}
 		}
 
-		playerNode.addEventListener(
+		this.set("world.valid", valid);
+	},
+
+	_updatePlayerLocationTracking: function(valid) {
+		if (!valid)
+			return;
+
+		let world = this.world;
+
+		let location_changed = (e) => {
+			if (this._playerRoomMessageQueue != null)
+				this._playerRoomMessageQueue.detach();
+
+			this.fire("player-location-changed", e);
+
+			this._playerRoomMessageQueue = new MessageQueue(
+				world.hubRt,
+				ensureList(world.hubRt, world.roomsNode, e.newValue),
+				(e) => {
+					this.fire("player-room-event", e);
+				}
+			);
+		};
+
+		world.player.node.addEventListener(
 			gapi.drive.realtime.EventType.VALUE_CHANGED,
 			(e) => {
 				if (e.oldValue == e.newValue)
 					return;
 
 				switch (e.property) {
-					case "location": return this._onPlayerLocationChanged(world, e);
+					case "location":
+						location_changed(e);
+						break;
 				}
 			}
 		);
-
-		this._onPlayerLocationChanged(world,
-			{
-				oldValue: null,
-				newValue: world.player.location.id
-			}
-		);
 	},
-
-	_onPlayerLocationChanged(world, e) {
-		if (this._playerRoomMessageQueue)
-			this._playerRoomMessageQueue.detach();
-
-		this.fire("player-location-changed", e);
-
-		this._playerRoomMessageQueue = new MessageQueue(
-			world.hubRt,
-			ensureList(world.hubRt, world.roomsNode, e.newValue),
-			(e) => {
-				this.fire("player-room-event", e);
-			}
-		);
-	}
-
 });
 
 })()

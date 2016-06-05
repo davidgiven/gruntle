@@ -3,6 +3,24 @@
 (function () {
 "use strict";
 
+let NODE = Symbol();
+
+class Reference {
+	constructor(obj, key, path) {
+		this.obj = obj;
+		this.key = key;
+		this.path = path;
+	}
+
+	get value() {
+		return this.obj[this.key];
+	}
+
+	set value(v) {
+		this.obj[this.key] = v;
+	}
+}
+
 Polymer({
 	is: "ts-grt-binding",
 	properties: {
@@ -10,46 +28,74 @@ Polymer({
 			type: Object,
 			observer: "_onNodeChange"
 		},
-		property: {
-			type: String,
-			observer: "_forceRead"
-		},
 		value: {
-			type: String,
-			observer: "_onValueChange",
+			type: Object,
 			notify: true
 		},
 	},
+	observers: [
+		"_onValueChange(value.*)"
+	],
 
 	ready: function() {
 		this._handler = (e) => {
-			if (e.property == this.property) {
-				this.value = e.newValue;
-			}
+			let ref = this._idcache[e.target.id];
+			console.log("rt->p", e, ref.path);
+			this._rtToP(e.target, ref);
+
+			this.notifyPath(ref.path, ref.value);
+
+			//if (e.property == this.property) {
+			//	this.value = e.newValue;
+			//}
 		};
+
+		this._idcache = {};
+	},
+
+	_rtToP: function(node, ref) {
+		this._idcache[node.id] = ref;
+		this._idcache[ref.path] = node;
+
+		let value = null;
+		switch (node.type) {
+			case gapi.drive.realtime.CollaborativeTypes.COLLABORATIVE_MAP: {
+				value = {};
+				for (let k of node.keys()) {
+					let v = node.get(k);
+					this._rtToP(v, new Reference(value, k, ref.path + "." + k));
+				}
+				break;
+			}
+
+			case gapi.drive.realtime.CollaborativeTypes.COLLABORATIVE_STRING: {
+				value = node.text;
+				break;
+			}
+
+			default:
+				throw "unknown node type "+node.type;
+		}
+
+		ref.value = value;
 	},
 
 	_forceRead: function() {
-		if ((this.node != null) && (this.property != null))
-			this._handler(
-				{
-					property: this.property,
-					newValue: this.node.get(this.property)
-				}
-			);
+		if (this.node != null)
+			this._rtToP(this.node, new Reference(this, "value", "value"));
 	},
 
 	_onNodeChange: function(n, o) {
 		if (o != null) {
 			o.removeEventListener(
-				gapi.drive.realtime.EventType.VALUE_CHANGED,
+				gapi.drive.realtime.EventType.OBJECT_CHANGED,
 				this._handler
 			);
 		}
 
 		if (n != null) {
 			n.addEventListener(
-				gapi.drive.realtime.EventType.VALUE_CHANGED,
+				gapi.drive.realtime.EventType.OBJECT_CHANGED,
 				this._handler
 			);
 			this._forceRead();
@@ -57,9 +103,24 @@ Polymer({
 		
 	},
 
-	_onValueChange: function(n, o) {
-		if ((this.node != null) && (this.property != null))
-			this.node.set(this.property, n);
+	_onValueChange: function(value) {
+		if ((value == null) || (value.path == "value"))
+			return;
+
+		console.log("p->rt", value);
+
+		let node = this._idcache[value.path];
+		if (node == null)
+			throw `unknown path '${value.path}'`;
+
+		switch (node.type) {
+			case gapi.drive.realtime.CollaborativeTypes.COLLABORATIVE_STRING:
+				node.text = value.value;
+				break;
+
+			default:
+				throw `path '${value.path}' isn't a string`;
+		}
 	},
 });
 

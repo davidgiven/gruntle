@@ -7,7 +7,6 @@
 	}
 </style>
 <template>
-	<ts-globals id="globals"></ts-globals>
 </template>
 <script>
 (function () {
@@ -16,7 +15,7 @@
 let G;
 
 class ParsedText {
-	constructor(source, handler) {
+	constructor(world, source, handler) {
 		let dom = document.createElement("div");
 		let choices = [];
 		let exits = [];
@@ -68,7 +67,7 @@ class ParsedText {
 				(_, varname) => {
 					switch (varname) {
 						case 'name':
-							return G.player.name;
+							return world.player.name;
 
 						default:
 							return `[unrecognised variable '${varname}']`;
@@ -176,13 +175,15 @@ class ParsedText {
 
 Polymer({
 	is: "ts-parser",
+	properties: {
+		world: Object,
+	},
 
 	ready: function() {
-		G = this.$.globals.G;
 	},
 
 	parse: function(text, handler) {
-		return new ParsedText(text, handler);
+		return new ParsedText(this.world, text, handler);
 	},
 
 	startWatching: function(world) {
