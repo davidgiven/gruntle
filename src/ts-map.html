@@ -129,14 +129,19 @@ Polymer({
 		 * the map container gets sized. I haven't found a sane, portable
 		 * way of doing this more cleanly. */
 
+		let count = 0;
 		let f = () => {
 			if (this.offsetWidth > 0) {
 				this.realWidth = this.offsetWidth;
 				this.realHeight = this.offsetHeight;
 			}
 			else {
-				console.log("waiting for map sizing...");
-				setTimeout(f, 10);
+				if (count < 10) {
+					console.log("waiting for map sizing...");
+					count++;
+					setTimeout(f, 10);
+				} else
+					console.log("giving up on map sizing, probably not visible");
 			}
 		};
 		f();

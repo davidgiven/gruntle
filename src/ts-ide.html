@@ -116,7 +116,7 @@
 				id="page"
 				class="flex"
 				attr-for-selected="id"
-				selected="map"
+				selected="{{selectedPage}}"
 				>
 				<ts-map id="map"
 					world="{{world}}"
@@ -157,7 +157,16 @@ let G;
 
 Polymer({
 	is: "ts-ide",
+	properties: {
+		selectedPage: {
+			type: String,
+			value: "map",
+		},
+	},
 	behaviors: [
+	],
+	observers: [
+		"_forceMapResize(selectedPage)",
 	],
 
 	_onToggleDrawer: function() {
@@ -174,12 +183,18 @@ Polymer({
 			: [];
 	},
 
+	_forceMapResize: function(selectedPage) {
+		let $ = this.$;
+		if (selectedPage == "map")
+			$.map.fire("iron-resize");
+	},
+
 	_onMapButton: function() {
-		this.$.page.selected = "map";
+		this.selectedPage = "map";
 	},
 
 	_onRoomButton: function() {
-		this.$.page.selected = "editor";
+		this.selectedPage = "editor";
 	},
 
 	_onMapClick: function(e, room) {
